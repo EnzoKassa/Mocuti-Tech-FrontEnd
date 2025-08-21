@@ -35,3 +35,5 @@ export function formatCep(cep) {
 export function formatEmail(email) {
   return email ? email.trim() : '';
 };
+
+// para importar: import { formatNomeCompleto, formatCpf, formatTelefone, formatCep, formatEmail } from '../utils/formatUtils';
