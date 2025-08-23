@@ -1,22 +1,31 @@
 import { useEffect, useState } from 'react'
-import api from '../api/api'
 
 function CanalComunicacao() {
   const [canalComunicacao, setCanalComunicacao] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    api.get('/canal-comunicacao') // exemplo: endpoint do seu backend
-      .then((res) => {
-        setCanalComunicacao(res.data)
-      })
-      .catch((err) => {
-        console.error('Erro ao buscar canal de comunicação:', err)
-      })
-      .finally(() => setLoading(false))
+    async function fetchCanalComunicacao() {
+      try {
+        const response = await fetch("http://localhost:8080/canal-comunicacao") // endpoint do backend
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar Canal Comunicacao: ${response.status}`)
+        }
+        const data = await response.json()
+        setCanalComunicacao(data)
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCanalComunicacao()
   }, [])
 
   if (loading) return <p>Carregando...</p>
+  if (error) return <p>Erro: {error}</p>
 
   return (
     <div>
