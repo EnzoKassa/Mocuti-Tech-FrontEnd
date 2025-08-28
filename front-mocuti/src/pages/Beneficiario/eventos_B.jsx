@@ -5,8 +5,6 @@ import image3 from "../../assets/images/image3.png";
 // import frame from "../../assets/images/frame";
 // import PersonIcon from "../../assets/images/search";
 
-
-
 const EventoBeneficiario = () => {
   const [eventos, setEventos] = useState([]);
   const [enderecos, setEnderecos] = useState([]);
