@@ -3,7 +3,7 @@ export function formatNomeCompleto(nome) {
     return nome
         .split(' ') //Transforma a palavra em um array
         .map(word => {
-            if (word.length <= 2) {
+            if (word.length <= 3) {
                 return word.toLowerCase(); // palavras curtas ficam minúsculas
             }
             return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(); // palavras maiores capitalizam
