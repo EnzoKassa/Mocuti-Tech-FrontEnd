@@ -6,6 +6,7 @@ import Eventos from './pages/Beneficiario/eventos'
 // import LandingPage from './pages/landingPage'
 import FiltroEventos from "./components/filter/FilterEvento";
 import FiltroCategoria from "./components/filter/FilterCategoria";
+import FiltroStatus from "./components/filter/FilterStatusEvento";
 
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path="/eventos" element={<Eventos />} />
         <Route path="/filtro" element={<FiltroEventos />} /> 
         <Route path="/filtro-categoria" element={<FiltroCategoria />} /> 
+        <Route path="/filtro-status" element={<FiltroStatus />} />
 
 
       </Routes>
