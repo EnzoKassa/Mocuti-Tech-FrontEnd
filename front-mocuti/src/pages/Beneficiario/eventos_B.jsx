@@ -7,6 +7,15 @@ const EventoBeneficiario = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  /**
+ * ENDPOINTS
+ * - GET: http://localhost:8080/eventos
+ * - filtros
+ * 
+ * MODAL
+ * - GET: http://localhost:8080/eventos/:idEvento
+ */
+
   useEffect(() => {
     async function fetchEventos() {
       try {
