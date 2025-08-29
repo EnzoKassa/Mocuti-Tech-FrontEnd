@@ -1,7 +1,7 @@
 import './App.css'
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Eventos from './pages/Beneficiario/eventos'
+import Eventos from './pages/Beneficiario/eventos_B'
 // import CanalComunicacao from './pages/canalComunicacao'
 // import LandingPage from './pages/landingPage'
 import FiltroEventos from "./components/filter/FilterEvento";

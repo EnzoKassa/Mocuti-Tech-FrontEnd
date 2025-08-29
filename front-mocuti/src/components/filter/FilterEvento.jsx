@@ -33,7 +33,7 @@ export default function FiltroEventos() {
             if (dataInicio) params.append("dataInicio", dataInicio);
             if (dataFim) params.append("dataFim", dataFim);
 
-            const response = await fetch(`http://localhost:8080/eventos?${params.toString()}`);
+            const response = await fetch(`http://localhost:8080/eventos/por-eventos?${params.toString()}`);
             if (!response.ok) throw new Error("Erro ao buscar eventos");
 
             const data = await response.json();
