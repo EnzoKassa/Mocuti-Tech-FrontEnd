@@ -1,9 +1,36 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
 }
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  
+  font-family: 'Montserrat', sans-serif; 
+
+  background-color: #f7f8fc;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  max-width: 100%;
+  margin: 0 auto;
+  
+}
+
+ body {
+      overflow: hidden;
+      overflow-y: hidden;
+      background-color: #f7f8fc;
+    }
+
+    
 
 .logo {
   height: 6em;
