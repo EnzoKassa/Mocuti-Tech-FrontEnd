@@ -1,10 +1,40 @@
 import { useState } from 'react';
 import '../styles/Cadastro.css';
+import { useNavigate } from 'react-router-dom';
+import { formatNomeCompleto, formatCpf, formatTelefone, formatCep, formatEmail } from '../utils/formatUtils';
 
 function Cadastro() {
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [fontSize, setFontSize] = useState(16);
+  const navigate = useNavigate();
+
+  const handleInputChange = (field, value) => {
+    let formattedValue = value;
+
+    switch (field) {
+      case 'nomeCompleto':
+        formattedValue = formatNomeCompleto(value);
+        break;
+      case 'cpf':
+        formattedValue = formatCpf(value);
+        break;
+      case 'telefone':
+        formattedValue = formatTelefone(value);
+        break;
+      case 'cep':
+        formattedValue = formatCep(value);
+        break;
+      case 'email':
+        formattedValue = formatEmail(value);
+        break;
+      default:
+        formattedValue = value;
+    }
+
+    setFormData(prev => ({ ...prev, [field]: formattedValue }));
+  };
+
 
   const [formData, setFormData] = useState({
     nomeCompleto: '',
@@ -29,35 +59,35 @@ function Cadastro() {
   const [errors, setErrors] = useState({});
 
   // Atualizar campos com máscaras
-  const handleInputChange = (field, value) => {
-    let formattedValue = value;
+  // const handleInputChange = (field, value) => {
+  //   let formattedValue = value;
 
-    if (field === 'cpf') {
-      formattedValue = value
-        .replace(/\D/g, '')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
-        .slice(0, 14);
-    }
+  //   if (field === 'cpf') {
+  //     formattedValue = value
+  //       .replace(/\D/g, '')
+  //       .replace(/(\d{3})(\d)/, '$1.$2')
+  //       .replace(/(\d{3})(\d)/, '$1.$2')
+  //       .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+  //       .slice(0, 14);
+  //   }
 
-    if (field === 'telefone') {
-      formattedValue = value
-        .replace(/\D/g, '')
-        .replace(/^(\d{2})(\d)/g, '($1) $2')
-        .replace(/(\d{5})(\d)/, '$1-$2')
-        .slice(0, 15);
-    }
+  //   if (field === 'telefone') {
+  //     formattedValue = value
+  //       .replace(/\D/g, '')
+  //       .replace(/^(\d{2})(\d)/g, '($1) $2')
+  //       .replace(/(\d{5})(\d)/, '$1-$2')
+  //       .slice(0, 15);
+  //   }
 
-    if (field === 'cep') {
-      formattedValue = value
-        .replace(/\D/g, '')
-        .replace(/^(\d{5})(\d)/, '$1-$2')
-        .slice(0, 9);
-    }
+  //   if (field === 'cep') {
+  //     formattedValue = value
+  //       .replace(/\D/g, '')
+  //       .replace(/^(\d{5})(\d)/, '$1-$2')
+  //       .slice(0, 9);
+  //   }
 
-    setFormData(prev => ({ ...prev, [field]: formattedValue }));
-  };
+  //   setFormData(prev => ({ ...prev, [field]: formattedValue }));
+  // };
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const increaseFontSize = () => setFontSize(prev => Math.min(prev + 2, 24));
@@ -144,6 +174,8 @@ function Cadastro() {
 
       if (!res.ok) throw new Error("Erro ao cadastrar usuário");
       alert("Cadastro realizado com sucesso!");
+
+      navigate('/login');
     } catch (err) {
       console.error(err);
       alert("Erro ao cadastrar usuário.");
@@ -315,7 +347,7 @@ function Cadastro() {
 
           <div className="login-link-container">
             <span className="login-text">Já tem uma conta? </span>
-            <button type="button" onClick={() => window.location.href = '/Login'} className="login-link">Faça login aqui</button>
+            <button type="button" onClick={() => navigate('/login')} className="login-link">Faça login aqui</button>
           </div>
         </div>
       </div>

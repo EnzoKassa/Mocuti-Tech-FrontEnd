@@ -3,7 +3,7 @@ export function formatNomeCompleto(nome) {
     return nome
         .split(' ') //Transforma a palavra em um array
         .map(word => {
-            if (word.length <= 3) {
+            if (word.length <= 2) {
                 return word.toLowerCase(); // palavras curtas ficam minúsculas
             }
             return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(); // palavras maiores capitalizam
@@ -35,5 +35,11 @@ export function formatCep(cep) {
 export function formatEmail(email) {
   return email ? email.trim() : '';
 };
+
+console.log(formatNomeCompleto("joao da silva")); // "Joao da Silva"
+console.log(formatCpf("12345678901"));           // "123.456.789-01"
+console.log(formatTelefone("11987654321"));      // "(11) 98765-4321"
+console.log(formatCep("12345678"));              // "12345-678"
+console.log(formatEmail("   teste@email.com "))
 
 // para importar: import { formatNomeCompleto, formatCpf, formatTelefone, formatCep, formatEmail } from '../utils/formatUtils';
