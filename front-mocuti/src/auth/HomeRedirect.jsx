@@ -19,13 +19,13 @@ const HomeRedirect = () => {
           navigate("/usuario/eventos");
           break;
         default:
-          navigate("/login");
+          navigate("/");
       }
     }
   }, [user, navigate]);
 
   // Se não tiver usuário logado, deixa na home
-  return <h1>Bem-vindo! Faça login para continuar.</h1>;
+return null;
 };
 
 export default HomeRedirect;

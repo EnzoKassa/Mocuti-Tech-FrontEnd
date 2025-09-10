@@ -5,6 +5,7 @@ import PrivateRoute from "./auth/PrivateRoute";
 import DashboardRedirect from "./auth/HomeRedirect";
 
 // Rotas públicas
+import Home from "./pages/landingPage";
 import Cadastro from "./pages/cadastro";
 import Login from "./pages/login";
 
@@ -31,7 +32,7 @@ function App() {
       <Router>
         <Routes>
           {/* Redirecionamento inicial */}
-          <Route path="/" element={<DashboardRedirect />} />
+          <Route path="/" element={<Home />} />
 
           {/* Rotas públicas */}
           <Route path="/login" element={<Login />} />

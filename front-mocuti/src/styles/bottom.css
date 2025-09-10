@@ -1,0 +1,699 @@
+html {
+  scroll-behavior: smooth;
+}
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 99.2%;
+    height: auto;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+
+}
+
+.nav-box {
+
+    width: 100%;
+    height: 75px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    background-color: white;
+}
+
+.nav-endereco {
+    width: 45%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    gap: 0.5%;
+    align-items: center;
+    font-family: Montserrat;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.nav-contato {
+    width: 45%;
+    height: 75px;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    gap: 2%;
+    font-family: Montserrat;
+    font-size: 16px;
+    font-weight: 600;
+
+}
+
+.nav-home {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100vw;
+    height: auto;
+    position: fixed;
+    top: 0;
+    z-index: 1;
+}
+
+.botoes-cadastro-nav {
+    width: 9vw;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid transparent;
+    border: 2px solid #4FBD34;
+    border-radius: 0;
+    background-color: white;
+    text-align: center;
+    font-family: Montserrat;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    color: black;
+
+}
+
+.botoes-cadastro-nav:hover {
+    border: none;
+    border: 2px solid green;
+    transition: 0.2s ease-in-out;
+    border-radius: 5px;
+
+
+
+
+}
+
+
+.botoes-cadastro-nav-blue {
+    width: 9vw;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid transparent;
+    border: 2px solid #3DA5E1;
+    border-radius: 0;
+    background-color: #3DA5E1;
+    text-align: center;
+    font-family: Montserrat;
+    font-size: 16px;
+     text-decoration: none;
+    font-weight: 600;
+    color: black;
+
+}
+
+.botoes-cadastro-nav-blue:hover {
+    border: none;
+    border: 2px solid #3DA5E1;
+    transition: 0.2s ease-in-out;
+    border-radius: 5px;
+
+
+
+}
+
+.botoes-nav {
+    width: 11vw;
+    height: 50px;
+    margin-right: 3%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    background-color: white;
+    text-align: center;
+    text-decoration: none;
+    font-family: Montserrat;
+    font-size: 16px;
+    color: black;
+    font-weight: 600;
+     transition: all 0.3s ease;
+
+}
+
+/* Início */
+.btn-inicio {
+  border-bottom: 2px solid #4FBD34;
+}
+.btn-inicio:hover {
+  border: 2px solid #4FBD34;
+}
+
+/* Sobre Nós */
+.btn-sobre {
+  border-bottom: 2px solid #3DA5E1;
+}
+.btn-sobre:hover {
+  border: 2px solid #3DA5E1;
+}
+
+/* Linha do Tempo */
+.btn-linha {
+  border-bottom: 2px solid #FFBB00;
+}
+.btn-linha:hover {
+  border: 2px solid #FFBB00;
+}
+
+/* Eventos */
+.btn-eventos {
+  border-bottom: 2px solid #FF4848;
+}
+.btn-eventos:hover {
+  border: 2px solid #FF4848;
+}
+
+
+.quadradinho {
+    width: 20px;
+    height: 10px;
+    display: flex;
+}
+
+
+.nav-links {
+    height: 118px;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    flex-direction: row;
+    align-items: center;
+    background-color: #F5F5F5;
+}
+
+.nav-box-botoes {
+    width: 90%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.nav-box-logo {
+    width: 10%;
+    height: 100%;
+    justify-content: start;
+    flex-direction: row;
+    align-items: center;
+}
+
+.nav-box-cadastro {
+    width: 20%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: end;
+    gap: 5%;
+}
+
+.nav-links-botoes {
+    width: 70%;
+    height: 100%;
+    justify-content: end;
+    align-items: center;
+    flex-direction: row;
+    display: flex;
+
+}
+
+/* ----------------------------------- */
+
+.tela-inicio {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex-direction: row;
+    width: 100vw;
+    height: 100vh;
+  
+    background-size: cover;
+}
+
+.alinhar-esquerda-inicio {
+    width: 50%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: end;
+    flex-direction: column;
+
+}
+
+.box-texto-inicio {
+    width: 100%;
+    height: 60%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: rgba(255, 255, 255, 0.8);
+    filter: blur(0.5px);
+    border-radius: 0px 30px 0px 30px;
+    border: 2px solid #4FBD34;
+}
+
+.box-texto-inicio-title {
+    width: 90%;
+    height: 40%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+    padding: 5%;
+
+}
+
+.box-texto-inicio-title h1 {
+    font-family: Montserrat;
+    font-size: 48px;
+    font-weight: 800;
+    padding: 0;
+    margin: 0;
+
+}
+
+.box-texto-inicio-title h3 {
+    font-family: Montserrat;
+    font-size: 24px;
+    font-weight: 800;
+    padding: 0;
+
+}
+
+.box-texto-inicio-texto {
+    width: 90%;
+    height: 40%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+
+
+
+}
+
+.box-texto-inicio-texto p {
+    font-family: Montserrat;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+
+
+.box-alinharmento-texto-button {
+    width: 90%;
+    height: 70%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+
+    gap: 5%;
+}
+
+/* botao modificado */
+
+.btn-diferenciado {
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 300px;
+    /* largura do botão */
+    height: 60px;
+    /* altura do botão */
+    color: #fff;
+    text-decoration: none;
+    font-family: Montserrat;
+    font-size: 16px;
+    font-weight: 600;
+    background: #4FBD34;
+    clip-path: polygon(3% 0, 98% 0, 100% 52%, 98% 100%, 3% 100%, 0 45%);
+    border: 0px solid transparent;
+
+
+}
+
+.btn-diferenciado:hover {
+    background: #0b9b13;
+    transition: background-color 0.3s ease;
+}
+
+/* -------------------------------------------- */
+
+.sobre-nos {
+    width: 100vw;
+    height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.box-sobre-nos {
+    width: 80%;
+    height: 80%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: row;
+    gap: 5%;
+    background-color: white;
+}
+
+
+.box-sobre-nos-imagem {
+    width: 40%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.box-sobre-nos-left {
+    width: 45%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+}
+
+.box-sobre-nos-textos {
+    width: 100%;
+    height: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    flex-direction: column;
+
+}
+
+
+.box-sobre-nos-textos p {
+    font-family: Montserrat;
+    font-size: 16px;
+    font-weight: 400;
+
+}
+
+.box-sobre-nos-textos h1 {
+    font-family: Montserrat;
+    font-size: 32px;
+    font-weight: 800;
+
+}
+
+.box-sobre-nos-botoes {
+    width: 100%;
+    height: 20%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex-direction: row;
+
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+.linha-do-tempo {
+    height: 50vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.titulo-linha-do-tempo {
+    height: 30%;
+    width: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    align-items: center;
+}
+
+.titulo-linha-do-tempo h1 {
+    display: flex;
+    font-family: Montserrat;
+    font-size: 32px;
+    font-weight: 800;
+}
+
+.conteudo-linha-do-tempo {
+    height: 50%;
+    width: 80%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.top-linha-do-tempo {
+    height: 50%;
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+    width: 80%;
+    gap: 5%;
+
+}
+
+.low-linha-do-tempo {
+    height: 50%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: end;
+    width: 80%;
+    gap: 5%;
+}
+
+
+.botao-linha-do-tempo {
+    height: 20%;
+    width: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+}
+
+.item-linha-do-tempo {
+    width: 40%;
+    height: 90%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: start;
+    font-family: Montserrat;
+}
+
+
+.nossos-eventos {
+    height: 100vh;
+    width: 100vw;
+   
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.titulos-nossos-eventos {
+    height: 25%;
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.titulos-nossos-eventos h1 {
+    display: flex;
+    font-family: Montserrat;
+    font-size: 32px;
+    font-weight: 800;
+}
+
+
+.box-cards-nossos-eventos {
+    width: 100vw;
+    height: 50%;
+    display: flex;
+    flex-direction: row;
+    gap: 2vw;
+    align-items: center;
+    justify-content: center;
+    /* começa da esquerda */
+    overflow-x: auto;
+    /* scroll apenas na horizontal */
+    overflow-y: hidden;
+    /* impede scroll vertical */
+    white-space: nowrap;
+    /* garante tudo em uma linha */
+}
+
+.card-nossos-eventos {
+    flex: 0 0 auto;
+    /* mantém o tamanho fixo */
+    width: 30vw;
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+
+.box-img-card-eventos {
+    height: 80%;
+    width: 100%;
+}
+
+.box-img-card-eventos img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.titulo-card-eventos {
+    height: 20%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+}
+
+.titulo-card-eventos p {
+    font-size: 20px;
+    font-family: Montserrat;
+}
+
+.box-botao-nossos-eventos {
+    height: 20%;
+    width: 20vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.rodape {
+    height: 50vh;
+    width: 100vw;
+    background-color: #E2E2E2;
+    flex-direction: row;
+    display: flex;
+    justify-content: center;
+}
+
+.box-logo-rodape {
+    width: 25vw;
+    height: 100%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+
+}
+
+.form-rodape {
+    width: 33.3vw;
+    height: 100%;
+    flex-direction: column;
+    display: flex;
+    align-items: start;
+    gap: 2vh;
+    font-family: Montserrat;
+    justify-content: center;
+    font-weight: 600;
+
+
+
+}
+
+.box-links-rodape {
+    width: 25vw;
+    height: 100%;
+ 
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+    align-items: center;
+}
+
+.links {
+    width: 40%;
+    height: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: center;
+    text-decoration: none;
+
+    gap: 10%;
+
+   
+
+
+}
+
+
+.links a{
+      text-decoration: none;
+      color: black;
+      font-family: Montserrat;
+      
+}
+
+
+
+
+
+
+.botao-form {
+    height: 4vh;
+    width: 35%;
+    background-color: #4FBD34;
+    border: none;
+    display: flex;
+    align-self: center;
+    justify-self: center;
+    justify-content: center;
+    color: white;
+    align-items: center;
+    font-family: Montserrat;
+    font-weight: 600;
+
+}
+
+.Email {
+    border: none;
+    width: 100%;
+    height: 3vh;
+    display: flex;
+
+
+
+}
+
+.mensagem {
+    border: 0;
+    width: 100%;
+    height: 8vh;
+    display: flex;
+}
