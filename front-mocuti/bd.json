@@ -1,0 +1,462 @@
+{
+  "enderecos": [
+    {
+      "idEndereco": 1,
+      "cep": "12345678",
+      "logradouro": "Rua A",
+      "numero": 123,
+      "complemento": "Apto 101",
+      "uf": "SP",
+      "estado": "São Paulo",
+      "bairro": "Centro"
+    },
+    {
+      "idEndereco": 2,
+      "cep": "98765432",
+      "logradouro": "Rua B",
+      "numero": 456,
+      "complemento": "Apto 202",
+      "uf": "RJ",
+      "estado": "Rio de Janeiro",
+      "bairro": "Copacabana"
+    }
+  ],
+  "canalComunicacoes": [
+    {
+      "idCanalComunicacao": 1,
+      "tipo": "Email"
+    },
+    {
+      "idCanalComunicacao": 2,
+      "tipo": "WhatsApp"
+    },
+    {
+      "idCanalComunicacao": 3,
+      "tipo": "SMS"
+    }
+  ],
+  "cargos": [
+    {
+      "idCargo": 1,
+      "tipoCargo": "Administrador"
+    },
+    {
+      "idCargo": 2,
+      "tipoCargo": "Usuário"
+    },
+    {
+      "idCargo": 3,
+      "tipoCargo": "Moderador"
+    }
+  ],
+  "usuarios": [
+    {
+      "idUsuario": 1,
+      "nomeCompleto": "Beatriz Oliveira",
+      "CPF": "111.222.333-44",
+      "telefone": "(71) 91234-5678",
+      "email": "beatriz.oliveira@email.com",
+      "dtNasc": "1990-02-20",
+      "etnia": "amarelo",
+      "nacionalidade": "Brasileiro",
+      "genero": "Prefiro não identificar",
+      "senha": "senha015",
+      "isAtivo": true,
+      "dtCadastro": "2025-08-25",
+      "dtDesativacao": null,
+      "isAutenticado": false,
+      "cargo": {
+        "idCargo": 1,
+        "tipoCargo": "Administrador"
+      },
+      "endereco": {
+        "idEndereco": 1,
+        "cep": "12345678",
+        "logradouro": "Rua A",
+        "numero": 123,
+        "complemento": "Apto 101",
+        "uf": "SP",
+        "estado": "São Paulo",
+        "bairro": "Centro"
+      },
+      "canalComunicacao": {
+        "idCanalComunicacao": 1,
+        "tipo": "Email"
+      }
+    },
+    {
+      "idUsuario": 2,
+      "nomeCompleto": "Camila Santos",
+      "CPF": "222.333.444-55",
+      "telefone": "(81) 98765-4321",
+      "email": "camila.santos@email.com",
+      "dtNasc": "1994-08-15",
+      "etnia": "Pardo",
+      "nacionalidade": "Boliviano",
+      "genero": "Feminino",
+      "senha": "senha016",
+      "isAtivo": true,
+      "dtCadastro": "2025-08-25",
+      "dtDesativacao": null,
+      "isAutenticado": false,
+      "cargo": {
+        "idCargo": 2,
+        "tipoCargo": "Usuário"
+      },
+      "endereco": {
+        "idEndereco": 2,
+        "cep": "98765432",
+        "logradouro": "Rua B",
+        "numero": 456,
+        "complemento": "Apto 202",
+        "uf": "RJ",
+        "estado": "Rio de Janeiro",
+        "bairro": "Copacabana"
+      },
+      "canalComunicacao": {
+        "idCanalComunicacao": 2,
+        "tipo": "WhatsApp"
+      }
+    }
+  ],
+  "statusEvento": [
+    {
+      "idStatusEvento": 1,
+      "situacao": "Aberto"
+    },
+    {
+      "idStatusEvento": 2,
+      "situacao": "Encerrado"
+    },
+    {
+      "idStatusEvento": 3,
+      "situacao": "Em andamento"
+    }
+  ],
+  "categorias": [
+    {
+      "idCategoria": 1,
+      "nome": "Palestra",
+      "descricao": "Palestras tematicas com power point"
+    },
+    {
+      "idCategoria": 2,
+      "nome": "Doação",
+      "descricao": "Evento de doação de roupas e/ou brinquedos"
+    },
+    {
+      "idCategoria": 3,
+      "nome": "Carnaval",
+      "descricao": "Comemoração carnaval"
+    },
+    {
+      "idCategoria": 4,
+      "nome": "Apadrinhamento",
+      "descricao": "Doação de brinquedos e roupas para crianças"
+    }
+  ],
+  "eventos": [
+    {
+      "idEvento": 1,
+      "nomeEvento": "Oficina de Pintura",
+      "descricao": "Aprenda técnicas básicas de pintura.",
+      "dia": "2025-06-15",
+      "horaInicio": "14:00:00",
+      "horaFim": "17:00:00",
+      "isAberto": true,
+      "qtdVaga": 30,
+      "qtdInteressado": 10,
+      "publicoAlvo": "Jovens",
+      "imagemUrl": "https://picsum.photos/200?random=1",
+      "statusEvento": {
+        "idStatusEvento": 1,
+        "situacao": "Aberto"
+      },
+      "categoria": {
+        "idCategoria": 1,
+        "nome": "Palestra"
+      },
+      "endereco": {
+        "idEndereco": 1,
+        "cep": "12345678",
+        "logradouro": "Rua A",
+        "numero": 123,
+        "complemento": "Apto 101",
+        "uf": "SP",
+        "estado": "São Paulo",
+        "bairro": "Centro"
+      }
+    },
+    {
+      "idEvento": 2,
+      "nomeEvento": "Torneio de Futsal",
+      "descricao": "Competição entre equipes locais.",
+      "dia": "2025-06-20",
+      "horaInicio": "09:00:00",
+      "horaFim": "12:00:00",
+      "isAberto": true,
+      "qtdVaga": 20,
+      "qtdInteressado": 5,
+      "publicoAlvo": "Crianças",
+      "imagemUrl": "https://picsum.photos/200?random=2",
+      "statusEvento": {
+        "idStatusEvento": 1,
+        "situacao": "Aberto"
+      },
+      "categoria": {
+        "idCategoria": 2,
+        "nome": "Doação"
+      },
+      "endereco": {
+        "idEndereco": 2,
+        "cep": "98765432",
+        "logradouro": "Rua B",
+        "numero": 456,
+        "complemento": "Apto 202",
+        "uf": "RJ",
+        "estado": "Rio de Janeiro",
+        "bairro": "Copacabana"
+      }
+    },
+    {
+      "idEvento": 3,
+      "nomeEvento": "Palestra sobre Meio Ambiente",
+      "descricao": "Discussão sobre sustentabilidade.",
+      "dia": "2025-07-10",
+      "horaInicio": "10:00:00",
+      "horaFim": "12:00:00",
+      "isAberto": true,
+      "qtdVaga": 50,
+      "qtdInteressado": 20,
+      "publicoAlvo": "Mulheres Negras",
+      "imagemUrl": "https://picsum.photos/200?random=3",
+      "statusEvento": {
+        "idStatusEvento": 1,
+        "situacao": "Aberto"
+      },
+      "categoria": {
+        "idCategoria": 3,
+        "nome": "Carnaval"
+      },
+      "endereco": {
+        "idEndereco": 2,
+        "cep": "98765432",
+        "logradouro": "Rua B",
+        "numero": 456,
+        "complemento": "Apto 202",
+        "uf": "RJ",
+        "estado": "Rio de Janeiro",
+        "bairro": "Copacabana"
+      }
+    },
+    {
+      "idEvento": 4,
+      "nomeEvento": "Doação de Roupas",
+      "descricao": "Ajude a comunidade doando roupas em bom estado.",
+      "dia": "2025-08-05",
+      "horaInicio": "10:00:00",
+      "horaFim": "15:00:00",
+      "isAberto": true,
+      "qtdVaga": 100,
+      "qtdInteressado": 40,
+      "publicoAlvo": "Famílias",
+      "imagemUrl": "https://picsum.photos/200?random=4",
+      "statusEvento": {
+        "idStatusEvento": 1,
+        "situacao": "Aberto"
+      },
+      "categoria": {
+        "idCategoria": 2,
+        "nome": "Doação"
+      },
+      "endereco": {
+        "idEndereco": 1,
+        "cep": "12345678",
+        "logradouro": "Rua A",
+        "numero": 123,
+        "complemento": "Apto 101",
+        "uf": "SP",
+        "estado": "São Paulo",
+        "bairro": "Centro"
+      }
+    },
+    {
+      "idEvento": 5,
+      "nomeEvento": "Carnaval Comunitário",
+      "descricao": "Comemoração de carnaval com música e dança.",
+      "dia": "2025-02-25",
+      "horaInicio": "16:00:00",
+      "horaFim": "22:00:00",
+      "isAberto": true,
+      "qtdVaga": 200,
+      "qtdInteressado": 120,
+      "publicoAlvo": "Todos",
+      "imagemUrl": "https://picsum.photos/200?random=5",
+      "statusEvento": {
+        "idStatusEvento": 1,
+        "situacao": "Aberto"
+      },
+      "categoria": {
+        "idCategoria": 3,
+        "nome": "Carnaval"
+      },
+      "endereco": {
+        "idEndereco": 2,
+        "cep": "98765432",
+        "logradouro": "Rua B",
+        "numero": 456,
+        "complemento": "Apto 202",
+        "uf": "RJ",
+        "estado": "Rio de Janeiro",
+        "bairro": "Copacabana"
+      }
+    },
+    {
+      "idEvento": 6,
+      "nomeEvento": "Workshop de Fotografia",
+      "descricao": "Aprenda técnicas de fotografia profissional.",
+      "dia": "2025-09-12",
+      "horaInicio": "13:00:00",
+      "horaFim": "17:00:00",
+      "isAberto": true,
+      "qtdVaga": 25,
+      "qtdInteressado": 15,
+      "publicoAlvo": "Jovens e Adultos",
+      "imagemUrl": "https://picsum.photos/200?random=6",
+      "statusEvento": {
+        "idStatusEvento": 1,
+        "situacao": "Aberto"
+      },
+      "categoria": {
+        "idCategoria": 1,
+        "nome": "Palestra"
+      },
+      "endereco": {
+        "idEndereco": 1,
+        "cep": "12345678",
+        "logradouro": "Rua A",
+        "numero": 123,
+        "complemento": "Apto 101",
+        "uf": "SP",
+        "estado": "São Paulo",
+        "bairro": "Centro"
+      }
+    }
+  ],
+  "statusInscricao": [
+    {
+      "idStatusInscricao": 1,
+      "tipoInscricao": "Pendente"
+    },
+    {
+      "idStatusInscricao": 2,
+      "tipoInscricao": "Confirmada"
+    },
+    {
+      "idStatusInscricao": 3,
+      "tipoInscricao": "Cancelada"
+    }
+  ],
+  "participacoes": [
+    {
+      "usuario": {
+        "idUsuario": 1,
+        "nomeCompleto": "Beatriz Oliveira"
+      },
+      "evento": {
+        "idEvento": 1,
+        "nomeEvento": "Oficina de Pintura"
+      },
+      "isInscrito": true,
+      "isPresente": true,
+      "statusInscricao": {
+        "idStatusInscricao": 1,
+        "tipoInscricao": "Pendente"
+      }
+    },
+    {
+      "usuario": {
+        "idUsuario": 2,
+        "nomeCompleto": "Camila Santos"
+      },
+      "evento": {
+        "idEvento": 1,
+        "nomeEvento": "Oficina de Pintura"
+      },
+      "isInscrito": true,
+      "isPresente": false,
+      "statusInscricao": {
+        "idStatusInscricao": 3,
+        "tipoInscricao": "Cancelada"
+      }
+    }
+  ],
+  "notaFeedback": [
+    {
+      "idNotaFeedback": 1,
+      "tipoNota": "like"
+    },
+    {
+      "idNotaFeedback": 2,
+      "tipoNota": "dislike"
+    }
+  ],
+  "feedback": [
+    {
+      "idFeedback": 1,
+      "comentario": null,
+      "dataFeedback": "2025-07-10",
+      "evento": {
+        "idEvento": 1,
+        "nomeEvento": "Oficina de Pintura"
+      },
+      "usuario": {
+        "idUsuario": 1,
+        "nomeCompleto": "Beatriz Oliveira"
+      },
+      "nota": {
+        "idNotaFeedback": 1,
+        "tipoNota": "like"
+      }
+    },
+    {
+      "idFeedback": 2,
+      "comentario": "Gostei bastante da palestra.",
+      "dataFeedback": "2025-07-10",
+      "evento": {
+        "idEvento": 3,
+        "nomeEvento": "Palestra sobre Meio Ambiente"
+      },
+      "usuario": {
+        "idUsuario": 2,
+        "nomeCompleto": "Camila Santos"
+      },
+      "nota": {
+        "idNotaFeedback": 2,
+        "tipoNota": "dislike"
+      }
+    }
+  ],
+  "preferencias": [
+    {
+      "usuario": {
+        "idUsuario": 1,
+        "nomeCompleto": "Beatriz Oliveira"
+      },
+      "categoria": {
+        "idCategoria": 1,
+        "nome": "Palestra"
+      }
+    },
+    {
+      "usuario": {
+        "idUsuario": 1,
+        "nomeCompleto": "Beatriz Oliveira"
+      },
+      "categoria": {
+        "idCategoria": 3,
+        "nome": "Carnaval"
+      }
+    }
+  ]
+}
