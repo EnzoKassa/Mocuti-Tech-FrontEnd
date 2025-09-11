@@ -1,7 +1,13 @@
 html {
-  scroll-behavior: smooth;
-}
-body {
+    scroll-behavior: smooth;
+
+ margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;}
+
+
+.landing-body {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -14,7 +20,6 @@ body {
 }
 
 .nav-box {
-
     width: 100%;
     height: 75px;
     display: flex;
@@ -32,7 +37,7 @@ body {
     justify-content: start;
     gap: 0.5%;
     align-items: center;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-size: 16px;
     font-weight: 600;
 }
@@ -44,10 +49,9 @@ body {
     justify-content: end;
     align-items: center;
     gap: 2%;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-size: 16px;
     font-weight: 600;
-
 }
 
 .nav-home {
@@ -60,6 +64,7 @@ body {
     position: fixed;
     top: 0;
     z-index: 1;
+        font-family: 'Montserrat', sans-serif;
 }
 
 .botoes-cadastro-nav {
@@ -73,12 +78,11 @@ body {
     border-radius: 0;
     background-color: white;
     text-align: center;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-size: 16px;
     font-weight: 600;
     text-decoration: none;
     color: black;
-
 }
 
 .botoes-cadastro-nav:hover {
@@ -86,9 +90,7 @@ body {
     border: 2px solid green;
     transition: 0.2s ease-in-out;
     border-radius: 5px;
-
-
-
+        font-family: 'Montserrat', sans-serif;
 
 }
 
@@ -104,12 +106,11 @@ body {
     border-radius: 0;
     background-color: #3DA5E1;
     text-align: center;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-size: 16px;
-     text-decoration: none;
+    text-decoration: none;
     font-weight: 600;
     color: black;
-
 }
 
 .botoes-cadastro-nav-blue:hover {
@@ -117,8 +118,7 @@ body {
     border: 2px solid #3DA5E1;
     transition: 0.2s ease-in-out;
     border-radius: 5px;
-
-
+        font-family: 'Montserrat', sans-serif;
 
 }
 
@@ -134,44 +134,48 @@ body {
     background-color: white;
     text-align: center;
     text-decoration: none;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-size: 16px;
     color: black;
     font-weight: 600;
-     transition: all 0.3s ease;
+    transition: all 0.3s ease;
 
 }
 
 /* Início */
 .btn-inicio {
-  border-bottom: 2px solid #4FBD34;
+    border-bottom: 2px solid #4FBD34;
 }
+
 .btn-inicio:hover {
-  border: 2px solid #4FBD34;
+    border: 2px solid #4FBD34;
 }
 
 /* Sobre Nós */
 .btn-sobre {
-  border-bottom: 2px solid #3DA5E1;
+    border-bottom: 2px solid #3DA5E1;
 }
+
 .btn-sobre:hover {
-  border: 2px solid #3DA5E1;
+    border: 2px solid #3DA5E1;
 }
 
 /* Linha do Tempo */
 .btn-linha {
-  border-bottom: 2px solid #FFBB00;
+    border-bottom: 2px solid #FFBB00;
 }
+
 .btn-linha:hover {
-  border: 2px solid #FFBB00;
+    border: 2px solid #FFBB00;
 }
 
 /* Eventos */
 .btn-eventos {
-  border-bottom: 2px solid #FF4848;
+    border-bottom: 2px solid #FF4848;
 }
+
 .btn-eventos:hover {
-  border: 2px solid #FF4848;
+    border: 2px solid #FF4848;
 }
 
 
@@ -229,7 +233,6 @@ body {
 }
 
 /* ----------------------------------- */
-
 .tela-inicio {
     display: flex;
     justify-content: start;
@@ -237,7 +240,6 @@ body {
     flex-direction: row;
     width: 100vw;
     height: 100vh;
-  
     background-size: cover;
 }
 
@@ -248,7 +250,6 @@ body {
     justify-content: center;
     align-items: end;
     flex-direction: column;
-
 }
 
 .box-texto-inicio {
@@ -272,24 +273,21 @@ body {
     justify-content: center;
     align-items: start;
     padding: 5%;
-
 }
 
 .box-texto-inicio-title h1 {
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-size: 48px;
     font-weight: 800;
     padding: 0;
     margin: 0;
-
 }
 
 .box-texto-inicio-title h3 {
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-size: 24px;
     font-weight: 800;
     padding: 0;
-
 }
 
 .box-texto-inicio-texto {
@@ -299,18 +297,13 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: start;
-
-
-
 }
 
 .box-texto-inicio-texto p {
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-size: 18px;
     font-weight: 600;
 }
-
-
 
 .box-alinharmento-texto-button {
     width: 90%;
@@ -319,14 +312,12 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: start;
-
     gap: 5%;
 }
 
 /* botao modificado */
 
 .btn-diferenciado {
-
     display: flex;
     align-items: center;
     justify-content: center;
@@ -336,14 +327,12 @@ body {
     /* altura do botão */
     color: #fff;
     text-decoration: none;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-size: 16px;
     font-weight: 600;
     background: #4FBD34;
     clip-path: polygon(3% 0, 98% 0, 100% 52%, 98% 100%, 3% 100%, 0 45%);
     border: 0px solid transparent;
-
-
 }
 
 .btn-diferenciado:hover {
@@ -359,7 +348,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-
 }
 
 .box-sobre-nos {
@@ -389,7 +377,6 @@ body {
     justify-content: center;
     align-items: center;
     flex-direction: column;
-
 }
 
 .box-sobre-nos-textos {
@@ -399,22 +386,19 @@ body {
     justify-content: center;
     align-items: start;
     flex-direction: column;
-
 }
 
 
 .box-sobre-nos-textos p {
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-size: 16px;
     font-weight: 400;
-
 }
 
 .box-sobre-nos-textos h1 {
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-size: 32px;
     font-weight: 800;
-
 }
 
 .box-sobre-nos-botoes {
@@ -424,9 +408,7 @@ body {
     justify-content: start;
     align-items: center;
     flex-direction: row;
-
 }
-
 
 /* ------------------------------------------------------------------------------------ */
 .linha-do-tempo {
@@ -449,7 +431,7 @@ body {
 
 .titulo-linha-do-tempo h1 {
     display: flex;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-size: 32px;
     font-weight: 800;
 }
@@ -500,14 +482,13 @@ body {
     justify-content: center;
     flex-direction: column;
     align-items: start;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
 }
 
 
 .nossos-eventos {
     height: 100vh;
     width: 100vw;
-   
     display: flex;
     justify-content: center;
     align-items: center;
@@ -525,7 +506,7 @@ body {
 
 .titulos-nossos-eventos h1 {
     display: flex;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-size: 32px;
     font-weight: 800;
 }
@@ -577,12 +558,12 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    
+
 }
 
 .titulo-card-eventos p {
     font-size: 20px;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .box-botao-nossos-eventos {
@@ -608,7 +589,6 @@ body {
     display: flex;
     justify-content: start;
     align-items: center;
-
 }
 
 .form-rodape {
@@ -618,18 +598,15 @@ body {
     display: flex;
     align-items: start;
     gap: 2vh;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     justify-content: center;
     font-weight: 600;
-
-
-
 }
 
 .box-links-rodape {
     width: 25vw;
     height: 100%;
- 
+
     display: flex;
     flex-direction: row;
     justify-content: end;
@@ -644,26 +621,15 @@ body {
     align-items: start;
     justify-content: center;
     text-decoration: none;
-
     gap: 10%;
-
-   
-
-
 }
 
+.links a {
+    text-decoration: none;
+    color: black;
+    font-family: 'Montserrat', sans-serif;
 
-.links a{
-      text-decoration: none;
-      color: black;
-      font-family: Montserrat;
-      
 }
-
-
-
-
-
 
 .botao-form {
     height: 4vh;
@@ -676,9 +642,8 @@ body {
     justify-content: center;
     color: white;
     align-items: center;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 600;
-
 }
 
 .Email {
@@ -686,9 +651,6 @@ body {
     width: 100%;
     height: 3vh;
     display: flex;
-
-
-
 }
 
 .mensagem {
