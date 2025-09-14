@@ -11,19 +11,38 @@ export function formatNomeCompleto(nome) {
         .join(' '); // usado para juntar
 };
 
-export function formatCpf(cpf) {
+export function formatCpf(cpfInput) {
+
+     // Remove tudo que não é número
+  let cpf = cpfInput.replace(/\D/g, '');
+
+  // Limita a 11 dígitos
+  if (cpf.length > 11) cpf = cpf.slice(0, 11);
+
+  // Formata apenas se tiver algum número
+  if (cpf.length === 0) return '';
+
     return cpf.replace(/\D/g, '')
         .replace(/(\d{3})(\d)/, '$1.$2')
         .replace(/(\d{3})(\d)/, '$1.$2')
         .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
-        .slice(0, 14);
 };
 
-export function formatTelefone(tel) {
-    return tel.replace(/\D/g, '')
-        .replace(/(\d{2})(\d)/, '($1) $2')
-        .replace(/(\d{4,5})(\d{4})$/, '$1-$2')
-        .slice(0, 15);
+export function formatTelefone(telInput) {
+  // Remove tudo que não é número
+  let tel = telInput.replace(/\D/g, '');
+
+  // Limita a 11 dígitos (DD + 9 dígitos)
+  if (tel.length > 11) tel = tel.slice(0, 11);
+
+  // Formata telefone
+  if (tel.length <= 10) {
+    // Formato sem 9º dígito extra: (DD) XXXX-XXXX
+    return tel.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3').trim();
+  } else {
+    // Formato com 9º dígito: (DD) 9XXXX-XXXX
+    return tel.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  }
 };
 
 export function formatCep(cep) {
