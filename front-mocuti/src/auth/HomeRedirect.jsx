@@ -1,31 +1,23 @@
 import { useEffect } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
 const HomeRedirect = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      switch (user.tipoCargo) {
-        case "Administrador":
-          navigate("/admin/eventos");
-          break;
-        case "Moderador":
-          navigate("/moderador/eventos");
-          break;
-        case "Usuário":
-          navigate("/usuario/eventos");
-          break;
-        default:
-          navigate("/");
-      }
+    if (loading) return; // espera carregar user
+    if (!user) navigate("/home"); // não logado → landing page
+    else {
+      // redireciona baseado no cargo
+      if (user.tipoCargo === "Administrador") navigate("/admin/eventos");
+      else if (user.tipoCargo === "Moderador") navigate("/moderador/eventos");
+      else if (user.tipoCargo === "Usuário") navigate("/usuario/eventos");
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
-  // Se não tiver usuário logado, deixa na home
-return null;
+  return null;
 };
 
 export default HomeRedirect;

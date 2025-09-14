@@ -2,7 +2,7 @@ import './App.css'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AuthProvider from "./auth/AuthContext";
 import PrivateRoute from "./auth/PrivateRoute";
-import DashboardRedirect from "./auth/HomeRedirect";
+import HomeRedirect from "./auth/HomeRedirect";
 
 // Rotas públicas
 import Home from "./pages/landingPage";
@@ -32,9 +32,10 @@ function App() {
       <Router>
         <Routes>
           {/* Redirecionamento inicial */}
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<HomeRedirect />} />
 
           {/* Rotas públicas */}
+          <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
 

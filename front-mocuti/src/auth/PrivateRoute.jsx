@@ -2,7 +2,12 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 
 const PrivateRoute = ({ children, roles }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    // enquanto o AuthProvider carrega o user do storage, mostra algo ou nada
+    return <div>Carregando...</div>;
+  }
 
   if (!user) {
     // Usuário não logado

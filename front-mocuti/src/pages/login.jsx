@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import '../styles/Login.css'
 
 const Login = () => {
-
     const [showPassword, setShowPassword] = useState(false)
     const [fontSize, setFontSize] = useState(18) // fontSize inicial maior
     const { login } = useAuth();
@@ -12,16 +11,18 @@ const Login = () => {
     const [senha, setSenha] = useState("");
     const navigate = useNavigate();
 
-    const onSwitchToRegister = () =>{
+    const [rememberMe, setRememberMe] = useState(false);
+
+    const onSwitchToRegister = () => {
         navigate('/Cadastro')
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await login(email, senha);
+        await login(email, senha, rememberMe);
 
         // redireciona baseado no cargo
-        const user = JSON.parse(localStorage.getItem("user"));
+        const user = JSON.parse(localStorage.getItem("user") || sessionStorage.getItem("user"));
         if (user?.tipoCargo === "Administrador") navigate("/admin/eventos");
         else if (user?.tipoCargo === "Moderador") navigate("/moderador/eventos");
         else if (user?.tipoCargo === "Usuário") navigate("/usuario/eventos");
@@ -129,7 +130,7 @@ const Login = () => {
                         {/* Opções adicionais */}
                         <div className="form-options">
                             <label className="checkbox-container" style={{ fontSize: `${fontSize * 0.875}px` }}>
-                                <input type="checkbox" className="checkbox" />
+                                <input type="checkbox" className="checkbox" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} />
                                 <span className="checkbox-text">Lembrar de mim</span>
                             </label>
                             <a href="#" className="forgot-password-link" style={{ fontSize: `${fontSize * 0.875}px` }}>
