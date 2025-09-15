@@ -37,9 +37,11 @@ const AuthProvider = ({ children }) => {
       // <-- Salva no storage correto
       if (rememberMe) {
         localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("idUsuario", userData.id); // 👈 salva separado
         sessionStorage.removeItem("user");
       } else {
         sessionStorage.setItem("user", JSON.stringify(userData));
+        sessionStorage.setItem("idUsuario", userData.id); // 👈 salva separado
         localStorage.removeItem("user");
       }
     } catch (err) {
