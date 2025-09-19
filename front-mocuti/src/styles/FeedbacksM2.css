@@ -1,0 +1,21 @@
+.feedback-container {
+  margin-left: 220px; /* mesma largura do navbar */
+  padding: 2rem;
+  font-family: "Inter", sans-serif;
+}
+
+.feedback h1 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: -0.8rem;
+  margin-left: 17.0rem;
+  margin-top: 2.0rem;
+}
+.feedback-container h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  margin-left: 4.0rem;
+}
