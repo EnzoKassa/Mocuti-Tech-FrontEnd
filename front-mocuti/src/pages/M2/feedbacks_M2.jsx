@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
-import "../../styles/feedback_M2.css";
+import axios from "axios";
+import NavbarM2 from "../../components/Navbar_m2";
+import EventosTable from "../../components/table_Feedbacks_M2";
+import ModalFeedback from "../../components/modal/Modal_Feedback_M2";
+import ModalVisualizacao from "../../components/modal/Modal_FeedbackVisul_M2";
+import "../../styles/FeedbacksM2.css";
+
+
+const NOTAS_MAP = { like: 1, dislike: 2 };
 
 const FeedbacksM2 = () => {
   const { user } = useAuth();
@@ -10,50 +18,52 @@ const FeedbacksM2 = () => {
     sessionStorage.getItem("idUsuario");
 
   const [participacoes, setParticipacoes] = useState([]);
+  const [eventosPassados, setEventosPassados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [modalData, setModalData] = useState(null);
 
-  const NOTAS_MAP = {
-    positivo: 1,
-    negativo: 2,
-  };
-
   useEffect(() => {
     if (!idUsuario) return;
-    fetch(`http://localhost:8080/participacoes/filtradas/${idUsuario}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Erro ao buscar participações");
-        return res.json();
-      })
-      .then((data) => {
-        setParticipacoes(data);
+
+    const fetchEventos = async () => {
+      try {
+        const { data: paraComentar } = await axios.get(
+          `http://localhost:8080/participacoes/participacao-comentar/${idUsuario}`
+        );
+        const { data: passados } = await axios.get(
+          `http://localhost:8080/participacoes/participacao-passados/${idUsuario}`
+        );
+        const normalize = (arr) =>
+          arr.map((p) => ({ ...p, nota: p.nota?.tipoNota || null }));
+        setParticipacoes(normalize(paraComentar));
+        setEventosPassados(normalize(passados));
+      } catch (err) {
+        setError("Erro ao buscar participações: " + err.message);
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchEventos();
   }, [idUsuario]);
 
   const handleFeedback = async (p) => {
     try {
+      const notaString = typeof p.nota === "string" ? p.nota : null;
+
       const body = {
         idUsuario: parseInt(idUsuario),
         idEvento: p.id.eventoId,
         comentario: p.comentario || null,
-        idNota: p.nota ? NOTAS_MAP[p.nota] : null,
+        idNota: notaString ? NOTAS_MAP[notaString] : null,
       };
 
-      const res = await fetch(`http://localhost:8080/feedback`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) throw new Error("Erro ao salvar feedback");
-
-      const updated = await res.json();
+      const { data: updated } = await axios.post(
+        "http://localhost:8080/feedback",
+        body,
+        { headers: { "Content-Type": "application/json" } }
+      );
 
       setParticipacoes((prev) =>
         prev.map((ev) =>
@@ -61,12 +71,20 @@ const FeedbacksM2 = () => {
             ? {
                 ...ev,
                 feedbackId: updated.idFeedback,
-                nota: updated.nota?.tipo || p.nota,
+                nota: notaString,
                 comentario: updated.comentario,
               }
             : ev
         )
       );
+
+      if (modalData && modalData.id.eventoId === p.id.eventoId) {
+        setModalData((prev) => ({
+          ...prev,
+          nota: notaString,
+          comentario: prev.comentario,
+        }));
+      }
     } catch (err) {
       console.error("Erro no feedback:", err);
     }
@@ -74,92 +92,45 @@ const FeedbacksM2 = () => {
 
   if (loading) return <p>Carregando participações...</p>;
   if (error) return <p>{error}</p>;
-  if (participacoes.length === 0) return <p>Nenhuma participação encontrada.</p>;
 
   return (
-    <div className="feedback-container">
+    <>
+      <NavbarM2 />
+      <div className="feedback">
       <h1>Feedbacks</h1>
-      <div className="feedback-table-wrapper">
-        <table className="feedback-table">
-          <thead>
-            <tr>
-              <th>Nome Evento</th>
-              <th>Email</th>
-              <th>Nota</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {participacoes.map((p) => (
-              <tr key={`${p.id.usuarioId}-${p.id.eventoId}`}>
-                <td>{p.nomeEvento}</td>
-                <td>{p.email}</td>
-                <td className="text-center">
-                  {p.nota === "positivo"
-                    ? "👍"
-                    : p.nota === "negativo"
-                    ? "👎"
-                    : "-"}
-                </td>
-                <td>
-                  <button
-                    className="feedback-button"
-                    onClick={() => setModalData(p)}
-                  >
-                    + Mais Informações
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="feedback-container">
+        <h1>Eventos para comentar</h1>
+        <EventosTable
+          eventos={participacoes}
+          onFeedback={handleFeedback}
+          onDetalhes={(p) => setModalData(p)}
+          editable={true}
+        />
+
+        <h1>Eventos passados</h1>
+        <EventosTable
+          eventos={eventosPassados}
+          onDetalhes={(p) => setModalData({ ...p, isPassado: true })}
+          editable={false}
+        />
+
+        {modalData && modalData.isPassado && (
+          <ModalVisualizacao
+            modalData={modalData}
+            onClose={() => setModalData(null)}
+          />
+        )}
+
+        {modalData && !modalData.isPassado && (
+          <ModalFeedback
+            modalData={modalData}
+            onClose={() => setModalData(null)}
+            onSave={handleFeedback}
+          />
+        )}
       </div>
-
-      {modalData && (
-        <div className="feedback-modal-overlay">
-          <div className="feedback-modal">
-            <button
-              className="feedback-modal-close"
-              onClick={() => setModalData(null)}
-            >
-              ×
-            </button>
-            <h2>Descrição do Feedback</h2>
-
-            <div>
-              <label>Nome</label>
-              <input type="text" value={modalData.email} readOnly />
-            </div>
-
-            <div>
-              <label>Comentário</label>
-              <textarea value={modalData.comentario || ""} readOnly />
-            </div>
-
-            <div className="feedback-modal-actions">
-              <button
-                className={`nota-button ${
-                  modalData.nota === "positivo"
-                    ? "nota-positivo"
-                    : "nota-neutra"
-                }`}
-              >
-                👍 <span>Gostei</span>
-              </button>
-              <button
-                className={`nota-button ${
-                  modalData.nota === "negativo"
-                    ? "nota-negativo"
-                    : "nota-neutra"
-                }`}
-              >
-                👎 <span>Não Gostei</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 };
 
