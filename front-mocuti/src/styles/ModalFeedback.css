@@ -77,3 +77,14 @@
 .feedback-modal-content button:hover {
   background: #337a22;
 }
+
+/* Alerta */
+.swal-title {
+  font-size: 18px !important; /* título menor */
+  font-weight: 400
+}
+
+.swal-text {
+  font-size: 14px !important; /* texto menor */
+  font-weight: 400
+}
