@@ -1,0 +1,48 @@
+.nav-home {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100vw;
+    height: auto;
+    /* Remova ou comente a linha abaixo */
+    /* position: fixed; */
+    top: 0;
+    z-index: 1;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.nav-box {
+    width: 100%;
+    height: 55px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    background-color: white;
+}
+
+.nav-endereco {
+    width: 45%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    gap: 0.5%;
+    align-items: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.nav-contato {
+    width: 45%;
+    height: 75px;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    gap: 2%;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+}
