@@ -8,9 +8,15 @@ import logoOng from "../../assets/images/logo.png";
 const HeaderInfo = () => (
   <div className="header-info-bar">
     <div className="header-info-content">
-      <span className="info-item"><img src={icone} alt="iconepesquisa" className="iconepesquisa" /> Av dos Metalúrgicos 1081</span>
+      <span className="info-item">
+        <img src={icone} alt="iconepesquisa" className="iconepesquisa" /> 
+        Av dos Metalúrgicos 1081
+      </span>
       <div className="social-contacts">
-        <span className="info-item"><img src={telefone} alt="iconetelefone" className="iconetelefone" /> 11 99999-9999</span>
+        <span className="info-item">
+          <img src={telefone} alt="iconetelefone" className="iconetelefone" /> 
+          11 99999-9999
+        </span>
       </div>
     </div>
   </div>
@@ -44,13 +50,31 @@ const Eventos = () => {
       }
 
       const response = await fetch(url);
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      setEventos(data);
+
+      // Buscar imagens de cada evento - TA AQ JHONY
+      const eventosComImg = await Promise.all(
+        data.map(async (evento) => {
+          try {
+            const imgResponse = await fetch(`http://localhost:8080/eventos/foto/${evento.idEvento}`);
+            if (imgResponse.ok) {
+              const blob = await imgResponse.blob();
+              const imgUrl = URL.createObjectURL(blob);
+              return { ...evento, imagemUrl: imgUrl };
+            } else {
+              return { ...evento, imagemUrl: null }; // sem foto
+            }
+          } catch {
+            return { ...evento, imagemUrl: null };
+          }
+        })
+      );
+
+      setEventos(eventosComImg);
     } catch (error) {
       console.error("Erro ao buscar eventos:", error);
       setEventos([]);
@@ -64,7 +88,7 @@ const Eventos = () => {
   }, []);
 
   const formatarHora = (hora) => hora.substring(0, 5);
-  const formatarData = (data) => data.split('-').reverse().join('/');
+  const formatarData = (data) => data.split("-").reverse().join("/");
 
   return (
     <div className="page-container">
@@ -83,28 +107,28 @@ const Eventos = () => {
       </header>
 
       <main className="main-content">
-        {/* ======================= FILTROS REESTRUTURADOS ======================= */}
+        {/* ======================= FILTROS ======================= */}
         <div className="filtros-container">
-            <div className="search-bar-top">
-                <input 
-                    type="text" 
-                    placeholder="Pesquisar sobre evento..." 
-                    className="search-input-main" 
-                    value={filtros.texto} 
-                    onChange={(e) => setFiltros({ ...filtros, texto: e.target.value })}
-                />
-            </div>
-            <div className="filtros-bottom-row">
-                <input type="date" value={filtros.dataInicio} onChange={(e) => setFiltros({ ...filtros, dataInicio: e.target.value })} />
-                <input type="date" value={filtros.dataFim} onChange={(e) => setFiltros({ ...filtros, dataFim: e.target.value })} />
-                <select value={filtros.categoria} onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value })}>
-                    <option value="">Categoria</option>
-                </select>
-                <select value={filtros.status} onChange={(e) => setFiltros({ ...filtros, status: e.target.value })}>
-                    <option value="">Status</option>
-                </select>
-                <button onClick={handlePesquisar} className="search-button">Pesquisar</button>
-            </div>
+          <div className="search-bar-top">
+            <input
+              type="text"
+              placeholder="Pesquisar sobre evento..."
+              className="search-input-main"
+              value={filtros.texto}
+              onChange={(e) => setFiltros({ ...filtros, texto: e.target.value })}
+            />
+          </div>
+          <div className="filtros-bottom-row">
+            <input type="date" value={filtros.dataInicio} onChange={(e) => setFiltros({ ...filtros, dataInicio: e.target.value })} />
+            <input type="date" value={filtros.dataFim} onChange={(e) => setFiltros({ ...filtros, dataFim: e.target.value })} />
+            <select value={filtros.categoria} onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value })}>
+              <option value="">Categoria</option>
+            </select>
+            <select value={filtros.status} onChange={(e) => setFiltros({ ...filtros, status: e.target.value })}>
+              <option value="">Status</option>
+            </select>
+            <button onClick={handlePesquisar} className="search-button">Pesquisar</button>
+          </div>
         </div>
 
         <div className="lista-eventos">
@@ -113,22 +137,18 @@ const Eventos = () => {
           ) : eventos.length > 0 ? (
             eventos.map((evento) => (
               <div key={evento.idEvento} className="evento-card">
-                
-                
-                <img 
-                    src={evento.imagemUrl || `https://picsum.photos/200?random=${evento.idEvento}`} 
-                    alt={evento.nomeEvento} 
-                    className="evento-imagem" 
-                />
-                
+                {evento.imagemUrl ? (
+                  <img src={evento.imagemUrl} alt={evento.nomeEvento} className="evento-imagem" />
+                ) : (
+                  <div className="evento-sem-imagem">Sem imagem</div>
+                )}
+
                 <div className="evento-info">
                   <h3>{evento.nomeEvento}</h3> 
-
                   <div className="tags">
                     <span className="tag status">{evento.statusEvento.situacao}</span>
                     <span className="tag categoria">{evento.categoria.nome}</span>
                   </div>
-
                   <div className="detalhes">
                     <span>📅 Início: {formatarData(evento.dia)} às {formatarHora(evento.horaInicio)}</span>
                     <span>👥 {evento.qtdInteressado}/{evento.qtdVaga}</span>
