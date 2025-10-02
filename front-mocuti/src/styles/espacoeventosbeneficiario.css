@@ -7,6 +7,10 @@
     justify-content: center;
 }
 
+a {
+    color: black;
+}
+
 .espaco-eventos-beneficiario-engloba-eventos {
     width: 95%;
     height: 95%;
@@ -27,7 +31,7 @@
 }
 
 .espaco-eventos-beneficiario-lista {
-    margin-top: 10px;
+    margin-top: 30px;
     width: 80%;
     height: 90%; 
     background-color: white;
@@ -36,9 +40,10 @@
     scroll-behavior: smooth;
     flex-direction: column;
     gap: 5px;
-    max-height: 400px; /* ou outro valor fixo */
-    margin-top: 30px;
+    max-height: 400px;
     align-items: center;
+    padding-left: 32px;
+    padding-right: 32px;
 }
 
 /* Barra de rolagem estilizada para navegadores Webkit (Chrome, Edge, Safari) */
@@ -69,6 +74,7 @@
     flex-direction: row;
     align-items: center;
     gap: 5px;
+    padding-left: 10px;
 }
 
 .eventos-foto-beneficiario {
@@ -76,7 +82,6 @@
     margin: 2px;
     height: 90%;
     width: 17%;
-    background-color: #b97cb9;
 }
 
 .eventos-descricao-beneficiario {
@@ -84,7 +89,7 @@
     margin: 2px;
     height: 90%;
     width: 30%;
-    background-color: #b735b7;
+    background-color: white;
     flex-direction: column;
 }
 
@@ -95,7 +100,7 @@
     font-size: 18px;
     font-weight: bold;
     color: #333;
-    background-color: aquamarine;
+    background-color: white;
 }
 
 .eventos-tipocategoria-beneficiario {
@@ -103,24 +108,36 @@
     width: 100%;
     display: flex;
     font-size: 18px;
-    background-color: rgb(7, 89, 61);
+    background-color: white;
     flex-direction: column;
+    gap: 5px;
 }
 
 .eventos-categoria-beneficiario {
     display: flex;
     height: 50%;
-    width: 70%;
-    background-color: #1e1c1e;
-    border-radius: 5px;
+    width: fit-content;
+    border-radius: 60px;
+    background-color: rgb(79, 189, 52);
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    align-items: center;
 }
 
 .eventos-status-beneficiario {
     display: flex;
     height: 50%;
-    width: 70%;
-    background-color: #b735b7;
-    border-radius: 5px;
+    width: fit-content;
+    background-color: white;
+    border-radius: 60px;
+    background-color: #FFBB00;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    align-items: center;
 }
 
 .eventos-data-beneficiario {
@@ -128,17 +145,24 @@
     margin: 2px;
     height: 90%;
     width: 14%;
-    background-color: #b735b7;
+    background-color: white;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
 }
+
+
 
 .eventos-pessoas-beneficiario {
     display: flex;
     margin: 2px;
     height: 90%;
     width: 14%;
-    background-color: #b735b7;
+    background-color: white;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .eventos-tiposbotoes-beneficiario {
@@ -146,6 +170,23 @@
     margin: 2px;
     height: 90%;
     width: 21%;
-    background-color: #b735b7;
+    background-color: white;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.eventos-tiposbotoes-beneficiario button {
+    height: 35%;
+    width: 80%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 0px;
+    color: white;
+    border: none;
+    text-decoration: none;
+}
+
+a{
+        text-decoration: none;
 }

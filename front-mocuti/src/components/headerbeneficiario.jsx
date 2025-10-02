@@ -8,7 +8,7 @@ import "../styles/HeaderBeneficiario.css";
 
 export default function HeaderBeneficiario() {
     return (
-        <div className="nav-home">
+        <div style={{position: 'relative'}} className="nav-home">
             <div className="nav-box">
                 <div className="nav-endereco">
                     <img src={location} alt="Localização" />
