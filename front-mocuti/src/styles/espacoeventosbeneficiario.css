@@ -1,0 +1,151 @@
+.espaco-eventos-beneficiario-geral {
+    width: 100%;
+    height: 55vh;
+    background-color: #F5F5F5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.espaco-eventos-beneficiario-engloba-eventos {
+    width: 95%;
+    height: 95%;
+    background-color: #F5F5F5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.espaco-eventos-beneficiario-eventos {
+    width: 90%;
+    height: 100%;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.espaco-eventos-beneficiario-lista {
+    margin-top: 10px;
+    width: 80%;
+    height: 90%; 
+    background-color: white;
+    display: flex;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 400px; /* ou outro valor fixo */
+    margin-top: 30px;
+    align-items: center;
+}
+
+/* Barra de rolagem estilizada para navegadores Webkit (Chrome, Edge, Safari) */
+.espaco-eventos-beneficiario-lista::-webkit-scrollbar {
+    width: 8px;
+    background: #ffffff;
+    border-radius: 4px;
+}
+
+.espaco-eventos-beneficiario-lista::-webkit-scrollbar-thumb {
+    background: #b97cb9;
+    border-radius: 4px;
+}
+
+/* Barra de rolagem estilizada para Firefox */
+.espaco-eventos-beneficiario-lista {
+    scrollbar-width: thin;
+    scrollbar-color: #cacaca #ffffff;
+}
+
+.eventos-beneficiario-lista {
+    margin-top: 2px;
+    width: 98%;
+    min-height: 140px; 
+    background-color: rgb(255, 255, 255);
+    display: flex;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+}
+
+.eventos-foto-beneficiario {
+    display: flex;
+    margin: 2px;
+    height: 90%;
+    width: 17%;
+    background-color: #b97cb9;
+}
+
+.eventos-descricao-beneficiario {
+    display: flex;
+    margin: 2px;
+    height: 90%;
+    width: 30%;
+    background-color: #b735b7;
+    flex-direction: column;
+}
+
+.eventos-titulo-beneficiario {
+    height: 50%;
+    width: 100%;
+    display: flex;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    background-color: aquamarine;
+}
+
+.eventos-tipocategoria-beneficiario {
+    height: 50%;
+    width: 100%;
+    display: flex;
+    font-size: 18px;
+    background-color: rgb(7, 89, 61);
+    flex-direction: column;
+}
+
+.eventos-categoria-beneficiario {
+    display: flex;
+    height: 50%;
+    width: 70%;
+    background-color: #1e1c1e;
+    border-radius: 5px;
+}
+
+.eventos-status-beneficiario {
+    display: flex;
+    height: 50%;
+    width: 70%;
+    background-color: #b735b7;
+    border-radius: 5px;
+}
+
+.eventos-data-beneficiario {
+    display: flex;
+    margin: 2px;
+    height: 90%;
+    width: 14%;
+    background-color: #b735b7;
+    flex-direction: column;
+}
+
+.eventos-pessoas-beneficiario {
+    display: flex;
+    margin: 2px;
+    height: 90%;
+    width: 14%;
+    background-color: #b735b7;
+    flex-direction: column;
+}
+
+.eventos-tiposbotoes-beneficiario {
+    display: flex;
+    margin: 2px;
+    height: 90%;
+    width: 21%;
+    background-color: #b735b7;
+    flex-direction: column;
+}
