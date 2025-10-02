@@ -1,6 +1,6 @@
-import "../styles/filtrobeneficiario.css";
+import "../styles/FiltroBeneficiario.css";
 
-export default function Filtrobeneficiario() {
+export default function FiltroBeneficiario() {
     return (
         <div className="espacofiltrobeneficiario">
             <div className="espacoentornofiltrobeneficiario">

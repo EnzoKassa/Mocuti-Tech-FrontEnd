@@ -1,4 +1,4 @@
-import "../styles/espacoeventosbeneficiario.css";
+import "../styles/EspacoEventosBeneficiario.css";
 import calendar from "../assets/images/calendar.png";
 import people from "../assets/images/Person.png";
 

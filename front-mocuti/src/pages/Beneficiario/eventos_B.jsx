@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import HeaderBeneficiario from "../../components/headerbeneficiario";
-import HeaderBeneficiarioBotoes from "../../components/headerbotoesbeneficiario";
-import Filtrobeneficiario from "../../components/filtrobeneficiario";
-import EspacoEventosBeneficiario from "../../components/espacoeventosbeneficiario";
-import "../../styles/eventos-beneficiario.css";
+import HeaderBeneficiario from "../../components/HeaderBeneficiario";
+import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
+import Filtrobeneficiario from "../../components/FiltroBeneficiario";
+import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
+import "../../styles/EventosBeneficiario.css";
 
 
 const botoesNav = [
