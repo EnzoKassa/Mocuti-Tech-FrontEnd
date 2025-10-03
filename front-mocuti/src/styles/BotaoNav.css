@@ -1,0 +1,23 @@
+.btnLateralHome{
+    width: 100%;
+    height: 6vh;
+    border: 2px rgba(0, 0, 0, 0) solid;
+    display: flex;
+    align-items: start;
+    align-items: center;
+    padding-left: 15%;
+    gap: 5%;
+    color: black;
+    background-color: white;
+    text-decoration: none;
+      font-family: 'Montserrat', sans-serif;
+  font-weight: 600 !important;
+  font-size: 1.1rem !important;
+}
+
+.btnLateralHome:hover{
+ border-left: 2px rgb(0, 0, 0) solid;
+ transition: 0.5s;
+ scale: 1.1;
+ background-color: rgb(245, 244, 244);
+}

@@ -1,152 +1,80 @@
-import React, { useState, useEffect } from "react";
-import "../../styles/eventos_B.css";
-import "../../styles/header_B.css";
-import icone from "../../assets/images/IconeLugar.png";
-import telefone from "../../assets/images/telefone.png";
-import logoOng from "../../assets/images/logo.png";
+import { useEffect, useState } from "react";
+import HeaderBeneficiario from "../../components/HeaderBeneficiario";
+import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
+import Filtrobeneficiario from "../../components/FiltroBeneficiario";
+import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
+import "../../styles/EventosBeneficiario.css";
 
-const HeaderInfo = () => (
-  <div className="header-info-bar">
-    <div className="header-info-content">
-      <span className="info-item"><img src={icone} alt="iconepesquisa" className="iconepesquisa" /> Av dos Metalúrgicos 1081</span>
-      <div className="social-contacts">
-        <span className="info-item"><img src={telefone} alt="iconetelefone" className="iconetelefone" /> 11 99999-9999</span>
-      </div>
-    </div>
-  </div>
-);
 
-const Eventos = () => {
+const botoesNav = [
+  { href: "#Eventos", label: "Eventos", className: "btn-inicio" },
+  { href: "#MeuPerfil", label: "Meu Perfil", className: "btn-sobre" },
+  { href: "#MeusEventos", label: "Meus Eventos", className: "btn-linha" }
+];
+
+export default function EventosBeneficiario() {
   const [eventos, setEventos] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [categorias, setCategorias] = useState([]);
+  const [statusList, setStatusList] = useState([]);
   const [filtros, setFiltros] = useState({
+    nome: "",
     dataInicio: "",
     dataFim: "",
-    categoria: "",
-    status: "",
-    texto: "",
+    categoriaId: "",
+    statusEventoId: ""
   });
 
-  const handlePesquisar = async () => {
-    try {
-      setLoading(true);
-      let url = "http://localhost:8080/eventos"; 
-      const params = new URLSearchParams();
+  useEffect(() => {
+    fetch("http://localhost:8080/categorias")
+      .then(res => res.json())
+      .then(setCategorias);
 
-      if (filtros.dataInicio) params.append("dataInicio", filtros.dataInicio);
-      if (filtros.dataFim) params.append("dataFim", filtros.dataFim);
-      if (filtros.categoria) params.append("categoria", filtros.categoria);
-      if (filtros.status) params.append("status", filtros.status);
-      if (filtros.texto) params.append("texto", filtros.texto);
+    fetch("http://localhost:8080/status-eventos")
+      .then(res => res.json())
+      .then(setStatusList);
+  }, []);
 
-      if (params.toString()) {
-        url += "?" + params.toString();
-      }
 
-      const response = await fetch(url);
+  const buscarEventos = async () => {
+    const params = new URLSearchParams();
+    if (filtros.nome) params.append("nome", filtros.nome);
+    if (filtros.dataInicio) params.append("dataInicio", filtros.dataInicio);
+    if (filtros.dataFim) params.append("dataFim", filtros.dataFim);
+    if (filtros.categoriaId) params.append("categoriaId", filtros.categoriaId);
+    if (filtros.statusEventoId) params.append("statusEventoId", filtros.statusEventoId);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setEventos(data);
-    } catch (error) {
-      console.error("Erro ao buscar eventos:", error);
-      setEventos([]);
-    } finally {
-      setLoading(false);
-    }
+    let url = "http://localhost:8080/eventos/por-eventos";
+    if (params.toString()) url += "?" + params.toString();
+
+    const res = await fetch(url);
+    const data = await res.json();
+    setEventos(data);
   };
 
   useEffect(() => {
-    handlePesquisar();
+    buscarEventos();
   }, []);
 
-  const formatarHora = (hora) => hora.substring(0, 5);
-  const formatarData = (data) => data.split('-').reverse().join('/');
+  const handleFiltroChange = (field, value) => {
+    setFiltros(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePesquisar = () => {
+    buscarEventos();
+  };
 
   return (
-    <div className="page-container">
-      <HeaderInfo />
-
-      <header className="topbar">
-        <div className="topbar-inner">
-          <img src={logoOng} alt="Logo da ONG" className="logo" />
-          <nav className="nav-tabs">
-            <button className="tab active">Calendário</button>
-            <button className="tab">Meu Perfil</button>
-            <button className="tab">Meus Eventos</button>
-          </nav>
-          <div className="nav-placeholder"></div>
-        </div>
-      </header>
-
-      <main className="main-content">
-        {/* ======================= FILTROS REESTRUTURADOS ======================= */}
-        <div className="filtros-container">
-            <div className="search-bar-top">
-                <input 
-                    type="text" 
-                    placeholder="Pesquisar sobre evento..." 
-                    className="search-input-main" 
-                    value={filtros.texto} 
-                    onChange={(e) => setFiltros({ ...filtros, texto: e.target.value })}
-                />
-            </div>
-            <div className="filtros-bottom-row">
-                <input type="date" value={filtros.dataInicio} onChange={(e) => setFiltros({ ...filtros, dataInicio: e.target.value })} />
-                <input type="date" value={filtros.dataFim} onChange={(e) => setFiltros({ ...filtros, dataFim: e.target.value })} />
-                <select value={filtros.categoria} onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value })}>
-                    <option value="">Categoria</option>
-                </select>
-                <select value={filtros.status} onChange={(e) => setFiltros({ ...filtros, status: e.target.value })}>
-                    <option value="">Status</option>
-                </select>
-                <button onClick={handlePesquisar} className="search-button">Pesquisar</button>
-            </div>
-        </div>
-
-        <div className="lista-eventos">
-          {loading ? (
-            <p>Carregando eventos...</p>
-          ) : eventos.length > 0 ? (
-            eventos.map((evento) => (
-              <div key={evento.idEvento} className="evento-card">
-                
-                
-                <img 
-                    src={evento.imagemUrl || `https://picsum.photos/200?random=${evento.idEvento}`} 
-                    alt={evento.nomeEvento} 
-                    className="evento-imagem" 
-                />
-                
-                <div className="evento-info">
-                  <h3>{evento.nomeEvento}</h3> 
-
-                  <div className="tags">
-                    <span className="tag status">{evento.statusEvento.situacao}</span>
-                    <span className="tag categoria">{evento.categoria.nome}</span>
-                  </div>
-
-                  <div className="detalhes">
-                    <span>📅 Início: {formatarData(evento.dia)} às {formatarHora(evento.horaInicio)}</span>
-                    <span>👥 {evento.qtdInteressado}/{evento.qtdVaga}</span>
-                  </div>
-                </div>
-                <div className="evento-acoes">
-                  <button className="btn-info">Mais informações</button>
-                  <button className="btn-participar">Quero participar</button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>Nenhum evento encontrado</p>
-          )}
-        </div>
-      </main>
-    </div>
+    <>
+      <HeaderBeneficiario />
+      <HeaderBeneficiarioBotoes botoes={botoesNav} />
+      <Filtrobeneficiario
+        filtros={filtros}
+        onFiltroChange={handleFiltroChange}
+        categorias={categorias}
+        statusList={statusList}
+        onPesquisar={handlePesquisar}
+      />
+      <EspacoEventosBeneficiario eventos={eventos} />
+    </>
   );
-};
-
-export default Eventos;
+}

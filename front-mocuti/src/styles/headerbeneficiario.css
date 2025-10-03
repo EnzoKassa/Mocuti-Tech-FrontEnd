@@ -5,8 +5,6 @@
     flex-direction: column;
     width: 100vw;
     height: auto;
-    /* Remova ou comente a linha abaixo */
-    /* position: fixed; */
     top: 0;
     z-index: 1;
     font-family: 'Montserrat', sans-serif;

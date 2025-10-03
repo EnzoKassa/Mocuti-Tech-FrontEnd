@@ -1,4 +1,4 @@
-import "../styles/Headerbotoesbeneficiario.css";
+import "../styles/HeaderBeneficiarioBotoes.css";
 import logo from "../assets/images/image (1).svg";
 
 export default function HeaderBeneficiarioBotoes( {botoes}) {
