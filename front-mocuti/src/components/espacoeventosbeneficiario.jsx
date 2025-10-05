@@ -12,9 +12,8 @@ export default function EspacoEventosBeneficiario({
       <div className="espaco-eventos-beneficiario-engloba-eventos">
         <div className="espaco-eventos-beneficiario-eventos">
           <div className="espaco-eventos-beneficiario-lista">
-            {(!eventos || eventos.length === 0) && (
-              <p>Nenhum evento encontrado.</p>
-            )}
+            {(!eventos || eventos.length === 0) && <p>Nenhum evento encontrado.</p>}
+
             {eventos &&
               eventos.map((evento, idx) => (
                 <div
@@ -28,7 +27,7 @@ export default function EspacoEventosBeneficiario({
                   />
                   <div className="eventos-descricao-beneficiario">
                     <div className="eventos-titulo-beneficiario">
-                      <h3>{evento.nomeEvento || evento.nome}</h3>
+                      <h3>{evento.nomeEvento}</h3>
                     </div>
                     <div className="eventos-tipocategoria-beneficiario">
                       <div className="eventos-categoria-beneficiario">
@@ -39,10 +38,12 @@ export default function EspacoEventosBeneficiario({
                       </div>
                     </div>
                   </div>
+
                   <div className="eventos-data-beneficiario">
                     <img src={calendar} style={{ width: "30%" }} alt="" />
-                    <a href="#">{evento.dia || evento.dataInicio}</a>
+                    <a href="#">{evento.dia}</a>
                   </div>
+
                   <div className="eventos-pessoas-beneficiario">
                     <img src={people} style={{ width: "40%" }} alt="" />
                     <a href="#">

@@ -40,6 +40,7 @@ export default function MeusEventosBeneficiario() {
     statusEventoId: "",
   });
 
+  // Carrega categorias e status
   useEffect(() => {
     fetch("http://localhost:8080/categorias")
       .then((res) => res.json())
@@ -52,9 +53,40 @@ export default function MeusEventosBeneficiario() {
       .catch((err) => console.error("Erro ao carregar status:", err));
   }, []);
 
+  // Normaliza os eventos adicionando todos os campos necessários
+  const normalizeEventos = async (arr) =>
+    Promise.all(
+      arr.map(async (p) => {
+        let imagemUrl = null;
+        let eventoDetalhes = null;
+        try {
+          // Busca detalhes completos do evento
+          const res = await fetch(`http://localhost:8080/eventos/${p.id.eventoId}`);
+          if (res.ok) {
+            eventoDetalhes = await res.json();
+          }
+
+          // Busca a imagem
+          const imgRes = await fetch(`http://localhost:8080/eventos/foto/${p.id.eventoId}`);
+          if (imgRes.ok) {
+            const blob = await imgRes.blob();
+            imagemUrl = URL.createObjectURL(blob);
+          }
+        } catch (err) {
+          setError("Erro ao buscar evento ou imagem: " + err.message);
+        }
+
+        return {
+          ...p,
+          ...eventoDetalhes, // espalha todos os campos do evento completo
+          imagemUrl,
+          nota: p.nota?.tipoNota || null,
+        };
+      })
+    );
+
   const fetchEventos = async () => {
     if (!idUsuario) return;
-
     try {
       setLoading(true);
 
@@ -62,18 +94,12 @@ export default function MeusEventosBeneficiario() {
       if (filtros.nome) params.append("nome", filtros.nome);
       if (filtros.dataInicio) params.append("dataInicio", filtros.dataInicio);
       if (filtros.dataFim) params.append("dataFim", filtros.dataFim);
-      if (filtros.categoriaId)
-        params.append("categoriaId", filtros.categoriaId);
-      if (filtros.statusEventoId)
-        params.append("statusEventoId", filtros.statusEventoId);
+      if (filtros.categoriaId) params.append("categoriaId", filtros.categoriaId);
+      if (filtros.statusEventoId) params.append("statusEventoId", filtros.statusEventoId);
 
       const [paraComentarRes, passadosRes] = await Promise.all([
-        fetch(
-          `http://localhost:8080/participacoes/participacao-comentar/${idUsuario}?${params}`
-        ),
-        fetch(
-          `http://localhost:8080/participacoes/participacao-passados/${idUsuario}?${params}`
-        ),
+        fetch(`http://localhost:8080/participacoes/participacao-comentar/${idUsuario}?${params}`),
+        fetch(`http://localhost:8080/participacoes/participacao-passados/${idUsuario}?${params}`),
       ]);
 
       const [paraComentar, passados] = await Promise.all([
@@ -81,31 +107,8 @@ export default function MeusEventosBeneficiario() {
         passadosRes.json(),
       ]);
 
-      const normalize = async (arr) =>
-        Promise.all(
-          arr.map(async (p) => {
-            let imagemUrl = null;
-            try {
-              const imgResponse = await fetch(
-                `http://localhost:8080/eventos/foto/${p.id.eventoId}`
-              );
-              if (imgResponse.ok) {
-                const blob = await imgResponse.blob();
-                imagemUrl = URL.createObjectURL(blob);
-              }
-            } catch (error) {
-              setError("Erro ao buscar imagem: " + error.message);
-            }
-            return {
-              ...p,
-              nota: p.nota?.tipoNota || null,
-              imagemUrl,
-            };
-          })
-        );
-
-      setParticipacoes(await normalize(paraComentar));
-      setEventosPassados(await normalize(passados));
+      setParticipacoes(await normalizeEventos(paraComentar));
+      setEventosPassados(await normalizeEventos(passados));
     } catch (err) {
       console.error("Erro ao buscar participações:", err);
     } finally {
@@ -117,33 +120,24 @@ export default function MeusEventosBeneficiario() {
     fetchEventos();
   }, [idUsuario]);
 
-  // Toggle body scroll quando modal abrir/fechar
+  // Toggle scroll body
   useEffect(() => {
-    if (modalData) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    document.body.style.overflow = modalData ? "hidden" : "";
+    return () => (document.body.style.overflow = "");
   }, [modalData]);
 
   const handleFiltroChange = (field, value) => {
     setFiltros((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handlePesquisar = () => {
-    fetchEventos();
-  };
+  const handlePesquisar = () => fetchEventos();
 
   const handleFeedback = async (p) => {
     try {
       const notaString = typeof p.nota === "string" ? p.nota : null;
-
       const body = {
         idUsuario: parseInt(idUsuario),
-        idEvento: p.id.eventoId,
+        idEvento: p.idEvento,
         comentario: p.comentario || null,
         idNota: notaString ? NOTAS_MAP[notaString] : null,
       };
@@ -158,23 +152,14 @@ export default function MeusEventosBeneficiario() {
 
       setParticipacoes((prev) =>
         prev.map((ev) =>
-          ev.id.eventoId === p.id.eventoId
-            ? {
-                ...ev,
-                feedbackId: updated.idFeedback,
-                nota: notaString,
-                comentario: updated.comentario,
-              }
+          ev.idEvento === p.idEvento
+            ? { ...ev, feedbackId: updated.idFeedback, nota: notaString, comentario: updated.comentario }
             : ev
         )
       );
 
-      if (modalData && modalData.id.eventoId === p.id.eventoId) {
-        setModalData((prev) => ({
-          ...prev,
-          nota: notaString,
-          comentario: updated.comentario,
-        }));
+      if (modalData && modalData.idEvento === p.idEvento) {
+        setModalData((prev) => ({ ...prev, nota: notaString, comentario: updated.comentario }));
       }
     } catch (err) {
       console.error("Erro no feedback:", err);
@@ -210,9 +195,7 @@ export default function MeusEventosBeneficiario() {
             <EspacoEventosBeneficiario
               eventos={eventosPassados}
               mostrarParticipar={false}
-              onOpenModal={(evento) =>
-                setModalData({ ...evento, isPassado: true })
-              }
+              onOpenModal={(evento) => setModalData({ ...evento, isPassado: true })}
             />
           </>
         )}
@@ -227,10 +210,7 @@ export default function MeusEventosBeneficiario() {
       )}
 
       {modalData && modalData.isPassado && (
-        <ModalVisualizacao
-          modalData={modalData}
-          onClose={() => setModalData(null)}
-        />
+        <ModalVisualizacao modalData={modalData} onClose={() => setModalData(null)} />
       )}
     </div>
   );
