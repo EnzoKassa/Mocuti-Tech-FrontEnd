@@ -80,8 +80,8 @@ a {
 .eventos-foto-beneficiario {
     display: flex;
     margin: 2px;
-    height: 90%;
-    width: 17%;
+    height: 130px;
+    width: 150px;
 }
 
 .eventos-descricao-beneficiario {
@@ -124,6 +124,8 @@ a {
     padding-top: 1px;
     padding-bottom: 1px;
     align-items: center;
+    color: white;
+    font-size: 17px;
 }
 
 .eventos-status-beneficiario {
@@ -138,6 +140,12 @@ a {
     padding-top: 1px;
     padding-bottom: 1px;
     align-items: center;
+        color: white;
+    font-size: 17px;
+}
+
+.eventos-status-beneficiario a, .eventos-categoria-beneficiario a {
+        color: white;
 }
 
 .eventos-data-beneficiario {
