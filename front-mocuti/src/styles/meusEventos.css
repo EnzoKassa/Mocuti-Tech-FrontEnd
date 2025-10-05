@@ -1,0 +1,16 @@
+.scroll-page {
+  height: 100vh;           /* ocupa toda a tela */
+  overflow-y: auto;        /* cria um scroll interno */
+  overflow-x: hidden;      /* evita scroll lateral */
+  position: relative;
+  scroll-behavior: smooth;
+}
+
+.meus-eventos-beneficiario h2 {
+ background-color: #f5f5f5 ;
+ padding: -30px;
+ margin: 0px;
+ padding-top: 50px;
+ text-align: center;
+ border-radius: 5px;
+}
