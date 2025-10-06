@@ -7,6 +7,7 @@ import ListaUser from "../assets/images/icone Lista Usuarios.svg"
 import MeuPerfil from "../assets/images/meuPerfil.svg"
 import VisaoGeral from "../assets/images/visaoGeral.svg"
 import Sair from "../assets/images/sair.svg";
+import "../styles/TelaComNavLateral.css";
 
 export function NavLateral() {
   return (

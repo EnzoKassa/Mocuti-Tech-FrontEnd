@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import axios from "axios";
-import NavbarM2 from "../../components/Navbar_m2";
+import { NavLateral } from "../../components/NavLateral";
 import EventosTable from "../../components/table_Feedbacks_M2";
 import ModalFeedback from "../../components/modal/Modal_Feedback_M2";
 import ModalVisualizacao from "../../components/modal/Modal_FeedbackVisul_M2";
 import "../../styles/FeedbacksM2.css";
-
 
 const NOTAS_MAP = { like: 1, dislike: 2 };
 
@@ -95,40 +94,45 @@ const FeedbacksM2 = () => {
 
   return (
     <>
-      <NavbarM2 />
-      <div className="feedback">
-      <h1>Feedbacks</h1>
-      <div className="feedback-container">
-        <h1>Eventos para comentar</h1>
-        <EventosTable
-          eventos={participacoes}
-          onFeedback={handleFeedback}
-          onDetalhes={(p) => setModalData(p)}
-          editable={true}
-        />
+      <NavLateral />
+      <div className="MainContentFeedbackM2">
+        <div className="scroll-page">
+          <div className="feedback">
+            
+            <div className="feedback-container">
+              <div className="feedback-title">Feedbacks</div>
+              <h1>Eventos para comentar</h1>
+              <EventosTable
+                eventos={participacoes}
+                onFeedback={handleFeedback}
+                onDetalhes={(p) => setModalData(p)}
+                editable={true}
+              />
 
-        <h1>Eventos passados</h1>
-        <EventosTable
-          eventos={eventosPassados}
-          onDetalhes={(p) => setModalData({ ...p, isPassado: true })}
-          editable={false}
-        />
+              <h1>Eventos passados</h1>
+              <EventosTable
+                eventos={eventosPassados}
+                onDetalhes={(p) => setModalData({ ...p, isPassado: true })}
+                editable={false}
+              />
 
-        {modalData && modalData.isPassado && (
-          <ModalVisualizacao
-            modalData={modalData}
-            onClose={() => setModalData(null)}
-          />
-        )}
+              {modalData && modalData.isPassado && (
+                <ModalVisualizacao
+                  modalData={modalData}
+                  onClose={() => setModalData(null)}
+                />
+              )}
 
-        {modalData && !modalData.isPassado && (
-          <ModalFeedback
-            modalData={modalData}
-            onClose={() => setModalData(null)}
-            onSave={handleFeedback}
-          />
-        )}
-      </div>
+              {modalData && !modalData.isPassado && (
+                <ModalFeedback
+                  modalData={modalData}
+                  onClose={() => setModalData(null)}
+                  onSave={handleFeedback}
+                />
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );
