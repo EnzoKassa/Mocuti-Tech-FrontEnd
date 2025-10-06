@@ -4,8 +4,8 @@ import logo from "../assets/images/image (1).svg";
 export default function HeaderBeneficiarioBotoes( {botoes}) {
     return (
 <div className="nav-links">
-            <div className="nav-box-botoes">
-              <div className="nav-box-logo">
+            <div className="nav-box-botoes-eventos">
+              <div className="nav-box-logo-eventos">
                 <img src={logo} alt="" />
               </div>
               <div className="nav-links-botoes">
@@ -23,6 +23,7 @@ export default function HeaderBeneficiarioBotoes( {botoes}) {
                 </div>
 
               </div>
+             
             </div>
           </div>
     );
