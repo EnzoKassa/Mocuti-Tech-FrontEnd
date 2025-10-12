@@ -9,7 +9,8 @@ const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
+    const savedUser =
+      localStorage.getItem("user") || sessionStorage.getItem("user");
     if (savedUser) setUser(JSON.parse(savedUser));
     setLoading(false);
   }, []);
@@ -31,15 +32,28 @@ const AuthProvider = ({ children }) => {
       // setUser({ id: data.idUsuario, tipoCargo: data.cargo.tipoCargo });
       // localStorage.setItem("user", JSON.stringify({ id: data.idUsuario, tipoCargo: data.cargo.tipoCargo }));
 
-      const userData = { id: data.idUsuario, tipoCargo: data.cargo.tipoCargo };
+      // const userData = { id: data.idUsuario, tipoCargo: data.cargo.tipoCargo };
+      const userData = {
+        id: data.idUsuario,
+        nomeCompleto: data.nomeCompleto,
+        tipoCargo: data.cargo.tipoCargo,
+        email: data.email,
+      };
+
       setUser(userData);
 
-      // <-- Salva no storage correto
+      setUser(userData);
+
+   
       if (rememberMe) {
         localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("idUsuario", userData.id);
+        localStorage.setItem("nomeCompleto", userData.nomeCompleto);
         sessionStorage.removeItem("user");
       } else {
         sessionStorage.setItem("user", JSON.stringify(userData));
+        sessionStorage.setItem("idUsuario", userData.id);
+        sessionStorage.setItem("nomeCompleto", userData.nomeCompleto);
         localStorage.removeItem("user");
       }
     } catch (err) {
