@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import HeaderBeneficiario from "../../components/HeaderBeneficiario";
 import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
@@ -8,15 +9,18 @@ import ModalVisualizacao from "../../components/modal/Modal_FeedbackVisul_M2";
 import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
 import "../../styles/meusEventos.css";
 
-const botoesNav = [
-  { href: "#Eventos", label: "Eventos", className: "btn-inicio" },
-  { href: "#MeuPerfil", label: "Meu Perfil", className: "btn-sobre" },
-  { href: "#MeusEventos", label: "Meus Eventos", className: "btn-linha" },
-];
-
-const NOTAS_MAP = { like: 1, dislike: 2 };
 
 export default function MeusEventosBeneficiario() {
+  const navigate = useNavigate();
+  
+  const NOTAS_MAP = { like: 1, dislike: 2 };
+
+  const botoesNav = [
+  { onClick: () => navigate("/usuario/eventos"), label: "Eventos", className: "btn-inicio" },
+  { onClick: () => navigate("/usuario/perfil"), label: "Meu Perfil", className: "btn-sobre" },
+  { onClick: () => navigate("/usuario/meus-eventos"), label: "Meus Eventos", className: "btn-linha" },
+];
+
   const { user } = useAuth();
   const idUsuario =
     user?.id ||
@@ -61,13 +65,17 @@ export default function MeusEventosBeneficiario() {
         let eventoDetalhes = null;
         try {
           // Busca detalhes completos do evento
-          const res = await fetch(`http://localhost:8080/eventos/${p.id.eventoId}`);
+          const res = await fetch(
+            `http://localhost:8080/eventos/${p.id.eventoId}`
+          );
           if (res.ok) {
             eventoDetalhes = await res.json();
           }
 
           // Busca a imagem
-          const imgRes = await fetch(`http://localhost:8080/eventos/foto/${p.id.eventoId}`);
+          const imgRes = await fetch(
+            `http://localhost:8080/eventos/foto/${p.id.eventoId}`
+          );
           if (imgRes.ok) {
             const blob = await imgRes.blob();
             imagemUrl = URL.createObjectURL(blob);
@@ -94,12 +102,18 @@ export default function MeusEventosBeneficiario() {
       if (filtros.nome) params.append("nome", filtros.nome);
       if (filtros.dataInicio) params.append("dataInicio", filtros.dataInicio);
       if (filtros.dataFim) params.append("dataFim", filtros.dataFim);
-      if (filtros.categoriaId) params.append("categoriaId", filtros.categoriaId);
-      if (filtros.statusEventoId) params.append("statusEventoId", filtros.statusEventoId);
+      if (filtros.categoriaId)
+        params.append("categoriaId", filtros.categoriaId);
+      if (filtros.statusEventoId)
+        params.append("statusEventoId", filtros.statusEventoId);
 
       const [paraComentarRes, passadosRes] = await Promise.all([
-        fetch(`http://localhost:8080/participacoes/participacao-comentar/${idUsuario}?${params}`),
-        fetch(`http://localhost:8080/participacoes/participacao-passados/${idUsuario}?${params}`),
+        fetch(
+          `http://localhost:8080/participacoes/participacao-comentar/${idUsuario}?${params}`
+        ),
+        fetch(
+          `http://localhost:8080/participacoes/participacao-passados/${idUsuario}?${params}`
+        ),
       ]);
 
       const [paraComentar, passados] = await Promise.all([
@@ -153,13 +167,22 @@ export default function MeusEventosBeneficiario() {
       setParticipacoes((prev) =>
         prev.map((ev) =>
           ev.idEvento === p.idEvento
-            ? { ...ev, feedbackId: updated.idFeedback, nota: notaString, comentario: updated.comentario }
+            ? {
+                ...ev,
+                feedbackId: updated.idFeedback,
+                nota: notaString,
+                comentario: updated.comentario,
+              }
             : ev
         )
       );
 
       if (modalData && modalData.idEvento === p.idEvento) {
-        setModalData((prev) => ({ ...prev, nota: notaString, comentario: updated.comentario }));
+        setModalData((prev) => ({
+          ...prev,
+          nota: notaString,
+          comentario: updated.comentario,
+        }));
       }
     } catch (err) {
       console.error("Erro no feedback:", err);
@@ -183,21 +206,24 @@ export default function MeusEventosBeneficiario() {
         {loading ? (
           <p>Carregando eventos...</p>
         ) : (
-          <>
-            <h2>Eventos para comentar</h2>
+          <div className="feedback-container">
+            <div className="feedback-title">Feedbacks</div>
+            <h1>Eventos para comentar</h1>
             <EspacoEventosBeneficiario
               eventos={participacoes}
               mostrarParticipar={false}
               onOpenModal={(evento) => setModalData(evento)}
             />
 
-            <h2>Eventos passados</h2>
+            <h1>Eventos passados</h1>
             <EspacoEventosBeneficiario
               eventos={eventosPassados}
               mostrarParticipar={false}
-              onOpenModal={(evento) => setModalData({ ...evento, isPassado: true })}
+              onOpenModal={(evento) =>
+                setModalData({ ...evento, isPassado: true })
+              }
             />
-          </>
+          </div>
         )}
       </div>
 
@@ -210,7 +236,10 @@ export default function MeusEventosBeneficiario() {
       )}
 
       {modalData && modalData.isPassado && (
-        <ModalVisualizacao modalData={modalData} onClose={() => setModalData(null)} />
+        <ModalVisualizacao
+          modalData={modalData}
+          onClose={() => setModalData(null)}
+        />
       )}
     </div>
   );
