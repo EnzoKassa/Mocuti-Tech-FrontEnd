@@ -7,6 +7,12 @@ import ModalFeedback from "../../components/modal/Modal_Feedback_M2";
 import ModalVisualizacao from "../../components/modal/Modal_FeedbackVisul_M2";
 import "../../styles/FeedbacksM2.css";
 
+// Imagens usadas no menu
+import Calendario from "../../assets/images/calendario.svg";
+import MeuPerfil from "../../assets/images/meuPerfil.svg";
+import feedback from "../../assets/images/feedbackLogo.svg";
+import convite from "../../assets/images/convitesLogo.svg";
+
 const NOTAS_MAP = { like: 1, dislike: 2 };
 
 const FeedbacksM2 = () => {
@@ -21,6 +27,13 @@ const FeedbacksM2 = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [modalData, setModalData] = useState(null);
+
+  const rotasPersonalizadas = [
+    { texto: "Eventos", img: Calendario, rota: "/moderador/eventos" },
+    { texto: "Convites", img: convite, rota: "/moderador/convites" },
+    { texto: "Meu Perfil", img: MeuPerfil, rota: "/moderador/perfil" },
+    { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
+  ];
 
   useEffect(() => {
     if (!idUsuario) return;
@@ -94,11 +107,10 @@ const FeedbacksM2 = () => {
 
   return (
     <>
-      <NavLateral />
+      <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
       <div className="MainContentFeedbackM2">
         <div className="scroll-page">
           <div className="feedback">
-            
             <div className="feedback-container">
               <div className="feedback-title">Feedbacks</div>
               <h1>Eventos para comentar</h1>
