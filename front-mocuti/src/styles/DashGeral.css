@@ -1,0 +1,321 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+
+
+
+.boxTituloDashGeral {
+    width: 90%;
+    height: 10vh;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    font-family: Montserrat;
+    font-size: 3rem;
+    font-weight: 600;
+
+}
+
+.boxUsuariosAtividade {
+    width: 90%;
+    height: 25vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+}
+
+
+.usuariosAtividade {
+    background-color: white;
+    height: 90%;
+    flex-direction: column;
+    display: flex;
+    width: 22%;
+    border-radius: 5%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+
+}
+
+
+.usuariosAtivos {
+    height: 55%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 5%;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid rgb(67, 67, 67);
+    padding-top: 5%;
+
+}
+
+.usuariosAtivos h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 0;
+    margin: 0;
+}
+
+.usuariosAtivos h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    padding: 0;
+    margin: 0;
+}
+
+.TotalDeUsuarios {
+    height: 45%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10%;
+    justify-content: center;
+    align-items: center;
+}
+
+.TotalDeUsuarios h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 0;
+    margin: 0;
+    color: rgb(67, 67, 67);
+
+}
+
+.TotalDeUsuarios h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 0;
+    margin: 0;
+    color: rgb(67, 67, 67);
+
+}
+
+
+.BoxGraficosPai {
+    height: 50vh;
+    width: 90%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.BoxGraficos {
+    height: 90%;
+    background-color: white;
+    width: 48%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding-left: 10px;
+    padding-right: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+}
+
+.BoxRankingEInscricoe{
+    width: 90%;
+    height: 50vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+}
+
+
+.BoxGraficosRanking{
+    height: 90%;
+    background-color: white;
+    width: 40%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex-direction: column;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+}   
+
+.titulosBoxGraficosRanking {
+    width: 100%;
+    height: 25%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+        text-align: justify;
+        text-align: center;
+    
+}
+
+.titulosBoxGraficosRanking h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 0;
+    margin: 0;
+    color: rgb(67, 67, 67);
+    margin-bottom: 10px;
+}
+
+.titulosBoxGraficosRanking p {
+    font-size: 1rem;
+    font-weight: 400;
+    padding: 0;
+    margin: 0;
+    color: rgb(67, 67, 67);
+    margin-bottom: 10px;
+
+
+}
+
+.ranking{
+    width: 100%;
+    height: 5vh;
+}
+
+.topRanking {
+    width: 100%;
+    height: 4.9vh;
+    flex-direction: row;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid rgb(67, 67, 67);
+}
+.parteRanking {
+    width: 25%;
+    height:100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: center;
+
+    gap: 10%;
+}
+
+.parteCategoria {
+    width: 35%;
+    height:100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+    
+    
+}
+
+.partePreferidos{
+    width: 30%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    align-items: center;
+
+}
+
+.rankingContainer{
+    width: 100%;
+    height: auto;
+    overflow-y: auto;
+    flex-direction: column;
+ 
+}
+
+.BoxGraficosInscricoes {
+    height: 90%;
+    background-color: white;
+    width: 58%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex-direction: column;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.graficoInscricoes {
+    width: 100%;
+    height: 70%;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+
+}
+
+.GraficoGenero{
+    height: 60%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: end;
+
+
+}
+
+
+.GraficoFaixaEtaria{
+    height: 70%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: end;
+
+
+}
+
+
+
+
+
+
+.BoxRankingEInscricoes{
+      width: 90%;
+    height: 50vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+}
+
+
+
+.GeneroIdade {
+    width: 90%;
+    height: 60vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+}
+.boxIdade {
+    height: 90%;
+    background-color: white;
+    width: 58%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex-direction: column;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}.boxGenero {
+    height: 90%;
+    background-color: white;
+    width: 40%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex-direction: column;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+}   
+
+.boxUsuariosAtividade,
+.BoxGraficosPai,
+.BoxRankingEInscricoes,
+.GeneroIdade {
+  flex-shrink: 0;
+ 
+}
