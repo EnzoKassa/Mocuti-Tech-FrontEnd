@@ -9,6 +9,8 @@ const PerfilUsuario = () => {
     telefone: "",
     email: "",
     dataNascimento: "",
+    etnia: "",
+	  nacionalidade: "",
     genero: "",
     cargo: "",
     endereco: "",
@@ -52,6 +54,8 @@ const PerfilUsuario = () => {
             telefone: data.telefone,
             email: data.email,
             dataNascimento: data.dt_nasc,
+            etnia: data.etnia,
+            nacionalidade: data.nacionalidade,
             genero: data.genero,
             cargo: data.cargo.tipoCargo, // Apenas o tipo do cargo
             endereco: `${data.endereco.logradouro}, ${data.endereco.numero} - ${data.endereco.bairro}, ${data.endereco.uf}`, // Endereço formatado
@@ -80,9 +84,60 @@ const PerfilUsuario = () => {
   };
 
   // Envia os dados atualizados para o backend
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   // Validações simples
+  //   if (!formData.email.includes("@")) {
+  //     Swal.fire("Erro", "E-mail inválido.", "error");
+  //     return;
+  //   }
+  //   if (formData.telefone.length < 10) {
+  //     Swal.fire("Erro", "Telefone inválido.", "error");
+  //     return;
+  //   }
+
+  //   // Exibe o popup de confirmação
+  //   const result = await Swal.fire({
+  //     title: "Você deseja salvar as alterações?",
+  //     showDenyButton: true,
+  //     confirmButtonText: "Salvar",
+  //     denyButtonText: "Cancelar",
+  //     customClass: {
+  //       confirmButton: "btn-confirm",
+  //       denyButton: "btn-deny",
+  //     },
+  //   });
+
+  //   if (result.isConfirmed) {
+  //     try {
+  //       const userId = user.id;
+
+  //       const response = await fetch(`http://localhost:8080/usuarios/editar/${userId}`, {
+  //         method: "PUT",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify(formData),
+  //       });
+
+  //       if (!response.ok) {
+  //         throw new Error("Erro ao salvar os dados.");
+  //       }
+
+  //       Swal.fire("Salvo!", "As alterações foram salvas com sucesso.", "success");
+  //     } catch (error) {
+  //       console.error(error);
+  //       Swal.fire("Erro", "Não foi possível salvar as alterações.", "error");
+  //     }
+  //   } else if (result.isDenied) {
+  //     Swal.fire("Alterações não salvas", "Nenhuma alteração foi feita.", "info");
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     // Validações simples
     if (!formData.email.includes("@")) {
       Swal.fire("Erro", "E-mail inválido.", "error");
@@ -92,7 +147,7 @@ const PerfilUsuario = () => {
       Swal.fire("Erro", "Telefone inválido.", "error");
       return;
     }
-
+  
     // Exibe o popup de confirmação
     const result = await Swal.fire({
       title: "Você deseja salvar as alterações?",
@@ -104,21 +159,41 @@ const PerfilUsuario = () => {
         denyButton: "btn-deny",
       },
     });
-
+  
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`http://localhost:8080/usuarios/editar/${userId}`, {
+        // Recupera o objeto do usuário do localStorage ou sessionStorage
+        const user = JSON.parse(localStorage.getItem("user") || sessionStorage.getItem("user"));
+  
+        if (!user || !user.id) {
+          Swal.fire("Erro", "Usuário não autenticado.", "error");
+          return;
+        }
+  
+        // Filtrar os dados aceitos pelo endpoint
+        const dataToSend = {
+          nomeCompleto: formData.nomeCompleto,
+          cpf: formData.cpf,
+          telefone: formData.telefone,
+          email: formData.email,
+          dt_nasc: formData.dataNascimento, // Certifique-se de que o campo seja enviado como "dt_nasc"
+          etnia: formData.etnia,
+          nacionalidade: formData.nacionalidade,
+          genero: formData.genero,
+        };
+  
+        const response = await fetch(`http://localhost:8080/usuarios/editar/${user.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(dataToSend),
         });
-
+  
         if (!response.ok) {
           throw new Error("Erro ao salvar os dados.");
         }
-
+  
         Swal.fire("Salvo!", "As alterações foram salvas com sucesso.", "success");
       } catch (error) {
         console.error(error);
@@ -166,6 +241,17 @@ const PerfilUsuario = () => {
 
         <div className="form-row">
           <div className="form-group">
+            <label>Etinia</label>
+            <div className="input-readonly">{formData.etnia}</div>
+          </div>
+          <div className="form-group">
+            <label>Nacionalidade</label>
+            <div className="input-readonly">{formData.nacionalidade}</div>
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
             <label htmlFor="nomeCompleto">Nome Completo</label>
             <input
               type="text"
@@ -201,19 +287,6 @@ const PerfilUsuario = () => {
             id="email"
             name="email"
             value={formData.email}
-            onChange={handleInputChange}
-            className="input-field"
-            required
-          />
-        </div>
-
-        <div className="form-group full-width">
-          <label htmlFor="senha">Senha</label>
-          <input
-            type={showPassword ? "text" : "password"}
-            id="senha"
-            name="senha"
-            value={formData.senha}
             onChange={handleInputChange}
             className="input-field"
             required
