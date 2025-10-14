@@ -16,8 +16,6 @@ export default function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = async (e) => {
-    alert(confirmPassword)
-    alert(novaSenha)
     e.preventDefault();
     if (novaSenha !== confirmPassword) {
       setMensagem("As senhas não coincidem!");
@@ -81,7 +79,7 @@ export default function ResetPassword() {
                   type="text"
                   placeholder="Token (6 dígitos)"
                   value={token}
-                  onChange={(e) => setToken(e.target.value)}
+                  onChange={(e) => setToken(e.target.value.replace(/\D/g, ""))}
                   required
                 />
               </div>
