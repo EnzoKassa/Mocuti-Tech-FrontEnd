@@ -1,34 +1,53 @@
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import "../styles/NavLateral.css";
+import "../styles/TelaComNavLateral.css";
 import { BotaoNav } from "./BotaoNav";
-// {importe as imagens}
-import Person from "../assets/images/Person.svg"
-import Calendario from '../assets/images/calendario.svg'
-import ListaUser from "../assets/images/icone Lista Usuarios.svg"
-import MeuPerfil from "../assets/images/meuPerfil.svg"
-import VisaoGeral from "../assets/images/visaoGeral.svg"
+
+// Imagens
+import Person from "../assets/images/Person.svg";
 import Sair from "../assets/images/sair.svg";
 
-export function NavLateral() {
+export function NavLateral({ rotasPersonalizadas }) {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const nomeUsuario =
+    user?.nomeCompleto ||
+    localStorage.getItem("nomeCompleto") ||
+    sessionStorage.getItem("nomeCompleto") ||
+    "Usuário";
+
   return (
     <div className="NavLateral">
       {/* Box usuário */}
       <div className="boxUsuario">
         <img src={Person} alt="Usuário" />
-        <div id="nomeUser">Ana Rita Eduardo</div>
+        <div id="nomeUser">{nomeUsuario}</div>
       </div>
 
       {/* Links de navegação */}
       <div className="boxLinksNav">
-        <BotaoNav texto="Eventos" imgLink={Calendario} />
-        <BotaoNav texto="Lista de Usuários" imgLink={ListaUser} />
-        <BotaoNav texto="Meu Perfil" imgLink={MeuPerfil} />
-        <BotaoNav texto="Visão Geral" imgLink={VisaoGeral} />
-        
+        {rotasPersonalizadas.map((btn, idx) => (
+          <BotaoNav
+            key={idx}
+            texto={btn.texto}
+            imgLink={btn.img}
+            onClick={() => navigate(btn.rota)}
+          />
+        ))}
       </div>
 
       {/* Botão sair */}
       <div className="BoxBtnSair">
-        <BotaoNav texto="Sair" imgLink={Sair} />
+        <BotaoNav
+          texto="Sair"
+          imgLink={Sair}
+          onClick={() => {
+            logout?.();
+            navigate("/login");
+          }}
+        />
       </div>
     </div>
   );

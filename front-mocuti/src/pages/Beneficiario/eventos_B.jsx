@@ -74,7 +74,7 @@ export default function EventosBeneficiario() {
         statusList={statusList}
         onPesquisar={handlePesquisar}
       />
-      <EspacoEventosBeneficiario eventos={eventos} />
+      <EspacoEventosBeneficiario eventos={eventos} mostrarParticipar={true} />
     </>
   );
 }

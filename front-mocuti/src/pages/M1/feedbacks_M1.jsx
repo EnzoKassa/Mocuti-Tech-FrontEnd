@@ -1,7 +1,21 @@
-import React, { useEffect, useState } from "react";
+import { NavLateral } from "../../components/NavLateral";
+import "../../styles/BotaoNav.css";
+import '../../styles/NavLateral.css'
+import '../../styles/TelaComNavLateral.css'
 
-const FeedbacksM1 = () => {
-  return <h1>Feedbacks m1</h1>;
-};
+  function FeedbackM1(){
+    return (
+  <>
+  <div className="TelaComNavLateral">
+      <NavLateral />
+      <div className="MainContent">
+        {/* Conteúdo principal aqui */}
+      </div>
 
-export default FeedbacksM1;
+    </div>
+  
+  </>
+    )
+}
+
+export default FeedbackM1;
