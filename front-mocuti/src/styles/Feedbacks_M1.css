@@ -34,17 +34,40 @@
 
 .dashPalestra {
     background-color: orchid;
-    width: 45%;
-    height: 80%;
+    width: 50%;
+    height: 85%;
 
 }
 
 .dashQuantidadeFeedback {
     background-color: yellow;
-    width: 45%;
-    height: 80%;
+    width: 50%;
+    height: 85%;
 }
 
+.tituloDash {
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 1.15rem;
+    color: #222;
+}
+
+.descricaoDash {
+    font-size: 0.97rem;
+    font-weight: 400;
+    color: #444;
+    margin-bottom: 12px;
+}
+
+.descDashPalestra,
+.descDashFeedback {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #444;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
 
 /* Parte de baixo */
 .boxLowFeedback {
@@ -77,19 +100,16 @@
 }
 
 .colunaFeedback {
-    background-color: red;
     width: 25%;
     height: 100%;
 }
 
 .colunaNome {
-    background-color: blue;
     width: 20%;
     height: 100%;
 }
 
 .colunaEmail {
-    background-color: greenyellow;
     width: 20%;
     height: 100%;
 }
@@ -102,7 +122,6 @@
 }
 
 .boxBotaoFeedback {
-    background-color: coral;
     display: flex;
     height: 100%;
     width: 35%;
@@ -113,9 +132,22 @@
 
 .botaoMaisInfoFeedback {
     background-color: #0F62FE;
-    height: 80%;
-    width: 50%;
     color: white;
     border: none;
+    width: 70%;              /* diminuído */
+    height: 2rem;            /* diminuído */
+    padding: 0.3rem 0.8rem;  /* padding menor */
+    font-size: 0.75rem;      /* fonte menor */
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    font-family: 'Montserrat', Arial, sans-serif;
+}
 
+
+
+.botaoMaisInfoFeedback:hover {
+    background-color: #2563eb;
+    transform: translateY(-2px) scale(1.04);
 }
