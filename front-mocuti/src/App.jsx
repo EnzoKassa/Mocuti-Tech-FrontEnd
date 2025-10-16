@@ -25,6 +25,7 @@ import Eventos_M1 from "./pages/M1/eventos_M1";
 import ListaUser_M1 from "./pages/M1/lista_user_M1";
 import Feedbacks_M1 from "./pages/M1/feedbacks_M1";
 import MeuPerfil_M1 from "./pages/M1/meu_perfil_M1";
+import GeralM1 from "./pages/M1/GeralM1";
 
 function App() {
   return (
@@ -121,6 +122,14 @@ function App() {
             element={
               <PrivateRoute roles={["Administrador"]}>
                 <Feedbacks_M1 />
+              </PrivateRoute>
+            }
+          />
+           <Route
+            path="/admin/Geral"
+            element={
+              <PrivateRoute roles={["Administrador"]}>
+                <GeralM1 />
               </PrivateRoute>
             }
           />
