@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+.TelaComNavLateral {
+  display: flex;
+  align-items: stretch; 
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+
+.TelaComNavLateral > nav,
+.TelaComNavLateral > .NavLateral,
+.TelaComNavLateral .nav-lateral {
+  height: 100vh;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+  box-sizing: border-box;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-left: 22px;
+  padding-right: 18px;
+}
+
+.TelaComNavLateral > .MainContenEventostM1,
+.TelaComNavLateral > .MainContentFeedbackM2 {
+  flex: 1 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.TelaComNavLateral .conteudo-com-nav,
+.TelaComNavLateral .scroll-page {
+  width: 100%;
+  max-width: none !important;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.TelaComNavLateral > nav .profile,
+.TelaComNavLateral > .NavLateral .profile,
+.TelaComNavLateral .nav-lateral .profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+}
+
+.TelaComNavLateral > nav .nav-item,
+.TelaComNavLateral > .NavLateral .nav-item,
+.TelaComNavLateral .nav-lateral .nav-item,
+.TelaComNavLateral > nav a,
+.TelaComNavLateral .nav-lateral a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .TelaComNavLateral {
+    flex-direction: column;
+  }
+  .TelaComNavLateral > .MainContenEventostM1,
+  .TelaComNavLateral > .MainContentFeedbackM2 {
+    width: 100%;
+  }
+}

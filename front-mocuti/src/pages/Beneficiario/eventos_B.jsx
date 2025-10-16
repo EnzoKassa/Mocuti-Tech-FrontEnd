@@ -7,12 +7,9 @@ import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes"
 import FiltroBeneficiario from "../../components/FiltroBeneficiario";
 import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
 import "../../styles/EventosBeneficiario.css";
+import { useNavigate } from "react-router-dom";
 
-const botoesNav = [
-     { href: "#Eventos", label: "Eventos", className: "btn-inicio"},
-     { href: "#MeuPerfil", label: "Meu Perfil", className: "btn-sobre" },
-     { href: "#MeusEventos", label: "Meus Eventos", className: "btn-linha" }
-];
+
 
 const INITIAL_FILTERS = {
        nome: "",
@@ -29,6 +26,15 @@ export default function EventosBeneficiario() {
      const [filtrosUI, setFiltrosUI] = useState(INITIAL_FILTERS);
      const { user } = useContext(AuthContext);
      const userId = user?.idUsuario || user?.id || null;
+
+
+  const navigate = useNavigate();
+  
+  const botoesNav = [
+    { onClick: () => navigate("/usuario/eventos"), label: "Eventos", className: "btn-inicio" },
+    { onClick: () => navigate("/usuario/perfil"), label: "Meu Perfil", className: "btn-sobre" },
+    { onClick: () => navigate("/usuario/meus-eventos"), label: "Meus Eventos", className: "btn-linha" },
+  ];
 
      useEffect(() => {
        fetch("http://localhost:8080/categorias")

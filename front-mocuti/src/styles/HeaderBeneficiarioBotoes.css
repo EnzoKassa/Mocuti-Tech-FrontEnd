@@ -12,7 +12,7 @@
     height: 100px;
 }
 
-.nav-box-botoes {
+.nav-box-botoes-eventos {
     width: 100%;
     height: 100%;
     display: flex;
@@ -20,8 +20,8 @@
     align-items: center;
 }
 
-.nav-box-logo {
-    width: 10%;
+.nav-box-logo-eventos {
+    width: 15%;
     height: 100%;
     justify-content: start;
     flex-direction: row;

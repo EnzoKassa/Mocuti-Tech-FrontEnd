@@ -1,214 +1,177 @@
-import React, { useEffect, useState, useContext } from "react";
-import Swal from "sweetalert2";
-import "sweetalert2/dist/sweetalert2.min.css";
-import { AuthContext } from "../../auth/AuthContext";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/AuthContext";
 import HeaderBeneficiario from "../../components/HeaderBeneficiario";
 import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
-import FiltroBeneficiario from "../../components/FiltroBeneficiario";
 import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
-import "../../styles/EventosBeneficiario.css";
-
-const botoesNav = [
-  { href: "#Eventos", label: "Eventos", className: "btn-inicio" },
-  { href: "#MeuPerfil", label: "Meu Perfil", className: "btn-sobre" },
-  { href: "#MeusEventos", label: "Meus Eventos", className: "btn-linha" }
-];
-
-const INITIAL_FILTERS = {
-  nome: "",
-  dataInicio: "",
-  dataFim: "",
-  categoriaId: "",
-  statusEventoId: ""
-};
+import Swal from "sweetalert2";
+import "../../styles/meusEventos.css";
 
 export default function MeusEventosBeneficiario() {
-  const [eventos, setEventos] = useState([]);
-  const [categorias, setCategorias] = useState([]);
-  const [statusList, setStatusList] = useState([]);
-  const [filtrosUI, setFiltrosUI] = useState(INITIAL_FILTERS);
-  const { user } = useContext(AuthContext);
-  const userId = user?.idUsuario || user?.id || null;
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    fetch("http://localhost:8080/categorias")
-      .then(res => res.json())
-      .then(setCategorias)
-      .catch(err => console.error("Erro ao buscar categorias:", err));
+  const NOTAS_MAP = { like: 1, dislike: 2 };
 
-    fetch("http://localhost:8080/status-eventos")
-      .then(res => res.json())
-      .then(setStatusList)
-      .catch(err => console.error("Erro ao buscar status:", err));
-  }, []);
+  const botoesNav = [
+    { onClick: () => navigate("/usuario/eventos"), label: "Eventos", className: "btn-inicio" },
+    { onClick: () => navigate("/usuario/perfil"), label: "Meu Perfil", className: "btn-sobre" },
+    { onClick: () => navigate("/usuario/meus-eventos"), label: "Meus Eventos", className: "btn-linha" },
+  ];
 
-  const buscarMeusEventos = async () => {
-    try {
-      if (!userId) {
-        setEventos([]);
-        return;
-      }
+  const { user } = useAuth();
+  const idUsuario = user?.id || localStorage.getItem("idUsuario") || sessionStorage.getItem("idUsuario");
 
-      // const url = `http://localhost:8080/eventos-inscritos/${encodeURIComponent(userId)}`;
-      const url = `http://localhost:8080/participacoes/eventos-inscritos/${encodeURIComponent(userId)}`;
-      const response = await fetch(url);
-      if (response.status === 204 || response.status === 404) {
-        // sem eventos ou usuário sem participações
-        setEventos([]);
-        return;
-      }
-      if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-      let data = await response.json();
+  const [participacoes, setParticipacoes] = useState([]);
+  const [eventosPassados, setEventosPassados] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-      const dataComDadosCompletos = data.map(evento => {
-        const categoriaNome = evento.categoria?.nome ||
-          categorias.find(c => c.idCategoria == evento.categoria?.idCategoria)?.nome || '';
-
-        const statusSituacao = evento.statusEvento?.situacao ||
-          statusList.find(s => s.idStatusEvento == evento.statusEvento?.idStatusEvento)?.situacao || '';
-
-        // formatar endereço: rua, numero - bairro
-        const enderecoObj = evento.endereco || evento.enderecoEvento || evento.local || null;
-        let enderecoFormatado = "Local não informado";
-        if (enderecoObj && typeof enderecoObj === "object") {
-          const logradouro = enderecoObj.logradouro || enderecoObj.rua || "";
-          const numero = enderecoObj.numero ? `${enderecoObj.numero}` : "";
-          const bairro = enderecoObj.bairro ? `${enderecoObj.bairro}` : "";
-          const partes = [];
-          if (logradouro) partes.push(logradouro + (numero ? `, ${numero}` : ""));
-          if (bairro) partes.push(bairro);
-          if (partes.length) enderecoFormatado = partes.join(" - ");
-        } else if (typeof enderecoObj === "string" && enderecoObj.trim()) {
-          enderecoFormatado = enderecoObj;
+  const normalizeEventos = async (arr) =>
+    Promise.all(
+      (arr || []).map(async (p) => {
+        let imagemUrl = null;
+        let eventoDetalhes = null;
+        try {
+          const eventoId = p.idEvento || p.id?.eventoId || p.id?.evento_id || (p.id && (p.id.eventoId || p.id));
+          if (eventoId) {
+            const res = await fetch(`http://localhost:8080/eventos/${eventoId}`);
+            if (res.ok) eventoDetalhes = await res.json();
+            const imgRes = await fetch(`http://localhost:8080/eventos/foto/${eventoId}`);
+            if (imgRes.ok) {
+              const blob = await imgRes.blob();
+              imagemUrl = URL.createObjectURL(blob);
+            }
+          }
+        } catch (err) {
+          console.warn("Erro ao buscar detalhes/imagem:", err);
         }
 
-        return {
-          ...evento,
-          categoriaNome,
-          statusSituacao,
-          inscrito: true,
-          local: enderecoFormatado,
-          enderecoFormatado
-        };
-      });
+        // calcula janela de feedback: hoje e últimos 5 dias
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const windowStart = new Date(today);
+        windowStart.setDate(windowStart.getDate() - 5);
 
-      const eventosComImg = await Promise.all(
-        dataComDadosCompletos.map(async (evento) => {
-          let eventoCompletado = { ...evento, imagemUrl: null };
-          try {
-            const id = evento.idEvento || evento.id_evento || evento.id;
-            if (!id) return eventoCompletado;
-            const imgResponse = await fetch(`http://localhost:8080/eventos/foto/${id}`);
-            if (imgResponse.ok) {
-              const blob = await imgResponse.blob();
-              eventoCompletado.imagemUrl = URL.createObjectURL(blob);
-            }
-          } catch (errorImg) {
-            console.warn(`Erro ao buscar foto para evento ${evento.idEvento || evento.id_evento}:`, errorImg);
+        // tenta extrair data do evento (dia / data_evento / inicio)
+        const rawDate = (eventoDetalhes && (eventoDetalhes.dia || eventoDetalhes.data_evento)) || p.dia || p.data_evento || null;
+        let eventDate = null;
+        if (rawDate) {
+          eventDate = new Date(rawDate);
+          if (!isNaN(eventDate)) {
+            eventDate.setHours(0, 0, 0, 0);
+          } else {
+            eventDate = null;
           }
-          return eventoCompletado;
-        })
-      );
+        }
 
-      const eventosFiltrados = aplicarFiltrosClient(eventosComImg, filtrosUI);
-      setEventos(eventosFiltrados);
-    } catch (error) {
-      console.error("Erro ao buscar meus eventos:", error);
-      setEventos([]);
+        const podeDarFeedback = !!(eventDate && eventDate >= windowStart && eventDate <= today);
+
+        return {
+          ...p,
+          ...(eventoDetalhes || {}),
+          imagemUrl,
+          nota: p.nota?.tipoNota || p.nota || null,
+          idEvento: p.idEvento || p.id?.eventoId || (eventoDetalhes && eventoDetalhes.idEvento) || p.id,
+          podeDarFeedback,
+        };
+      })
+    );
+
+  const fetchEventos = async () => {
+    console.log("[meus_eventos_B] fetchEventos start, idUsuario:", idUsuario);
+    if (!idUsuario) {
+      console.warn("[meus_eventos_B] idUsuario indefinido");
+      setParticipacoes([]);
+      setEventosPassados([]);
+      setLoading(false);
+      return;
+    }
+    try {
+      setLoading(true);
+
+      // busca todos os eventos em que o usuário está inscrito e os passados
+      const urlInscritos = `http://localhost:8080/participacoes/eventos-inscritos/${encodeURIComponent(idUsuario)}`;
+      const urlPassados = `http://localhost:8080/participacoes/participacao-passados/${encodeURIComponent(idUsuario)}`;
+      console.log("[meus_eventos_B] fetching", urlInscritos, urlPassados);
+
+      const [inscritosRes, passadosRes] = await Promise.all([fetch(urlInscritos), fetch(urlPassados)]);
+
+      const inscritos = inscritosRes.ok ? await inscritosRes.json() : [];
+      const passados = passadosRes.ok ? await passadosRes.json() : [];
+
+      const normInscritos = await normalizeEventos(inscritos);
+      const normPassados = await normalizeEventos(passados);
+
+      setParticipacoes(normInscritos);
+      setEventosPassados(normPassados);
+    } catch (err) {
+      console.error("Erro ao buscar participações:", err);
+      setParticipacoes([]);
+      setEventosPassados([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    buscarMeusEventos();
+    fetchEventos();
+  }, [idUsuario]);
 
-  }, [userId, categorias, statusList]);
-
-  const handleFiltroChange = (field, value) => {
-    setFiltrosUI(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handlePesquisar = () => {
-    buscarMeusEventos();
-  };
-
-  // Enviar feedback (POST /feedback)
   const enviarFeedback = async (payload) => {
+    const ev = participacoes.find((e) => String(e.idEvento) === String(payload.idEvento));
+    if (ev && ev.podeDarFeedback === false) {
+      Swal.fire("Atenção", "Ainda não é possível enviar feedback para este evento.", "warning");
+      return false;
+    }
+
     try {
       const res = await fetch("http://localhost:8080/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
-
-      const contentType = res.headers.get("content-type") || "";
-      let body = null;
-      if (contentType.includes("application/json")) body = await res.json().catch(() => null);
-      else body = await res.text().catch(() => null);
-
-      if (res.ok) {
-        Swal.fire("Obrigado!", "Seu feedback foi enviado.", "success");
-        return true;
-      }
-
-      let errMsg = "Não foi possível enviar feedback.";
-      if (body) {
-        if (typeof body === "string" && body.trim()) errMsg = body;
-        else if (typeof body === "object") errMsg = body.message || body.error || JSON.stringify(body);
-      } else errMsg = `Erro ${res.status}`;
-      Swal.fire("Erro", errMsg, "error");
-      return false;
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      const updated = await res.json();
+      setParticipacoes((prev) =>
+        prev.map((ev2) =>
+          String(ev2.idEvento) === String(payload.idEvento)
+            ? { ...ev2, feedbackId: updated.idFeedback, nota: payload.gostei ? "like" : "dislike", comentario: payload.comentario }
+            : ev2
+        )
+      );
+      Swal.fire("Obrigado!", "Seu feedback foi enviado.", "success");
+      return true;
     } catch (err) {
       console.error("Erro ao enviar feedback:", err);
-      Swal.fire("Erro", "Falha ao conectar com o servidor.", "error");
+      Swal.fire("Erro", "Falha ao enviar feedback.", "error");
       return false;
     }
   };
 
   const cancelarInscricao = async (idEvento) => {
-    if (!userId) {
+    if (!idUsuario) {
       Swal.fire("Atenção", "Você precisa estar logado para cancelar a inscrição.", "warning");
       return;
     }
-
-    const confirmOpts = {
+    const choice = await Swal.fire({
       title: "Confirmação",
       text: "Tem certeza que deseja cancelar sua inscrição neste evento?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Sim, cancelar inscrição",
+      confirmButtonText: "Sim, cancelar",
       cancelButtonText: "Manter inscrição",
-      customClass: {
-        confirmButton: "sw-btn sw-btn-confirm",
-        cancelButton: "sw-btn sw-btn-cancel"
-      },
-      buttonsStyling: false
-    };
-
-    const choice = await Swal.fire(confirmOpts);
+    });
     if (!choice.isConfirmed) return;
 
     try {
-      const url = `http://localhost:8080/participacoes/${encodeURIComponent(idEvento)}/cancelar-inscricao?idUsuario=${encodeURIComponent(userId)}`;
+      const url = `http://localhost:8080/participacoes/${encodeURIComponent(idEvento)}/cancelar-inscricao?idUsuario=${encodeURIComponent(idUsuario)}`;
       const res = await fetch(url, { method: "DELETE" });
       if (res.ok || res.status === 204) {
-        // remover evento da lista
-        setEventos(prev => prev.filter(ev => {
-          const id = ev.idEvento || ev.id_evento || ev.id;
-          return Number(id) !== Number(idEvento);
-        }));
+        setParticipacoes((prev) => prev.filter((ev) => String(ev.idEvento) !== String(idEvento)));
+        setEventosPassados((prev) => prev.filter((ev) => String(ev.idEvento) !== String(idEvento)));
         Swal.fire("Inscrição cancelada", "Sua inscrição foi cancelada.", "success");
       } else {
-
-        const ct = res.headers.get("content-type") || "";
-        let body = null;
-        if (ct.includes("application/json")) body = await res.json().catch(()=>null);
-        else body = await res.text().catch(()=>null);
-        let errMsg = `Erro ${res.status}`;
-        if (body) {
-          if (typeof body === "string") errMsg = body;
-          else errMsg = body.message || body.error || JSON.stringify(body);
-        }
-        Swal.fire("Erro", errMsg, "error");
+        const text = await res.text().catch(() => `Erro ${res.status}`);
+        Swal.fire("Erro", text, "error");
       }
     } catch (err) {
       console.error("Erro ao cancelar inscrição:", err);
@@ -216,16 +179,29 @@ export default function MeusEventosBeneficiario() {
     }
   };
 
-  // Mostrar detalhes (com botão Realizar Feedback)
+  // SweetAlert modal (mostra detalhes + permite enviar feedback ou cancelar)
   const mostrarDetalhes = (evento) => {
-    const titulo = evento.nomeEvento || evento.nome || evento.nome_evento || "Evento";
-    const descricao = evento.descricao || evento.descricaoEvento || evento.descricao_evento || "Sem descrição.";
-    const dataFormat = evento.data_evento || evento.dia || "";
-    const horaInicio = evento.hora_inicio || evento.horaInicio || "-";
-    const horaFim = evento.hora_fim || evento.horaFim || "-";
-    const local = evento.local || evento.endereco || "Local não informado";
-    const categoria = evento.categoriaNome || evento.categoria?.nome || "-";
+    const titulo = evento.nomeEvento || evento.nome || "Evento";
+    const descricao = evento.descricao || evento.descricaoEvento || "Sem descrição.";
+    const dataFormat = evento.dia || evento.data_evento || "";
+    const horaInicio = evento.horaInicio || evento.hora_inicio || evento.horaInicio || "-";
+    const horaFim = evento.horaFim || evento.hora_fim || "-";
+    // extrai rua, número, bairro se objeto endereco presente
+    let local = "Local não informado";
+    const e = evento.endereco || evento.enderecoEvento || evento.enderecoFormatado || evento.local || null;
+    if (e && typeof e === "object") {
+      const rua = e.logradouro || e.rua || "";
+      const numero = (e.numero !== undefined && e.numero !== null) ? String(e.numero) : "";
+      const bairro = e.bairro || "";
+      const parts = [];
+      if (rua) parts.push(rua + (numero ? `, ${numero}` : ""));
+      if (bairro) parts.push(bairro);
+      if (parts.length) local = parts.join(" - ");
+    } else if (typeof e === "string" && e.trim()) {
+      local = e;
+    }
 
+    const categoria = evento.categoria?.nome || evento.categoriaNome || "-";
     const imgHtml = evento.imagemUrl ? `<img src="${evento.imagemUrl}" alt="${titulo}" class="sw-img" />` : `<div class="sw-img sw-noimg">Sem imagem</div>`;
 
     const html = `
@@ -264,9 +240,7 @@ export default function MeusEventosBeneficiario() {
       },
       buttonsStyling: false,
     }).then((result) => {
-      // confirmar para realizar feedback
       if (result.isConfirmed) {
-        // abrir modal de feedback (form)
         const fbHtml = `
           <div style="text-align:left;">
             <label style="display:block; font-weight:600; margin-bottom:8px;">Comentário</label>
@@ -281,8 +255,7 @@ export default function MeusEventosBeneficiario() {
           </div>
         `;
 
-        let gostei = null; // true = like, false = dislike, null = none
-
+        let gostei = null;
         Swal.fire({
           title: "Descrição do Feedback",
           html: fbHtml,
@@ -301,108 +274,76 @@ export default function MeusEventosBeneficiario() {
           didOpen: () => {
             const likeBtn = document.getElementById("sw-like");
             const dislikeBtn = document.getElementById("sw-dislike");
-
             const updateButtons = () => {
               if (!likeBtn || !dislikeBtn) return;
               likeBtn.style.background = gostei === true ? "#3fb040" : "#fff";
               likeBtn.style.color = gostei === true ? "#fff" : "#333";
               dislikeBtn.style.background = gostei === false ? "#e74c3c" : "#fff";
               dislikeBtn.style.color = gostei === false ? "#fff" : "#333";
-              likeBtn.style.boxShadow = gostei === true ? "0 6px 14px rgba(63,176,64,0.18)" : "none";
-              dislikeBtn.style.boxShadow = gostei === false ? "0 6px 14px rgba(231,76,60,0.12)" : "none";
             };
-
-            likeBtn?.addEventListener("click", () => {
-              gostei = gostei === true ? null : true;
-              updateButtons();
-            });
-            dislikeBtn?.addEventListener("click", () => {
-              gostei = gostei === false ? null : false;
-              updateButtons();
-            });
-
+            likeBtn?.addEventListener("click", () => { gostei = gostei === true ? null : true; updateButtons(); });
+            dislikeBtn?.addEventListener("click", () => { gostei = gostei === false ? null : false; updateButtons(); });
             updateButtons();
           }
         }).then(async (fbResult) => {
           if (fbResult.isConfirmed) {
             const comentario = document.getElementById("sw-feedback-text")?.value || "";
             const payload = {
-              idUsuario: Number(userId),
+              idUsuario: Number(idUsuario),
               idEvento: Number(evento.idEvento || evento.id_evento || evento.id),
               comentario,
               gostei
             };
-            
             await enviarFeedback(payload);
+          } else if (result.dismiss === Swal.DismissReason.cancel) {
+            const idEv = evento.idEvento || evento.id_evento || evento.id;
+            cancelarInscricao(idEv);
           }
         });
       } else if (result.dismiss === Swal.DismissReason.cancel) {
-        // usuário clicou em "Cancelar Inscrição" — confirmar ação
         const idEv = evento.idEvento || evento.id_evento || evento.id;
         cancelarInscricao(idEv);
       }
     });
   };
-  
-  const aplicarFiltrosClient = (lista, filtros) => {
-    if (!lista || !Array.isArray(lista)) return [];
-    const { nome, dataInicio, dataFim, categoriaId, statusEventoId } = filtros || {};
-    return lista.filter(ev => {
-      // nome busca em nomeEvento / nome
-      if (nome && nome.trim()) {
-        const n = nome.trim().toLowerCase();
-        const target = (ev.nomeEvento || ev.nome || "").toString().toLowerCase();
-        if (!target.includes(n)) return false;
-      }
-
-      // data range: compara com ev.dia / ev.data_evento
-      if (dataInicio) {
-        const evData = ev.dia || ev.data_evento || "";
-        if (!evData) return false;
-        if (new Date(evData) < new Date(dataInicio)) return false;
-      }
-      if (dataFim) {
-        const evData = ev.dia || ev.data_evento || "";
-        if (!evData) return false;
-
-        const evDate = new Date(evData);
-        const endDate = new Date(dataFim);
-        endDate.setHours(23,59,59,999);
-        if (evDate > endDate) return false;
-      }
-
-      // categoria
-      if (categoriaId) {
-        const catIdStr = String(ev.categoria?.idCategoria || ev.categoria?.id || ev.categoriaId || "");
-        if (catIdStr !== String(categoriaId)) return false;
-      }
-
-      // statusEvento
-      if (statusEventoId) {
-        const stIdStr = String(ev.statusEvento?.idStatusEvento || ev.statusEvento?.id || ev.statusEventoId || "");
-        if (stIdStr !== String(statusEventoId)) return false;
-      }
-
-      return true;
-    });
-  };
 
   return (
-    <>
+    <div className="scroll-page">
       <HeaderBeneficiario />
       <HeaderBeneficiarioBotoes botoes={botoesNav} />
-      <FiltroBeneficiario
-        filtros={filtrosUI}
-        onFiltroChange={handleFiltroChange}
-        categorias={categorias}
-        statusList={statusList}
-        onPesquisar={handlePesquisar}
-      />
-      <EspacoEventosBeneficiario
-        eventos={eventos}
-        onMostrarDetalhes={mostrarDetalhes}
-        showParticipar={false}
-      />
-    </>
+
+      <div className="meus-eventos-beneficiario">
+        {loading ? (
+          <p>Carregando eventos...</p>
+        ) : (
+          <div className="feedback-container">
+            <div className="eventos-unificado" style={{ background: "#F5F5F5", padding: 24, boxShadow: "0 2px 4px rgba(0,0,0,0.06)" }}>
+              <h1 style={{ marginTop: 0 }}>Meus Eventos</h1>
+
+              <div style={{ marginTop: 8 }}>
+                <EspacoEventosBeneficiario
+                  eventos={participacoes}
+                  mostrarParticipar={false}
+                  hideParticipar={true}
+                  onOpenModal={mostrarDetalhes}
+                  onCancelarInscricao={cancelarInscricao}
+                  onRealizarFeedback={enviarFeedback}
+                />
+              </div>
+              <h1 style={{ marginTop: 0 }}>Eventos Passados</h1>
+              <div style={{ marginTop: 12 }}>
+                <EspacoEventosBeneficiario
+                  eventos={eventosPassados}
+                  mostrarParticipar={false}
+                  hideParticipar={true}
+                  onOpenModal={(evento) => mostrarDetalhes({ ...evento, isPassado: true })}
+                  onCancelarInscricao={cancelarInscricao}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

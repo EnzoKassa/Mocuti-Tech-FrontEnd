@@ -22,6 +22,7 @@ export default function HeaderBeneficiario() {
                     <img src={face} alt="Facebook" />
                     <img src={email} alt="E-mail" />
                 </div>
+
             </div>
         </div>
     );

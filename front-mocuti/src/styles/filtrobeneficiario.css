@@ -164,3 +164,10 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.4); 
     transform: translateY(2px); 
 }
+
+/* placeholder preto */
+.espacofiltrobeneficiario input::placeholder { color: #000; opacity: 1; }
+.espacofiltrobeneficiario input::-webkit-input-placeholder { color: #000; opacity: 1; }
+.espacofiltrobeneficiario input::-moz-placeholder { color: #000; opacity: 1; }
+.espacofiltrobeneficiario input:-ms-input-placeholder { color: #000; opacity: 1; }
+.espacofiltrobeneficiario input:-moz-placeholder { color: #000; opacity: 1; }

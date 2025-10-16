@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+
+
+.NavLateral{
+    width: 15%;
+   background-color: white;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600 !important;
+  font-size: 1.1rem !important;
+
+
+}
+
+.boxUsuario{
+    height: 20%;
+    width: 80%;
+ 
+    flex-direction: column;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2%;
+}
+
+.boxLinksNav{
+    height: 65%;
+    width: 80%;
+    padding-top: 5%;
+    justify-content: start;
+    align-items: start;
+    flex-direction: column;
+    display: flex;
+    gap: 1%;
+}
+
+.BoxBtnSair{
+    height: 10%;
+  
+    width: 80%;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+}

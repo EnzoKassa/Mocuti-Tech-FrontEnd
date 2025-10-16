@@ -1,0 +1,39 @@
+.scroll-page {
+  height: 100vh;           /* ocupa toda a tela */
+  overflow-y: auto;        /* cria um scroll interno */
+  overflow-x: hidden;      /* evita scroll lateral */
+  position: relative;
+  scroll-behavior: smooth;
+}
+
+.meus-eventos-beneficiario h2 {
+ background-color: #f5f5f5 ;
+ padding: -30px;
+ margin: 0px;
+ padding-top: 50px;
+ text-align: center;
+}
+
+.feedback-container
+  {
+    padding: 4rem;
+    font-family: "Inter", sans-serif;
+  }
+
+.feedback-container .feedback-title {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #1e293b;
+padding-left: 2.5rem;
+}
+
+.feedback-container h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 7.5rem;
+  margin-top: 2.5rem;
+  padding-left: 2.5rem;
+  
+}
+
