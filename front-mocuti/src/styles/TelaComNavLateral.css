@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
-.TelaComNavLateral, #root {
+.TelaComNavLateral {
   display: flex;
   flex-direction: row;
   width: 100%;
@@ -8,3 +8,8 @@
 
 
 
+.MainContentFeedbackM2 {
+  width: 80%;
+  height: 100%;
+  display: flex;
+}
