@@ -15,13 +15,13 @@ const MeuPerfilM1 = () => {
     { texto: "Lista de Usuários", img: listaUsuarios, rota: "/admin/lista-usuarios" },
     { texto: "Feedbacks", img: feedback, rota: "/admin/feedbacks" },
     { texto: "Meu Perfil", img: MeuPerfil, rota: "/admin/perfil" },
-    { texto: "Visão Geral", img: VisaoGeral, rota: "/admin" },
+    { texto: "Visão Geral", img: VisaoGeral, rota: "/admin/Geral" },
   ];
   return  (
-    <div className="meu-perfil-page">
+    <div className="meu-perfil-page2">
       {/* Cabeçalho principal */}
       <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
-      <div className="MainContent-M1 ">
+      <div className="MainContent-M1">
       <PerfilUsuario/>
       </div>
     </div>

@@ -143,7 +143,6 @@
   
   .header-botoes a {
     text-decoration: none;
-    padding: 12px 24px;
     border-radius: 8px;
     background-color: #4CAF50;
     color: white;
@@ -158,10 +157,14 @@
   /* PÁGINA PERFIL */
   .meu-perfil-page {
     display: flex;
-    flex-direction: column;
+    flex-direction: column !important;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+  
+    width: 100%;
+    margin: 0;
+    padding: 0;
   }
   
   .user-details-container {
@@ -170,6 +173,9 @@
     padding: 40px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     max-width: 800px;
+    justify-self: center;
+    align-self: center;
+    margin-top: 1%;
     width: 100%;
   }
   

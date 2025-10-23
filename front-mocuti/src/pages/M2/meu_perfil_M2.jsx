@@ -23,10 +23,10 @@ const MeuPerfilM2 = () => {
   ];
 
   return  (
-    <div className="meu-perfil-page">
+    <div className="meu-perfil-page2">
       {/* Cabeçalho principal */}
       <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
-      <div className="MainContent-M2 ">
+      <div className="MainContent-M1">
       <PerfilUsuario/>
       </div>
     </div>
