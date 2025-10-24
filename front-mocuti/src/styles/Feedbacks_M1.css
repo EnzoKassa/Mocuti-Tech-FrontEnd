@@ -1,153 +1,565 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
-
-.boxTopFeedback {
-    background-color: white;
-    width: 95%;
-    height: 65vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+/* Base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-.boxDashboardFeedback {
-    background-color: green;
-    display: flex;
-    width: 95%;
-    height: 80%;
-    justify-content: center;
-    align-items: center;
-    gap: 3%;
+/* ====== Header (título do evento — cor #F2F4F8) ====== */
+.headerEvento {
+  width: 95%;
+  margin: 16px auto 0;
+  background: #F2F4F8;
+  /* pedido */
+  color: #111827;
+  /* texto escuro p/ contraste */
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(17, 24, 39, 0.06);
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.headerLegenda {
+  font-size: 14px;
+  color: #374151;
+}
+
+.headerTitulo {
+  font-size: 28px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #111827;
+}
+
+.headerMeta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.metaLabel {
+  font-size: 14px;
+  color: #4B5563;
+}
+
+.metaValor {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+}
+
+/* ====== Topo ====== */
+.boxTopFeedback {
+  background-color: white;
+  width: 95%;
+  margin: 12px auto 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .tituloFeedback {
-    background-color: #F2F4F8;
-    align-items: center;
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    height: 20%;
-    font-size: 42px;
-    font-weight: 800;
-
+  background-color: #F2F4F8;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 64px;
+  padding: 0 16px;
+  font-size: 42px;
+  font-weight: 800;
 }
 
+/* Cards + Gráfico em grid */
+.boxDashboardFeedback {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 20px;
+  width: 100%;
+  align-items: stretch;
+}
+
+/* Cards (esquerda) */
 .dashPalestra {
-    background-color: orchid;
-    width: 50%;
-    height: 85%;
-
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
 }
 
+.cardMini {
+  /* centraliza todo o conteúdo do card no meio */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* centro vertical */
+  align-items: center;
+  /* centro horizontal */
+  min-height: 110px;
+  /* garante altura para centralizar bem */
+}
+
+
+.cardMini.azul {
+  border-left: 10px solid #3DA5E1;
+}
+
+.cardMini.verde {
+  border-left: 10px solid #45AA48;
+}
+
+.cardMini.vermelho {
+  border-left: 10px solid #FF4848;
+}
+
+/* NOVO: amarelo harmônico com a paleta */
+.cardMini.amarelo {
+  border-left: 10px solid #FBBF24;
+  /* amber-400 */
+}
+
+/* título centralizado, discreto */
+.cardTitle {
+  font-weight: 400;
+  text-align: center;
+  margin-bottom: 6px;
+  font-size: 1.2rem;
+}
+
+/* número GRANDE e centralizado */
+.cardValue {
+  text-align: center;
+  font-size: 2.5rem;
+  /* ↑ número */
+  line-height: 1;
+  font-weight: 900;
+  margin: 0;
+}
+
+/* Gráfico (direita) */
 .dashQuantidadeFeedback {
-    background-color: yellow;
-    width: 50%;
-    height: 85%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
 }
 
-.tituloDash {
-    font-weight: 600;
-    margin-bottom: 4px;
-    font-size: 1.15rem;
-    color: #222;
+.chartCard {
+  width: 100%;
+  height: 360px;
+  /* altura fixa p/ Chart.js */
+  overflow: hidden;
+  /* evita estouro do canvas */
+  border-radius: 8px;
 }
 
-.descricaoDash {
-    font-size: 0.97rem;
-    font-weight: 400;
-    color: #444;
-    margin-bottom: 12px;
+.boxLoading {
+  background: #fff;
+  border: 1px dashed #e5e7eb;
+  color: #6b7280;
+  border-radius: 12px;
+  padding: 16px;
+  width: 100%;
+  text-align: center;
 }
 
-.descDashPalestra,
-.descDashFeedback {
-    font-family: 'Montserrat', Arial, sans-serif;
-    font-size: 0.7rem;
-    font-weight: 400;
-    color: #444;
-    margin-bottom: 12px;
-    line-height: 1.4;
+.alertErro {
+  margin: 8px 0;
+  color: #b91c1c;
+  font-weight: 700;
 }
 
-/* Parte de baixo */
+/* ====== Lista ====== */
 .boxLowFeedback {
-    background-color: white;
-    width: 95%;
-    height: 65vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+  background-color: white;
+  width: 95%;
+  margin: 16px auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tituloFeedbackLow {
+  font-size: 28px;
+  padding: 8px 16px;
+  background: #F2F4F8;
+  border-radius: 10px;
 }
 
 .boxListaFeedback {
-    background-color: green;
-    display: flex;
-    width: 95%;
-    height: 80%;
-    justify-content: start;
-    align-items: center;
-    gap: 3%;
-    flex-direction: column;
-
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 52vh;
+  overflow: auto;
 }
 
 .colunas {
-    background-color: #F2F4F8;
-    display: flex;
-    width: 100%;
-    height: 14%;
+  background-color: #F2F4F8;
+  display: grid;
+  grid-template-columns: 25% 20% 20% 1fr;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
 }
 
-.colunaFeedback {
-    width: 25%;
-    height: 100%;
-}
-
-.colunaNome {
-    width: 20%;
-    height: 100%;
-}
-
-.colunaEmail {
-    width: 20%;
-    height: 100%;
+.colunaHeader {
+  font-weight: 700;
 }
 
 .linhas {
-    background-color: white;
-    display: flex;
-    width: 100%;
-    height: 14%;
+  background-color: white;
+  display: grid;
+  grid-template-columns: 25% 20% 20% 1fr;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.colunaFeedback,
+.colunaNome,
+.colunaEmail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .boxBotaoFeedback {
-    display: flex;
-    height: 100%;
-    width: 35%;
-    justify-content: end;
-    align-items: center;
-
+  display: flex;
+  justify-content: end;
+  align-items: center;
 }
 
 .botaoMaisInfoFeedback {
-    background-color: #0F62FE;
-    color: white;
-    border: none;
-    width: 70%;              /* diminuído */
-    height: 2rem;            /* diminuído */
-    padding: 0.3rem 0.8rem;  /* padding menor */
-    font-size: 0.75rem;      /* fonte menor */
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
-    font-family: 'Montserrat', Arial, sans-serif;
+  background-color: #0F62FE;
+  color: white;
+  border: none;
+  width: 160px;
+  height: 36px;
+  padding: 0 12px;
+  font-size: 0.82rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
 }
 
-
-
 .botaoMaisInfoFeedback:hover {
-    background-color: #2563eb;
-    transform: translateY(-2px) scale(1.04);
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* ====== Responsivo ====== */
+@media (max-width: 1024px) {
+  .boxDashboardFeedback {
+    grid-template-columns: 1fr;
+  }
+
+  .chartCard {
+    height: 300px;
+  }
+}
+
+@media (max-width: 800px) {
+
+  .colunas,
+  .linhas {
+    grid-template-columns: 1.2fr 0.9fr 1fr 0.8fr;
+  }
+
+  /* ===== Modal ===== */
+  .modalBackdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.45);
+    display: grid;
+    place-items: center;
+    z-index: 60;
+  }
+
+  .modalCard {
+    background: #fff;
+    width: min(780px, 92vw);
+    border-radius: 14px;
+    border: 2px solid #1d4ed8;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .25);
+    padding: 24px 24px 28px;
+    position: relative;
+  }
+
+  .modalClose {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: #f3f4f6;
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .modalClose:hover {
+    background: #e5e7eb;
+  }
+
+  .modalTitulo {
+    font-size: 28px;
+    font-weight: 800;
+    color: #111827;
+    text-align: center;
+    margin: 4px 0 24px;
+  }
+
+  .modalGrupo {
+    margin-bottom: 16px;
+  }
+
+  .modalLabel {
+    display: block;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 6px;
+  }
+
+  .modalInput {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #111827;
+    font-weight: 600;
+  }
+
+  .modalTextarea {
+    width: 100%;
+    min-height: 130px;
+    resize: vertical;
+    border-radius: 10px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    padding: 10px 12px;
+    color: #111827;
+  }
+
+  .modalRating {
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  .ratingTitulo {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 8px;
+  }
+
+  .ratingOpcoes {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+  }
+
+  .ratingItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    opacity: .6;
+  }
+
+  .ratingItem span {
+    font-size: 22px;
+  }
+
+  .ratingItem.ativo {
+    opacity: 1;
+    font-weight: 700;
+  }
+
+  .ratingItem.like span {
+    color: #22c55e;
+  }
+
+  .ratingItem.dislike span {
+    color: #ef4444;
+  }
+
+  /* Deixar números dos cards maiores e centralizados */
+  .cardValue.big {
+    font-size: 2.4rem;
+    font-weight: 900;
+    text-align: center;
+    line-height: 1.1;
+    margin-top: 6px;
+  }
+
+  /* ===== Modal ===== */
+  .modalBackdrop {
+    position: fixed;
+    inset: 0;
+    /* top/right/bottom/left = 0 */
+    background: rgba(17, 24, 39, 0.45);
+    display: flex;
+    /* centraliza com flex */
+    align-items: center;
+    /* eixo vertical */
+    justify-content: center;
+    /* eixo horizontal */
+    padding: 24px;
+    /* respiro para telas pequenas */
+    z-index: 1000;
+    /* acima de tudo */
+  }
+
+  .modalCard {
+    background: #fff;
+    width: min(780px, 92vw);
+    /* responsivo */
+    max-height: 86vh;
+    /* cabe na viewport */
+    overflow: auto;
+    /* scroll interno se precisar */
+    border-radius: 14px;
+    border: 2px solid #1d4ed8;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, .35);
+    padding: 24px 24px 28px;
+    position: relative;
+  }
+
+  .modalClose {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 8px;
+    background: #f3f4f6;
+    font-size: 22px;
+    cursor: pointer;
+  }
+
+  .modalClose:hover {
+    background: #e5e7eb;
+  }
+
+  .modalTitulo {
+    font-size: 28px;
+    font-weight: 800;
+    color: #111827;
+    text-align: center;
+    margin: 4px 0 24px;
+  }
+
+  .modalGrupo {
+    margin-bottom: 16px;
+  }
+
+  .modalLabel {
+    display: block;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 6px;
+  }
+
+  .modalInput {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #111827;
+    font-weight: 600;
+  }
+
+  .modalTextarea {
+    width: 100%;
+    min-height: 130px;
+    resize: vertical;
+    border-radius: 10px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    padding: 10px 12px;
+    color: #111827;
+  }
+
+  .modalRating {
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  .ratingTitulo {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 8px;
+  }
+
+  .ratingOpcoes {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+  }
+
+  .ratingItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    opacity: .6;
+  }
+
+  .ratingItem span {
+    font-size: 22px;
+  }
+
+  .ratingItem.ativo {
+    opacity: 1;
+    font-weight: 700;
+  }
+
+  .ratingItem.like span {
+    color: #22c55e;
+  }
+
+  .ratingItem.dislike span {
+    color: #ef4444;
+  }
+
+  /* Deixar números dos cards maiores e centralizados */
+  .cardValue.big {
+    font-size: 2.4rem;
+    font-weight: 900;
+    text-align: center;
+    line-height: 1.1;
+    margin-top: 6px;
+  }
+
 }
