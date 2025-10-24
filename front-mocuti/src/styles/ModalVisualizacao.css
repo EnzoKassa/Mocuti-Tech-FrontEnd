@@ -1,0 +1,67 @@
+.feedback-modal-botoes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.feedback-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.feedback-modal label {
+  font-size: 1rem;
+  color: #334155;
+  margin-bottom: 0.5rem;
+  margin-left: 1.2rem;
+}
+
+.feedback-modal-actions .nota-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+.feedback-modal-botoes p {
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  font-size: 1rem;
+  color: #000000;
+}
+
+.feedback-modal-actions .nota-button svg {
+  font-size: 1.6rem;
+  color: #000000;
+}
+
+.nota-button{
+color: #000000;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+  .feedback-modal {
+    width: 90%;
+    height: auto;
+  }
+
+  .feedback-modal-actions {
+    gap: 1rem;
+  }
+
+  .feedback-modal-actions .nota-button {
+    font-size: 0.9rem;
+  }
+
+  .feedback-modal-actions .nota-button svg {
+    font-size: 1.3rem;
+  }
+}
