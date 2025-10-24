@@ -2,6 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { NavLateral } from "../../components/NavLateral";
 import "../../styles/TelaComNavLateral.css";
 import "../../styles/Feedbacks_M1.css";
+import Calendario from "../../assets/images/calendario.svg";
+import MeuPerfil from "../../assets/images/meuPerfil.svg";
+import feedback from "../../assets/images/feedbackLogo.svg";
+import Visao from "../../assets/images/visaoGeral.svg";
+import Lista from "../../assets/images/listausuariom1.svg";
+import { useNavigate } from "react-router-dom";
 
 import {
   Chart as ChartJS,
@@ -41,7 +47,7 @@ async function buscarFeedbacksDoEvento(idEvento, signal) {
   try {
     const byQuery = await fetchJson(`${API_BASE}/feedback?eventoId=${idEvento}`, { signal });
     if (Array.isArray(byQuery)) return byQuery;
-  } catch {}
+  } catch { }
   const all = await fetchJson(`${API_BASE}/feedback`, { signal });
   return (Array.isArray(all) ? all : []).filter((f) => {
     const id = f?.evento?.idEvento ?? f?.evento?.id_evento ?? f?.idEvento ?? f?.id_evento;
@@ -59,6 +65,17 @@ export default function Feedbacks_M1() {
   // ===== Modal =====
   const [modalAberto, setModalAberto] = useState(false);
   const [feedbackSelecionado, setFeedbackSelecionado] = useState(null);
+
+
+  const navigate = useNavigate();
+  const rotasPersonalizadas = [
+    { texto: "Visão Geral", rota: "/admin/dashboard", img: Visao },
+    { texto: "Eventos", rota: "/admin/eventos", img: Calendario },
+    { texto: "Usuários", rota: "/admin/lista-usuarios", img: Lista },
+    { texto: "Feedbacks", rota: "/admin/feedbacks", img: feedback },
+    { texto: "Meu Perfil", rota: "/admin/meu-perfil", img: MeuPerfil }
+  ];
+
   function abrirModal(fb) {
     setFeedbackSelecionado(fb);
     setModalAberto(true);
@@ -186,8 +203,7 @@ export default function Feedbacks_M1() {
 
   return (
     <div className="TelaComNavLateral pagina-feedbacks">
-      <NavLateral />
-
+      <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
       <div className="MainContent conteudo-feedbacks">
         {/* Header com fundo #F2F4F8 */}
         <div className="headerEvento">
