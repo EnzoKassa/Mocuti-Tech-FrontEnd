@@ -6,7 +6,7 @@ import '../styles/Login.css'
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false)
     const [fontSize, setFontSize] = useState(18) // fontSize inicial maior
-    const { login } = useAuth();
+    const {login} = useAuth();
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const navigate = useNavigate();

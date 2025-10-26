@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Eventos</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      background: #efeff3;
+      overflow: hidden; 
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 18%;
+      background: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 0;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    }
+    .perfil {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px 0;
+      gap: 10px;
+    }
+    .perfil .avatar {
+      width: 60px;
+      height: 60px;
+      background: #ccc;
+      border-radius: 50%;
+    }
+    .perfil .nome {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .menu {
+      list-style: none;
+      margin: 30px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .menu li a {
+      text-decoration: none;
+      color: #333;
+      padding: 12px 20px;
+      display: block;
+      border-left: 4px solid transparent;
+      transition: all 0.2s;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .menu li a:hover,
+    .menu li.active a {
+      background: #f5f5f5;
+      border-left: 4px solid #2d9cdb;
+      color: #2d9cdb;
+    }
+
+    .logout {
+      padding: 15px 20px;
+    }
+    .logout a {
+      text-decoration: none;
+      color: #555;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .logout a:hover {
+      color: #e74c3c;
+    }
+
+    /* Conteúdo */
+    .content {
+      width: 82%;
+      padding: 3%;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .content h1 {
+      margin-bottom: 3%;
+      font-size: 200%;
+    }
+
+    /* Card principal */
+    .event-card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .event-card h3 {
+      font-size: 20px;
+      margin-bottom: 15px;
+    }
+
+    /* Formulário */
+    .form-row {
+      display: flex;
+      gap: 5%;
+      width: 100%;
+    }
+
+    .form-group {
+      flex: 1;
+      margin-bottom: 15px;
+    }
+
+    .form-group2 {
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 5px;
+      color: #555;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      background-color: #f5f7fa;
+      color: #333;
+    }
+
+    .btn {
+      align-self: flex-start;
+      background-color: #28a745;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="perfil">
+    <div class="avatar"></div>
+    <span class="nome">Felipe</span>
+  </div>
+
+  <ul class="menu">
+    <li><a href="#">Eventos</a></li>
+    <li><a href="#">Lista de Usuários</a></li>
+    <li><a href="#">Feedbacks</a></li>
+    <li class="active"><a href="#">Meu Perfil</a></li>
+    <li><a href="#">Visão Geral</a></li>
+  </ul>
+
+  <div class="logout">
+    <a href="">Sair</a>
+  </div>
+</div>
+
+<!-- Conteúdo -->
+<div class="content">
+  <h1>Informações do Usuário</h1>
+
+  <div class="event-card">
+    <h3>Detalhes do Usuário</h3>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="cargo">Cargo</label>
+        <input type="text" id="cargo" value="Beneficiário" disabled>
+      </div>
+      <div class="form-group">
+        <label for="cpf">CPF</label>
+        <input type="text" id="cpf" value="123.456.789-00" disabled>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="nome">Nome Completo</label>
+        <input type="text" id="nome" value="João Vitor da Silva">
+      </div>
+      <div class="form-group">
+        <label for="genero">Gênero</label>
+        <select id="genero">
+          <option>Masculino</option>
+          <option>Feminino</option>
+          <option selected>Outros</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="nascimento">Data de Nascimento</label>
+        <input type="text" id="nascimento" value="18/05/1998">
+      </div>
+      <div class="form-group">
+        <label for="telefone">Telefone</label>
+        <input type="text" id="telefone" value="11 9 9345-4122">
+      </div>
+    </div>
+
+    <div class="form-group2">
+      <label for="email">E-mail</label>
+      <input type="email" id="email" value="joao.silva@email.com">
+    </div>
+
+    <div class="form-group2">
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" value="************">
+    </div>
+
+    <button class="btn">Editar</button>
+  </div>
+</div>
+
+</body>
+</html>

@@ -48,6 +48,12 @@ ChartJS.register(
 
 
 
+import Calendario from "../../assets/images/calendario.svg";
+import MeuPerfil from "../../assets/images/meuPerfil.svg";
+import feedback from "../../assets/images/feedbackLogo.svg";
+import VisaoGeral from "../../assets/images/VisaoGeral.svg";
+import listaUsuarios from "../../assets/images/listausuario.svg";
+
 const GeralM1 = () => {
     const [benefAtivos, setBenefAtivos] = useState(0);
     const [M1Ativos, setM1Ativos] = useState(0);
@@ -63,6 +69,15 @@ const GeralM1 = () => {
     const [inscricaoUsuarioMes, setInscricaoUsuarioMes] = useState([]);
     const [generoDistribuicao, setGeneroDistribuicao] = useState([]);
     const [faixaEtariaDistribuicao, setFaixaEtariaDistribuicao] = useState([]);
+
+    
+ const rotasPersonalizadas = [
+    { texto: "Eventos", img: Calendario, rota: "/admin/eventos" },
+    { texto: "Lista de Usuários", img: listaUsuarios, rota: "/admin/lista-usuarios" },
+    { texto: "Feedbacks", img: feedback, rota: "/admin/feedbacks" },
+    { texto: "Meu Perfil", img: MeuPerfil, rota: "/admin/perfil" },
+    { texto: "Visão Geral", img: VisaoGeral, rota: "/admin" },
+  ]
 
     useEffect(() => {
         FaixaEtaria();
@@ -328,8 +343,8 @@ return faixaEtariaDistribuicao.length > 0 ? <ChartBar data={data} options={optio
     }
 
     return (
-        <div className="TelaComNavLateral">
-            <NavLateral />
+        <div className="TelaGeralComNavLateral">
+      <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
             <div className="MainDashGeral">
                 <div className="boxTituloDashGeral">Visão Geral</div>
 
