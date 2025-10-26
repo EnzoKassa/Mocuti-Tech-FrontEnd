@@ -1,5 +1,6 @@
-import './App.css'
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import AuthProvider from "./auth/AuthContext";
 import PrivateRoute from "./auth/PrivateRoute";
 import HomeRedirect from "./auth/HomeRedirect";
@@ -25,80 +26,103 @@ import Eventos_M1 from "./pages/M1/eventos_M1";
 import ListaUser_M1 from "./pages/M1/lista_user_M1";
 import Feedbacks_M1 from "./pages/M1/feedbacks_M1";
 import MeuPerfil_M1 from "./pages/M1/meu_perfil_M1";
-import GeralM1 from "./pages/M1/GeralM1";
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Redirecionamento inicial */}
-          <Route path="/" element={<HomeRedirect />} />
+      <ResetPasswordProvider>
+        {" "}
+        {/* <<< <--- ÚNICO provider para o fluxo */}
+        <Router>
+          <Routes>
+            {/* Redirecionamento inicial */}
+            <Route path="/" element={<HomeRedirect />} />
 
-          {/* Rotas públicas */}
-          <Route path="/home" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/cadastro" element={<Cadastro />} />
+            {/* Rotas públicas */}
+            <Route path="/home" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/cadastro" element={<Cadastro />} />
 
-          {/* Rotas de Usuário */}
-          <Route
-            path="/usuario/eventos"
-            element={
-              <PrivateRoute roles={["Usuário"]}>
-                <Eventos_B />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/usuario/perfil"
-            element={
-              <PrivateRoute roles={["Usuário"]}>
-                <MeuPerfil_B />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/usuario/meus-eventos"
-            element={
-              <PrivateRoute roles={["Usuário"]}>
-                <MeusEventos_B />
-              </PrivateRoute>
-            }
-          />
+            {/* Fluxo de recuperação */}
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          {/* Rotas de Moderador */}
-          <Route
-            path="/moderador/eventos"
-            element={
-              <PrivateRoute roles={["Moderador"]}>
-                <Eventos_M2 />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/moderador/convites"
-            element={
-              <PrivateRoute roles={["Moderador"]}>
-                <Convites_M2 />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/moderador/feedbacks"
-            element={
-              <PrivateRoute roles={["Moderador"]}>
-                <Feedbacks_M2 />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/moderador/perfil"
-            element={
-              <PrivateRoute roles={["Moderador"]}>
-                <MeuPerfil_M2 />
-              </PrivateRoute>
-            }
-          />
+            <Route
+              path="/reset-password"
+              element={
+                <ResetRoute requiredStep={1}>
+                  <ResetPassword />
+                </ResetRoute>
+              }
+            />
+
+            <Route
+              path="/reset-success"
+              element={
+                <ResetRoute requiredStep={2}>
+                  <ResetSuccess />
+                </ResetRoute>
+              }
+            />
+
+            {/* Rotas de Usuário */}
+            <Route
+              path="/usuario/eventos"
+              element={
+                <PrivateRoute roles={["Usuário"]}>
+                  <Eventos_B />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/usuario/perfil"
+              element={
+                <PrivateRoute roles={["Usuário"]}>
+                  <MeuPerfil_B />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/usuario/meus-eventos"
+              element={
+                <PrivateRoute roles={["Usuário"]}>
+                  <MeusEventos_B />
+                </PrivateRoute>
+              }
+            />
+
+            {/* Rotas de Moderador */}
+            <Route
+              path="/moderador/eventos"
+              element={
+                <PrivateRoute roles={["Moderador"]}>
+                  <Eventos_M2 />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/moderador/convites"
+              element={
+                <PrivateRoute roles={["Moderador"]}>
+                  <Convites_M2 />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/moderador/feedbacks"
+              element={
+                <PrivateRoute roles={["Moderador"]}>
+                  <Feedbacks_M2 />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/moderador/perfil"
+              element={
+                <PrivateRoute roles={["Moderador"]}>
+                  <MeuPerfil_M2 />
+                </PrivateRoute>
+              }
+            />
 
           {/* Rotas de Administrador */}
           <Route
@@ -125,14 +149,6 @@ function App() {
               </PrivateRoute>
             }
           />
-           <Route
-            path="/admin/Geral"
-            element={
-              <PrivateRoute roles={["Administrador"]}>
-                <GeralM1 />
-              </PrivateRoute>
-            }
-          />
           <Route
             path="/admin/perfil"
             element={
@@ -142,10 +158,11 @@ function App() {
             }
           />
 
-          {/* Acesso negado */}
-          <Route path="/nao-autorizado" element={<h1>Acesso negado ❌</h1>} />
-        </Routes>
-      </Router>
+            {/* Acesso negado */}
+            <Route path="/nao-autorizado" element={<h1>Acesso negado ❌</h1>} />
+          </Routes>
+        </Router>
+      </ResetPasswordProvider>
     </AuthProvider>
 
     

@@ -16,6 +16,9 @@ const Login = () => {
     const onSwitchToRegister = () => {
         navigate('/Cadastro')
     }
+       const onSwitchToPassword = () => {
+        navigate('/forgot-password')
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -133,7 +136,7 @@ const Login = () => {
                                 <input type="checkbox" className="checkbox" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} />
                                 <span className="checkbox-text">Lembrar de mim</span>
                             </label>
-                            <a href="#" className="forgot-password-link" style={{ fontSize: `${fontSize * 0.875}px` }}>
+                            <a onClick={onSwitchToPassword} className="forgot-password-link" style={{ fontSize: `${fontSize * 0.875}px` }}>
                                 Esqueceu sua senha?
                             </a>
                         </div>
