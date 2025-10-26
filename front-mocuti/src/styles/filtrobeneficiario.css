@@ -130,6 +130,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
+/* Seu estilo .botaoespacobeneficiario permanece o mesmo */
 .botaoespacobeneficiario {
     display: flex;
     height: 100%;
@@ -148,4 +149,25 @@
     color: white;
     border-radius: 0px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    transition: all 0.2s ease; 
+    cursor: pointer; 
 }
+
+.botaoespacobeneficiario button:hover {
+    background-color: #2b8ed9; 
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4); 
+    transform: translateY(-2px);
+}
+
+.botaoespacobeneficiario button:active {
+    background-color: #1a6fa3; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4); 
+    transform: translateY(2px); 
+}
+
+/* placeholder preto */
+.espacofiltrobeneficiario input::placeholder { color: #000; opacity: 1; }
+.espacofiltrobeneficiario input::-webkit-input-placeholder { color: #000; opacity: 1; }
+.espacofiltrobeneficiario input::-moz-placeholder { color: #000; opacity: 1; }
+.espacofiltrobeneficiario input:-ms-input-placeholder { color: #000; opacity: 1; }
+.espacofiltrobeneficiario input:-moz-placeholder { color: #000; opacity: 1; }
