@@ -28,6 +28,13 @@ import ListaUser_M1 from "./pages/M1/lista_user_M1";
 import Feedbacks_M1 from "./pages/M1/feedbacks_M1";
 import MeuPerfil_M1 from "./pages/M1/meu_perfil_M1";
 
+import { ResetPasswordProvider } from "./auth/ResetPasswordContext";
+import ResetRoute from "./auth/ResetRoute";
+
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import ResetSuccess from "./pages/ResetSuccess";
+
 function App() {
   return (
     <AuthProvider>
