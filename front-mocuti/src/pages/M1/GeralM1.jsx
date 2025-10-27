@@ -343,7 +343,7 @@ return faixaEtariaDistribuicao.length > 0 ? <ChartBar data={data} options={optio
     }
 
     return (
-        <div className="TelaGeralComNavLateral">
+        <div className="ContainerDashGeral">
       <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
             <div className="MainDashGeral">
                 <div className="boxTituloDashGeral">Visão Geral</div>

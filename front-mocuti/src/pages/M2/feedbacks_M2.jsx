@@ -81,11 +81,11 @@ const FeedbacksM2 = () => {
         prev.map((ev) =>
           ev.id.eventoId === p.id.eventoId
             ? {
-                ...ev,
-                feedbackId: updated.idFeedback,
-                nota: notaString,
-                comentario: updated.comentario,
-              }
+              ...ev,
+              feedbackId: updated.idFeedback,
+              nota: notaString,
+              comentario: updated.comentario,
+            }
             : ev
         )
       );
@@ -107,46 +107,51 @@ const FeedbacksM2 = () => {
 
   return (
     <>
-      <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
-      <div className="MainContentFeedbackM2">
-        <div className="scroll-page">
-          <div className="feedback">
-            <div className="feedback-container">
-              <div className="feedback-title">Feedbacks</div>
-              <h1>Eventos para comentar</h1>
-              <EventosTable
-                eventos={participacoes}
-                onFeedback={handleFeedback}
-                onDetalhes={(p) => setModalData(p)}
-                editable={true}
-              />
+      <div className="MainFeedbackM2">
 
-              <h1>Eventos passados</h1>
-              <EventosTable
-                eventos={eventosPassados}
-                onDetalhes={(p) => setModalData({ ...p, isPassado: true })}
-                editable={false}
-              />
 
-              {modalData && modalData.isPassado && (
-                <ModalVisualizacao
-                  modalData={modalData}
-                  onClose={() => setModalData(null)}
+        <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
+  
+          <div className="scroll-page">
+            <div className="feedback">
+              <div className="feedback-container">
+                <div className="feedback-title">Feedbacks</div>
+                <h1>Eventos para comentar</h1>
+                <EventosTable
+                  eventos={participacoes}
+                  onFeedback={handleFeedback}
+                  onDetalhes={(p) => setModalData(p)}
+                  editable={true}
                 />
-              )}
 
-              {modalData && !modalData.isPassado && (
-                <ModalFeedback
-                  modalData={modalData}
-                  onClose={() => setModalData(null)}
-                  onSave={handleFeedback}
+                <h1>Eventos passados</h1>
+                <EventosTable
+                  eventos={eventosPassados}
+                  onDetalhes={(p) => setModalData({ ...p, isPassado: true })}
+                  editable={false}
                 />
-              )}
+
+                {modalData && modalData.isPassado && (
+                  <ModalVisualizacao
+                    modalData={modalData}
+                    onClose={() => setModalData(null)}
+                  />
+                )}
+
+                {modalData && !modalData.isPassado && (
+                  <ModalFeedback
+                    modalData={modalData}
+                    onClose={() => setModalData(null)}
+                    onSave={handleFeedback}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+ 
     </>
+
   );
 };
 

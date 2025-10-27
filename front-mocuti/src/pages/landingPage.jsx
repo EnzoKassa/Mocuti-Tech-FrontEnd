@@ -39,22 +39,20 @@ const Home = () => {
               <img src={email} alt="" />
             </div>
           </div>
-          <div className="nav-links">
+          <div className="nav-links-home">
             <div className="nav-box-botoes">
               <div className="nav-box-logo">
                 <img src={logo} alt="" />
               </div>
-              <div className="nav-links-botoes">
+             
 
-                <div className="nav-links-botoes">
+                <div className="nav-links-botoes-home">
                   <a href="#inicio" className="botoes-nav btn-inicio">Início</a>
                   <a href="#sobre" className="botoes-nav btn-sobre">Sobre Nós</a>
                   <a href="#linha-do-tempo" className="botoes-nav btn-linha">Linha do Tempo</a>
                   <a href="#eventos" className="botoes-nav btn-eventos">Eventos</a>
                 </div>
 
-
-              </div>
               <div className="nav-box-cadastro">
                 <a onClick={() => navigate('/cadastro')} className="botoes-cadastro-nav">Criar Conta</a>
                 <a onClick={() => navigate('/login')} className="botoes-cadastro-nav-blue">Entrar</a>
@@ -71,7 +69,7 @@ const Home = () => {
             justifyContent: "start",
             alignItems: "center",
             flexDirection: "row",
-            width: "95vw",
+            width: "100vw",
             height: "100vh",
             backgroundImage: `url(${inicio})`,
             backgroundSize: "cover",
