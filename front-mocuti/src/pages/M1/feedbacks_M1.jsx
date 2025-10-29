@@ -1,13 +1,19 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
 import { NavLateral } from "../../components/NavLateral";
 import "../../styles/TelaComNavLateral.css";
 import "../../styles/Feedbacks_M1.css";
+import "../../styles/FeedbacksM2.css"; // aproveitando estilos do modal
+
 import Calendario from "../../assets/images/calendario.svg";
 import MeuPerfil from "../../assets/images/meuPerfil.svg";
 import feedback from "../../assets/images/feedbackLogo.svg";
 import Visao from "../../assets/images/visaoGeral.svg";
 import Lista from "../../assets/images/listausuariom1.svg";
-import { useNavigate } from "react-router-dom";
 
 import {
   Chart as ChartJS,
@@ -20,12 +26,27 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ChartTitle, Tooltip, Legend);
+import {
+  BiLike,
+  BiSolidLike,
+  BiDislike,
+  BiSolidDislike,
+} from "react-icons/bi";
 
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ChartTitle,
+  Tooltip,
+  Legend
+);
+
+// CONFIG
 const API_BASE = "http://localhost:8080";
-const ID_EVENTO = 1;
+const ID_EVENTO_INICIAL = 2;
 
-// util de fetch com erro claro
+// HELPERS DE API
 async function fetchJson(url, opts) {
   const res = await fetch(url, opts);
   if (!res.ok) {
@@ -35,57 +56,132 @@ async function fetchJson(url, opts) {
   return res.json();
 }
 
-// APIs
 async function buscarEventoPorId(id, signal) {
   return fetchJson(`${API_BASE}/eventos/${id}`, { signal });
 }
-async function buscarPresencaPorEvento(id, signal) {
-  // { idEvento, nomeEvento, totalInscritos, presentes, ausentes, taxaPresencaPct }
-  return fetchJson(`${API_BASE}/eventos/presenca-evento/${id}`, { signal });
+
+async function buscarListaPresencaEvento(idEvento, signal) {
+  const data = await fetchJson(
+    `${API_BASE}/usuarios/${idEvento}/lista-presenca`,
+    { signal }
+  );
+
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return data;
 }
+
 async function buscarFeedbacksDoEvento(idEvento, signal) {
   try {
-    const byQuery = await fetchJson(`${API_BASE}/feedback?eventoId=${idEvento}`, { signal });
+    const byQuery = await fetchJson(
+      `${API_BASE}/feedback?eventoId=${idEvento}`,
+      { signal }
+    );
     if (Array.isArray(byQuery)) return byQuery;
-  } catch { }
+  } catch {}
+
   const all = await fetchJson(`${API_BASE}/feedback`, { signal });
+
   return (Array.isArray(all) ? all : []).filter((f) => {
-    const id = f?.evento?.idEvento ?? f?.evento?.id_evento ?? f?.idEvento ?? f?.id_evento;
+    const id =
+      f?.evento?.idEvento ??
+      f?.evento?.id_evento ??
+      f?.idEvento ??
+      f?.id_evento;
     return Number(id) === Number(idEvento);
   });
 }
 
+// NOVO: buscar todos eventos para o modal inicial
+async function buscarTodosEventos(signal) {
+  const data = await fetchJson(`${API_BASE}/eventos`, { signal }).catch(() => {
+    return [];
+  });
+  if (!Array.isArray(data)) {
+    // backend pode responder { mensagem: "..." }
+    return [];
+  }
+  // normalização de campos
+  return data
+    .map((e) => ({
+      id:
+        e?.idEvento ??
+        e?.id_evento ??
+        e?.id ??
+        e?.eventoId ??
+        e?.evento_id ??
+        null,
+      nome:
+        e?.nomeEvento ??
+        e?.nome_evento ??
+        e?.nome ??
+        (e?.titulo || `Evento ${e?.idEvento ?? e?.id ?? "—"}`),
+      raw: e,
+    }))
+    .filter((ev) => ev.id != null);
+}
+
 export default function Feedbacks_M1() {
+  const [currentEventoId, setCurrentEventoId] = useState(ID_EVENTO_INICIAL);
+
   const [evento, setEvento] = useState(null);
+  const [listaPresenca, setListaPresenca] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
-  const [presenca, setPresenca] = useState(null);
+
   const [erro, setErro] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ===== Modal =====
-  const [modalAberto, setModalAberto] = useState(false);
-  const [feedbackSelecionado, setFeedbackSelecionado] = useState(null);
+  // modal de visualização de um feedback
+  const [modalData, setModalData] = useState(null);
 
+  // NOVO: modal inicial para escolher evento
+  const [mostrarSeletorEventos, setMostrarSeletorEventos] = useState(true);
+  const [eventos, setEventos] = useState([]);
+  const [eventosLoading, setEventosLoading] = useState(false);
+  const [eventosErro, setEventosErro] = useState(null);
 
-  const navigate = useNavigate();
   const rotasPersonalizadas = [
     { texto: "Visão Geral", rota: "/admin/dashboard", img: Visao },
     { texto: "Eventos", rota: "/admin/eventos", img: Calendario },
     { texto: "Usuários", rota: "/admin/lista-usuarios", img: Lista },
     { texto: "Feedbacks", rota: "/admin/feedbacks", img: feedback },
-    { texto: "Meu Perfil", rota: "/admin/meu-perfil", img: MeuPerfil }
+    { texto: "Meu Perfil", rota: "/admin/meu-perfil", img: MeuPerfil },
   ];
 
-  function abrirModal(fb) {
-    setFeedbackSelecionado(fb);
-    setModalAberto(true);
-  }
-  function fecharModal() {
-    setModalAberto(false);
-    setFeedbackSelecionado(null);
-  }
-
+  // NOVO: busca da lista de eventos quando o seletor abrir
   useEffect(() => {
+    if (!mostrarSeletorEventos) return;
+
+    let vivo = true;
+    const ctrl = new AbortController();
+
+    (async () => {
+      try {
+        setEventosLoading(true);
+        setEventosErro(null);
+        const lista = await buscarTodosEventos(ctrl.signal);
+        if (!vivo) return;
+        setEventos(lista);
+      } catch (e) {
+        if (!vivo) return;
+        console.error("[ERRO LISTA EVENTOS]", e);
+        setEventosErro("Falha ao carregar lista de eventos.");
+      } finally {
+        if (vivo) setEventosLoading(false);
+      }
+    })();
+
+    return () => {
+      vivo = false;
+      ctrl.abort();
+    };
+  }, [mostrarSeletorEventos]);
+
+  // carrega dados do evento selecionado
+  useEffect(() => {
+    if (!currentEventoId) return;
+
     let vivo = true;
     const ctrl = new AbortController();
 
@@ -94,22 +190,39 @@ export default function Feedbacks_M1() {
         setLoading(true);
         setErro(null);
 
-        // tolera falhas parciais
         const results = await Promise.allSettled([
-          buscarEventoPorId(ID_EVENTO, ctrl.signal),
-          buscarPresencaPorEvento(ID_EVENTO, ctrl.signal),
-          buscarFeedbacksDoEvento(ID_EVENTO, ctrl.signal),
+          buscarEventoPorId(currentEventoId, ctrl.signal),
+          buscarListaPresencaEvento(currentEventoId, ctrl.signal),
+          buscarFeedbacksDoEvento(currentEventoId, ctrl.signal),
         ]);
+
         if (!vivo) return;
 
-        const [evRes, prRes, fbRes] = results;
+        const [evRes, listaRes, fbRes] = results;
 
-        if (evRes.status === "fulfilled") setEvento(evRes.value ?? null);
-        if (prRes.status === "fulfilled") setPresenca(prRes.value ?? null);
-        if (fbRes.status === "fulfilled") setFeedbacks(Array.isArray(fbRes.value) ? fbRes.value : []);
+        if (evRes.status === "fulfilled") {
+          setEvento(evRes.value ?? null);
+        } else {
+          setEvento(null);
+        }
+
+        if (listaRes.status === "fulfilled") {
+          const normalizado = Array.isArray(listaRes.value)
+            ? listaRes.value
+            : [];
+          setListaPresenca(normalizado);
+        } else {
+          setListaPresenca([]);
+        }
+
+        if (fbRes.status === "fulfilled") {
+          setFeedbacks(Array.isArray(fbRes.value) ? fbRes.value : []);
+        } else {
+          setFeedbacks([]);
+        }
       } catch (e) {
         if (!vivo) return;
-        console.error(e);
+        console.error("[ERRO GERAL FETCH M1]", e);
         setErro("Falha ao carregar dados do evento/feedbacks.");
       } finally {
         if (vivo) setLoading(false);
@@ -120,11 +233,13 @@ export default function Feedbacks_M1() {
       vivo = false;
       ctrl.abort();
     };
-  }, []);
+  }, [currentEventoId]);
 
-  // agrega likes/dislikes/total
+  // agregados de like/dislike/total
   const agregados = useMemo(() => {
-    let like = 0, dislike = 0, total = 0;
+    let like = 0;
+    let dislike = 0;
+    let total = 0;
     for (const f of feedbacks) {
       const nota = (f?.nota?.tipoNota || f?.nota?.tipo_nota || "").toLowerCase();
       if (nota === "like") like += 1;
@@ -134,7 +249,35 @@ export default function Feedbacks_M1() {
     return { like, dislike, total };
   }, [feedbacks]);
 
-  // chart (barras) — 3 datasets para a legenda mostrar Likes/Dislikes/Total
+  // KPIs de presença
+  function contarPresentes(arr) {
+    return arr.filter((p) => {
+      const insc = p.is_inscrito ?? p.isInscrito ?? p.inscrito;
+      const pres = p.is_presente ?? p.isPresente ?? p.presente;
+      return (insc === 1 || insc === true) && (pres === 1 || pres === true);
+    }).length;
+  }
+
+  const kpisPresenca = useMemo(() => {
+    const participantes = Array.isArray(listaPresenca) ? listaPresenca : [];
+
+    const totalInscritos = participantes.filter((p) => {
+      const insc = p.is_inscrito ?? p.isInscrito ?? p.inscrito;
+      return insc === 1 || insc === true;
+    }).length;
+
+    const totalPresentes = contarPresentes(participantes);
+
+    const totalAusentes = Math.max(totalInscritos - totalPresentes, 0);
+
+    return {
+      inscritos: totalInscritos,
+      presentes: totalPresentes,
+      ausentes: totalAusentes,
+    };
+  }, [listaPresenca]);
+
+  // Chart.js config
   const chartData = useMemo(
     () => ({
       labels: ["Likes", "Dislikes", "Total"],
@@ -195,49 +338,62 @@ export default function Feedbacks_M1() {
     []
   );
 
-  // dados dos cards
-  const nomeEvento = evento?.nome_evento ?? evento?.nomeEvento ?? `Evento ${ID_EVENTO}`;
-  const inscritos = Number(presenca?.totalInscritos ?? 0);
-  const presentes = Number(presenca?.presentes ?? 0);
-  const ausentes = Number(presenca?.ausentes ?? Math.max(inscritos - presentes, 0));
+  const nomeEventoHeader =
+    evento?.nome_evento ?? evento?.nomeEvento ?? `Evento ${currentEventoId}`;
+
+  // NOVO: ação Selecionar no modal
+  function selecionarEvento(id) {
+    setCurrentEventoId(id);
+    setMostrarSeletorEventos(false);
+  }
 
   return (
     <div className="TelaComNavLateral pagina-feedbacks">
       <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
-      <div className="MainContent conteudo-feedbacks">
-        {/* Header com fundo #F2F4F8 */}
+
+      <div className="MainContentFeedbackM1">
+        {/* Header do evento */}
         <div className="headerEvento">
           <div className="headerLeft">
             <div className="headerLegenda">Evento</div>
-            <div className="headerTitulo" title={nomeEvento}>
-              {nomeEvento}
+            <div className="headerTitulo" title={nomeEventoHeader}>
+              {nomeEventoHeader}
             </div>
           </div>
 
           <div className="headerMeta">
             <div className="metaLabel">Feedbacks:</div>
             <div className="metaValor">{agregados.total}</div>
+
+            {/* === NOVO: botão para reabrir o seletor de eventos === */}
+            <button
+              className="btnTrocarEvento"
+              onClick={() => setMostrarSeletorEventos(true)}
+              aria-label="Trocar evento"
+              title="Trocar evento"
+            >
+              Trocar evento
+            </button>
           </div>
         </div>
 
-        {/* Topo: cards + gráfico */}
+        {/* KPIs + gráfico */}
         <div className="boxTopFeedback">
           <div className="boxDashboardFeedback">
-            {/* Cards à esquerda */}
             <div className="dashPalestra">
               <div className="cardMini azul">
                 <div className="cardTitle">Total de inscritos</div>
-                <div className="cardValue big">{inscritos}</div>
+                <div className="cardValue big">{kpisPresenca.inscritos}</div>
               </div>
 
               <div className="cardMini verde">
                 <div className="cardTitle">Total de presentes</div>
-                <div className="cardValue big">{presentes}</div>
+                <div className="cardValue big">{kpisPresenca.presentes}</div>
               </div>
 
               <div className="cardMini vermelho">
                 <div className="cardTitle">Total de ausentes</div>
-                <div className="cardValue big">{ausentes}</div>
+                <div className="cardValue big">{kpisPresenca.ausentes}</div>
               </div>
 
               <div className="cardMini amarelo">
@@ -246,7 +402,6 @@ export default function Feedbacks_M1() {
               </div>
             </div>
 
-            {/* Gráfico à direita */}
             <div className="dashQuantidadeFeedback">
               {loading ? (
                 <div className="boxLoading">Carregando gráfico…</div>
@@ -261,13 +416,14 @@ export default function Feedbacks_M1() {
           {erro && <div className="alertErro">{erro}</div>}
         </div>
 
-        {/* Lista */}
+        {/* Lista de feedbacks */}
         <div className="boxLowFeedback">
-          <div className="tituloFeedback tituloFeedbackLow">Lista de feedbacks do evento</div>
+          <div className="tituloFeedback tituloFeedbackLow">
+            Lista de feedbacks do evento
+          </div>
 
           <div className="boxListaFeedback">
             <div className="colunas">
-              {/* PRIMEIRA COLUNA = NOME DO EVENTO */}
               <div className="colunaFeedback colunaHeader">Evento</div>
               <div className="colunaNome colunaHeader">Nome</div>
               <div className="colunaEmail colunaHeader">E-mail</div>
@@ -279,14 +435,21 @@ export default function Feedbacks_M1() {
                 fb?.evento?.nomeEvento ??
                 fb?.evento?.nome_evento ??
                 `Evento ${fb?.evento?.idEvento ?? fb?.evento?.id_evento ?? "—"}`;
+
               const nomeUsuarioLinha =
                 fb?.usuario?.nomeCompleto ||
                 fb?.nomeUsuario ||
                 fb?.participante ||
                 fb?.nome ||
                 "—";
+
               const emailUsuarioLinha =
                 fb?.usuario?.email || fb?.emailUsuario || fb?.email || "—";
+
+              // normaliza nota: "like" | "dislike" | ""
+              const notaAtual = (
+                fb?.nota?.tipoNota || fb?.nota?.tipo_nota || fb?.nota || ""
+              ).toLowerCase();
 
               return (
                 <div className="linhas" key={fb.idFeedback ?? i}>
@@ -296,7 +459,13 @@ export default function Feedbacks_M1() {
                   <div className="boxBotaoFeedback">
                     <button
                       className="botaoMaisInfoFeedback"
-                      onClick={() => abrirModal(fb)}
+                      onClick={() =>
+                        setModalData({
+                          ...fb,
+                          nota: notaAtual,
+                          comentario: fb.comentario || "",
+                        })
+                      }
                     >
                       + Mais Informações
                     </button>
@@ -306,130 +475,136 @@ export default function Feedbacks_M1() {
             })}
 
             {!feedbacks.length && !loading && (
-              <div className="linhas linhasVazia">Nenhum feedback para este evento.</div>
+              <div className="linhas linhasVazia">
+                Nenhum feedback para este evento.
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* MODAL */}
-      <ModalFeedback
-        open={modalAberto}
-        onClose={fecharModal}
-        feedback={feedbackSelecionado}
-      />
-    </div>
-  );
-}
-
-/* ===== Modal acessível ===== */
-function ModalFeedback({ open, onClose, feedback }) {
-  const closeBtnRef = React.useRef(null);
-  const tituloId = "modal-feedback-title";
-
-  // fecha no ESC
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  // foca no botão fechar
-  useEffect(() => {
-    if (open && closeBtnRef.current) closeBtnRef.current.focus();
-  }, [open]);
-
-  // trava rolagem
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
-  }, [open]);
-
-  if (!open) return null;
-
-  const nomeEvento =
-    feedback?.evento?.nomeEvento ??
-    feedback?.evento?.nome_evento ??
-    `Evento ${feedback?.evento?.idEvento ?? feedback?.evento?.id_evento ?? "—"}`;
-
-  const nomeUsuario =
-    feedback?.usuario?.nomeCompleto ||
-    feedback?.nomeUsuario ||
-    feedback?.participante ||
-    feedback?.nome ||
-    "—";
-
-  const emailUsuario =
-    feedback?.usuario?.email || feedback?.emailUsuario || feedback?.email || "—";
-
-  const comentario = feedback?.comentario || "—";
-  const nota = (feedback?.nota?.tipoNota || feedback?.nota?.tipo_nota || "").toLowerCase();
-
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
-  return (
-    <div
-      className="modalBackdrop"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={tituloId}
-      onClick={handleBackdropClick}
-    >
-      <div className="modalCard">
-        <button
-          className="modalClose"
-          onClick={onClose}
-          aria-label="Fechar modal"
-          ref={closeBtnRef}
+      {/* Modal de detalhe do feedback (já existia) */}
+      {modalData && (
+        <div
+          className="feedback-modal-overlay"
+          onClick={(e) => {
+            if (e.target.classList.contains("feedback-modal-overlay")) {
+              setModalData(null);
+            }
+          }}
         >
-          ×
-        </button>
+          <div className="feedback-modal">
+            <button
+              className="feedback-modal-close"
+              onClick={() => setModalData(null)}
+            >
+              ×
+            </button>
+            <h2>Descrição do Feedback</h2>
 
-        <h2 className="modalTitulo" id={tituloId}>Descrição do Feedback</h2>
+            <label>Comentário</label>
+            <div className="feedback-modal-content">
+              <textarea value={modalData.comentario} readOnly />
+            </div>
 
-        <div className="modalGrid">
-          <div className="modalGrupo">
-            <label className="modalLabel">Evento</label>
-            <div className="modalInput">{nomeEvento}</div>
-          </div>
-
-          <div className="modalGrupo">
-            <label className="modalLabel">Nome</label>
-            <div className="modalInput">{nomeUsuario}</div>
-          </div>
-
-          <div className="modalGrupo">
-            <label className="modalLabel">E-mail</label>
-            <div className="modalInput">{emailUsuario}</div>
-          </div>
-
-          <div className="modalGrupo col-span-2">
-            <label className="modalLabel">Comentário</label>
-            <textarea className="modalTextarea" disabled value={comentario} />
+            <div className="feedback-modal-botoes">
+              <p>Nota do Evento</p>
+              <div className="feedback-modal-actions">
+                <button
+                  className={`nota-button ${
+                    modalData.nota === "like" ? "nota-ativo" : "nota-neutra"
+                  }`}
+                  disabled
+                >
+                  {modalData.nota === "like" ? <BiSolidLike /> : <BiLike />}
+                  <span>Gostei</span>
+                </button>
+                <button
+                  className={`nota-button ${
+                    modalData.nota === "dislike" ? "nota-ativo" : "nota-neutra"
+                  }`}
+                  disabled
+                >
+                  {modalData.nota === "dislike" ? (
+                    <BiSolidDislike />
+                  ) : (
+                    <BiDislike />
+                  )}
+                  <span>Não Gostei</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
+      )}
 
-        <div className="modalRating">
-          <div className="ratingTitulo">Gostou do evento?</div>
-          <div className="ratingOpcoes">
-            <div className={`ratingItem ${nota === "like" ? "ativo like" : ""}`}>
-              <span>👍</span>
-              <small>Gostei</small>
-            </div>
-            <div className={`ratingItem ${nota === "dislike" ? "ativo dislike" : ""}`}>
-              <span>👎</span>
-              <small>Não Gostei</small>
-            </div>
+      {/* NOVO: Modal inicial de seleção de evento */}
+      {mostrarSeletorEventos && (
+        <div
+          className="seletor-evento-overlay"
+          aria-modal="true"
+          role="dialog"
+          onClick={(e) => {
+            // bloqueia clique fora de fechar; é um pré-modal obrigatório até escolher
+          }}
+        >
+          <div className="seletor-evento-modal" role="document">
+            <h2 className="seletor-title">Selecione um evento</h2>
+
+            {eventosLoading && (
+              <div className="seletor-loading">Carregando eventos…</div>
+            )}
+
+            {eventosErro && (
+              <div className="seletor-erro">
+                {eventosErro}
+                <button
+                  className="seletor-retry"
+                  onClick={() => setMostrarSeletorEventos(true)}
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            )}
+
+            {!eventosLoading && !eventosErro && (
+              <>
+                {(!eventos || eventos.length === 0) ? (
+                  <div className="seletor-vazio">Nenhum evento encontrado.</div>
+                ) : (
+                  <div className="seletor-tabela">
+                    <div className="seletor-head">
+                      <div className="col-id">ID</div>
+                      <div className="col-nome">Nome</div>
+                      <div className="col-acao"></div>
+                    </div>
+
+                    <div className="seletor-body">
+                      {eventos.map((ev) => (
+                        <div className="seletor-row" key={ev.id}>
+                          <div className="col-id">{ev.id}</div>
+                          <div className="col-nome" title={ev.nome}>
+                            {ev.nome}
+                          </div>
+                          <div className="col-acao">
+                            <button
+                              className="btn-selecionar-evento"
+                              onClick={() => selecionarEvento(ev.id)}
+                              aria-label={`Selecionar evento ${ev.nome}`}
+                            >
+                              Selecionar
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

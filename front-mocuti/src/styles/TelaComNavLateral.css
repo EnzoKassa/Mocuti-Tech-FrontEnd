@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap'); 
+
 .TelaComNavLateral {
   display: flex;
   flex-direction: row;
@@ -6,6 +7,21 @@
   height: 100%;
 }
 
+
+
+
+.MainContentFeedbackM1 {
+  width: 85%;
+  height: 100%;
+  display: flex;
+  background-color: #F2F4F8;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+  overflow: hidden;
+  overflow-y: auto;
+}
 
 
 
