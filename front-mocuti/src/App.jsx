@@ -27,6 +27,7 @@ import GeralM1 from "./pages/M1/GeralM1";
 import ListaUser_M1 from "./pages/M1/lista_user_M1";
 import Feedbacks_M1 from "./pages/M1/feedbacks_M1";
 import MeuPerfil_M1 from "./pages/M1/meu_perfil_M1";
+import ModalCadastrar from "./pages/M1/ModalCadastroEvento";
 
 import { ResetPasswordProvider } from "./auth/ResetPasswordContext";
 import ResetRoute from "./auth/ResetRoute";
@@ -162,6 +163,16 @@ function App() {
             element={
               <PrivateRoute roles={["Administrador"]}>
                 <MeuPerfil_M1 />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Rota temporaria */}
+           <Route
+            path="/admin/cadastro"
+            element={
+              <PrivateRoute roles={["Administrador"]}>
+                <ModalCadastrar />
               </PrivateRoute>
             }
           />
