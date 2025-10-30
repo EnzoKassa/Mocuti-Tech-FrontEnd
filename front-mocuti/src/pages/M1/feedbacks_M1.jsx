@@ -1,13 +1,8 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-  useRef,
-} from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { NavLateral } from "../../components/NavLateral";
 import "../../styles/TelaComNavLateral.css";
 import "../../styles/Feedbacks_M1.css";
-import "../../styles/FeedbacksM2.css"; // aproveitando estilos do modal
+import "../../styles/FeedbacksM2.css";
 
 import Calendario from "../../assets/images/calendario.svg";
 import MeuPerfil from "../../assets/images/meuPerfil.svg";
@@ -24,7 +19,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
+  import { Bar } from "react-chartjs-2";
 
 import {
   BiLike,
@@ -33,20 +28,14 @@ import {
   BiSolidDislike,
 } from "react-icons/bi";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ChartTitle,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, ChartTitle, Tooltip, Legend);
 
-// CONFIG
+// ===================
+// CONFIG / ENDPOINTS
+// ===================
 const API_BASE = "http://localhost:8080";
-const ID_EVENTO_INICIAL = 2;
 
-// HELPERS DE API
+// ------------- Utils fetch -------------
 async function fetchJson(url, opts) {
   const res = await fetch(url, opts);
   if (!res.ok) {
@@ -56,62 +45,13 @@ async function fetchJson(url, opts) {
   return res.json();
 }
 
-async function buscarEventoPorId(id, signal) {
-  return fetchJson(`${API_BASE}/eventos/${id}`, { signal });
-}
-
-async function buscarListaPresencaEvento(idEvento, signal) {
-  const data = await fetchJson(
-    `${API_BASE}/usuarios/${idEvento}/lista-presenca`,
-    { signal }
-  );
-
-  if (!Array.isArray(data)) {
-    return [];
-  }
-  return data;
-}
-
-async function buscarFeedbacksDoEvento(idEvento, signal) {
-  try {
-    const byQuery = await fetchJson(
-      `${API_BASE}/feedback?eventoId=${idEvento}`,
-      { signal }
-    );
-    if (Array.isArray(byQuery)) return byQuery;
-  } catch {}
-
-  const all = await fetchJson(`${API_BASE}/feedback`, { signal });
-
-  return (Array.isArray(all) ? all : []).filter((f) => {
-    const id =
-      f?.evento?.idEvento ??
-      f?.evento?.id_evento ??
-      f?.idEvento ??
-      f?.id_evento;
-    return Number(id) === Number(idEvento);
-  });
-}
-
-// NOVO: buscar todos eventos para o modal inicial
+// ------------- APIs -------------
 async function buscarTodosEventos(signal) {
-  const data = await fetchJson(`${API_BASE}/eventos`, { signal }).catch(() => {
-    return [];
-  });
-  if (!Array.isArray(data)) {
-    // backend pode responder { mensagem: "..." }
-    return [];
-  }
-  // normalização de campos
+  const data = await fetchJson(`${API_BASE}/eventos`, { signal }).catch(() => []);
+  if (!Array.isArray(data)) return [];
   return data
     .map((e) => ({
-      id:
-        e?.idEvento ??
-        e?.id_evento ??
-        e?.id ??
-        e?.eventoId ??
-        e?.evento_id ??
-        null,
+      id: e?.idEvento ?? e?.id_evento ?? e?.id ?? e?.eventoId ?? e?.evento_id ?? null,
       nome:
         e?.nomeEvento ??
         e?.nome_evento ??
@@ -122,24 +62,65 @@ async function buscarTodosEventos(signal) {
     .filter((ev) => ev.id != null);
 }
 
+async function buscarEventoPorId(id, signal) {
+  return fetchJson(`${API_BASE}/eventos/${id}`, { signal });
+}
+
+// aceita array (participantes) OU objeto-Resumo (view) OU {mensagem:"..."} -> null
+async function buscarListaPresencaEvento(idEvento, signal) {
+  const data = await fetchJson(
+    `${API_BASE}/usuarios/${idEvento}/lista-presenca`,
+    { signal }
+  );
+  if (data && typeof data === "object" && !Array.isArray(data) && "mensagem" in data) {
+    return null;
+  }
+  return data ?? null;
+}
+
+async function buscarFeedbacksDoEvento(idEvento, signal) {
+  try {
+    const byQuery = await fetchJson(
+      `${API_BASE}/feedback?eventoId=${idEvento}`,
+      { signal }
+    );
+    if (Array.isArray(byQuery)) return byQuery;
+  } catch {}
+  const all = await fetchJson(`${API_BASE}/feedback`, { signal }).catch(() => []);
+  const alvo = Number(idEvento);
+  return (Array.isArray(all) ? all : []).filter((f) => {
+    const id =
+      f?.evento?.idEvento ??
+      f?.evento?.id_evento ??
+      f?.idEvento ??
+      f?.id_evento ??
+      f?.eventoId ??
+      f?.evento_id;
+    return Number(id) === alvo;
+  });
+}
+
+// ===================
+// COMPONENTE
+// ===================
 export default function Feedbacks_M1() {
-  const [currentEventoId, setCurrentEventoId] = useState(ID_EVENTO_INICIAL);
-
-  const [evento, setEvento] = useState(null);
-  const [listaPresenca, setListaPresenca] = useState([]);
-  const [feedbacks, setFeedbacks] = useState([]);
-
-  const [erro, setErro] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // modal de visualização de um feedback
-  const [modalData, setModalData] = useState(null);
-
-  // NOVO: modal inicial para escolher evento
+  // Seleção de evento
+  const [currentEventoId, setCurrentEventoId] = useState(null);
   const [mostrarSeletorEventos, setMostrarSeletorEventos] = useState(true);
   const [eventos, setEventos] = useState([]);
   const [eventosLoading, setEventosLoading] = useState(false);
   const [eventosErro, setEventosErro] = useState(null);
+  const [eventosReloadKey, setEventosReloadKey] = useState(0);
+
+  // Dados do painel
+  const [evento, setEvento] = useState(null);
+  const [listaPresenca, setListaPresenca] = useState(null); // array, objeto ou null
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [erro, setErro] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // Modal de detalhe do feedback
+  const [modalData, setModalData] = useState(null);
 
   const rotasPersonalizadas = [
     { texto: "Visão Geral", rota: "/admin/dashboard", img: Visao },
@@ -149,16 +130,13 @@ export default function Feedbacks_M1() {
     { texto: "Meu Perfil", rota: "/admin/meu-perfil", img: MeuPerfil },
   ];
 
-  // NOVO: busca da lista de eventos quando o seletor abrir
+  // Carregar eventos (para modal de seleção)
   useEffect(() => {
-    if (!mostrarSeletorEventos) return;
-
     let vivo = true;
     const ctrl = new AbortController();
-
     (async () => {
       try {
-        setEventosLoading(true);
+        if (mostrarSeletorEventos) setEventosLoading(true);
         setEventosErro(null);
         const lista = await buscarTodosEventos(ctrl.signal);
         if (!vivo) return;
@@ -168,58 +146,37 @@ export default function Feedbacks_M1() {
         console.error("[ERRO LISTA EVENTOS]", e);
         setEventosErro("Falha ao carregar lista de eventos.");
       } finally {
-        if (vivo) setEventosLoading(false);
+        if (!vivo) return;
+        if (mostrarSeletorEventos) setEventosLoading(false);
       }
     })();
-
     return () => {
       vivo = false;
       ctrl.abort();
     };
-  }, [mostrarSeletorEventos]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mostrarSeletorEventos, eventosReloadKey]);
 
-  // carrega dados do evento selecionado
+  // Carregar dados do evento
   useEffect(() => {
     if (!currentEventoId) return;
-
     let vivo = true;
     const ctrl = new AbortController();
-
     (async () => {
       try {
         setLoading(true);
         setErro(null);
-
         const results = await Promise.allSettled([
           buscarEventoPorId(currentEventoId, ctrl.signal),
           buscarListaPresencaEvento(currentEventoId, ctrl.signal),
           buscarFeedbacksDoEvento(currentEventoId, ctrl.signal),
         ]);
-
         if (!vivo) return;
-
         const [evRes, listaRes, fbRes] = results;
 
-        if (evRes.status === "fulfilled") {
-          setEvento(evRes.value ?? null);
-        } else {
-          setEvento(null);
-        }
-
-        if (listaRes.status === "fulfilled") {
-          const normalizado = Array.isArray(listaRes.value)
-            ? listaRes.value
-            : [];
-          setListaPresenca(normalizado);
-        } else {
-          setListaPresenca([]);
-        }
-
-        if (fbRes.status === "fulfilled") {
-          setFeedbacks(Array.isArray(fbRes.value) ? fbRes.value : []);
-        } else {
-          setFeedbacks([]);
-        }
+        setEvento(evRes.status === "fulfilled" ? evRes.value ?? null : null);
+        setListaPresenca(listaRes.status === "fulfilled" ? (listaRes.value ?? null) : null);
+        setFeedbacks(fbRes.status === "fulfilled" ? (Array.isArray(fbRes.value) ? fbRes.value : []) : []);
       } catch (e) {
         if (!vivo) return;
         console.error("[ERRO GERAL FETCH M1]", e);
@@ -228,26 +185,40 @@ export default function Feedbacks_M1() {
         if (vivo) setLoading(false);
       }
     })();
-
     return () => {
       vivo = false;
       ctrl.abort();
     };
   }, [currentEventoId]);
 
-  // agregados de like/dislike/total
+  // Apenas feedbacks do evento atual
+  const feedbacksDoEvento = useMemo(() => {
+    const alvo = Number(currentEventoId);
+    return (Array.isArray(feedbacks) ? feedbacks : []).filter((fb) => {
+      const id =
+        fb?.evento?.idEvento ??
+        fb?.evento?.id_evento ??
+        fb?.idEvento ??
+        fb?.id_evento ??
+        fb?.eventoId ??
+        fb?.evento_id;
+      return Number(id) === alvo;
+    });
+  }, [feedbacks, currentEventoId]);
+
+  // Agregados like/dislike/total
   const agregados = useMemo(() => {
     let like = 0;
     let dislike = 0;
     let total = 0;
-    for (const f of feedbacks) {
-      const nota = (f?.nota?.tipoNota || f?.nota?.tipo_nota || "").toLowerCase();
+    for (const f of feedbacksDoEvento) {
+      const nota = (f?.nota?.tipoNota || f?.nota?.tipo_nota || f?.nota || "").toLowerCase();
       if (nota === "like") like += 1;
       else if (nota === "dislike") dislike += 1;
       total += 1;
     }
     return { like, dislike, total };
-  }, [feedbacks]);
+  }, [feedbacksDoEvento]);
 
   // KPIs de presença
   function contarPresentes(arr) {
@@ -259,25 +230,24 @@ export default function Feedbacks_M1() {
   }
 
   const kpisPresenca = useMemo(() => {
+    if (listaPresenca && !Array.isArray(listaPresenca) && typeof listaPresenca === "object") {
+      const totalInscritos = Number(listaPresenca.totalInscritos ?? listaPresenca.total_inscritos ?? 0);
+      const totalPresentes = Number(listaPresenca.totalPresentes ?? listaPresenca.total_presentes ?? 0);
+      const totalAusentes =
+        Number(listaPresenca.totalAusentes ?? listaPresenca.total_ausentes ?? Math.max(totalInscritos - totalPresentes, 0));
+      return { inscritos: totalInscritos, presentes: totalPresentes, ausentes: totalAusentes };
+    }
     const participantes = Array.isArray(listaPresenca) ? listaPresenca : [];
-
     const totalInscritos = participantes.filter((p) => {
       const insc = p.is_inscrito ?? p.isInscrito ?? p.inscrito;
       return insc === 1 || insc === true;
     }).length;
-
     const totalPresentes = contarPresentes(participantes);
-
     const totalAusentes = Math.max(totalInscritos - totalPresentes, 0);
-
-    return {
-      inscritos: totalInscritos,
-      presentes: totalPresentes,
-      ausentes: totalAusentes,
-    };
+    return { inscritos: totalInscritos, presentes: totalPresentes, ausentes: totalAusentes };
   }, [listaPresenca]);
 
-  // Chart.js config
+  // Chart.js
   const chartData = useMemo(
     () => ({
       labels: ["Likes", "Dislikes", "Total"],
@@ -339,12 +309,24 @@ export default function Feedbacks_M1() {
   );
 
   const nomeEventoHeader =
-    evento?.nome_evento ?? evento?.nomeEvento ?? `Evento ${currentEventoId}`;
+    evento?.nome_evento ??
+    evento?.nomeEvento ??
+    (currentEventoId ? `Evento ${currentEventoId}` : "Selecione um evento");
 
-  // NOVO: ação Selecionar no modal
   function selecionarEvento(id) {
-    setCurrentEventoId(id);
+    const parsedId = Number(id);
+    if (!Number.isFinite(parsedId)) return;
+    // limpar antes de trocar
+    setEvento(null);
+    setFeedbacks([]);
+    setListaPresenca(null);
+    setLoading(true);
+    setCurrentEventoId(parsedId);
     setMostrarSeletorEventos(false);
+  }
+
+  function retryEventos() {
+    setEventosReloadKey((k) => k + 1);
   }
 
   return (
@@ -352,7 +334,7 @@ export default function Feedbacks_M1() {
       <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
 
       <div className="MainContentFeedbackM1">
-        {/* Header do evento */}
+        {/* Header */}
         <div className="headerEvento">
           <div className="headerLeft">
             <div className="headerLegenda">Evento</div>
@@ -363,14 +345,13 @@ export default function Feedbacks_M1() {
 
           <div className="headerMeta">
             <div className="metaLabel">Feedbacks:</div>
-            <div className="metaValor">{agregados.total}</div>
+            <div className="metaValor">{loading ? "…" : agregados.total}</div>
 
-            {/* === NOVO: botão para reabrir o seletor de eventos === */}
             <button
               className="btnTrocarEvento"
               onClick={() => setMostrarSeletorEventos(true)}
               aria-label="Trocar evento"
-              title="Trocar evento"
+              title="Abrir seletor de eventos"
             >
               Trocar evento
             </button>
@@ -418,9 +399,7 @@ export default function Feedbacks_M1() {
 
         {/* Lista de feedbacks */}
         <div className="boxLowFeedback">
-          <div className="tituloFeedback tituloFeedbackLow">
-            Lista de feedbacks do evento
-          </div>
+          <div className="tituloFeedback tituloFeedbackLow">Lista de feedbacks do evento</div>
 
           <div className="boxListaFeedback">
             <div className="colunas">
@@ -430,26 +409,18 @@ export default function Feedbacks_M1() {
               <div className="colunaAcoes colunaHeader"></div>
             </div>
 
-            {(feedbacks.length ? feedbacks : []).map((fb, i) => {
+            {(feedbacksDoEvento.length ? feedbacksDoEvento : []).map((fb, i) => {
               const nomeEventoLinha =
                 fb?.evento?.nomeEvento ??
                 fb?.evento?.nome_evento ??
                 `Evento ${fb?.evento?.idEvento ?? fb?.evento?.id_evento ?? "—"}`;
 
               const nomeUsuarioLinha =
-                fb?.usuario?.nomeCompleto ||
-                fb?.nomeUsuario ||
-                fb?.participante ||
-                fb?.nome ||
-                "—";
+                fb?.usuario?.nomeCompleto || fb?.nomeUsuario || fb?.participante || fb?.nome || "—";
 
-              const emailUsuarioLinha =
-                fb?.usuario?.email || fb?.emailUsuario || fb?.email || "—";
+              const emailUsuarioLinha = fb?.usuario?.email || fb?.emailUsuario || fb?.email || "—";
 
-              // normaliza nota: "like" | "dislike" | ""
-              const notaAtual = (
-                fb?.nota?.tipoNota || fb?.nota?.tipo_nota || fb?.nota || ""
-              ).toLowerCase();
+              const notaAtual = (fb?.nota?.tipoNota || fb?.nota?.tipo_nota || fb?.nota || "").toLowerCase();
 
               return (
                 <div className="linhas" key={fb.idFeedback ?? i}>
@@ -474,16 +445,14 @@ export default function Feedbacks_M1() {
               );
             })}
 
-            {!feedbacks.length && !loading && (
-              <div className="linhas linhasVazia">
-                Nenhum feedback para este evento.
-              </div>
+            {!feedbacksDoEvento.length && !loading && currentEventoId && (
+              <div className="linhas linhasVazia">Nenhum feedback para este evento.</div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Modal de detalhe do feedback (já existia) */}
+      {/* Modal: Detalhe do Feedback (minimalista) */}
       {modalData && (
         <div
           className="feedback-modal-overlay"
@@ -494,10 +463,7 @@ export default function Feedbacks_M1() {
           }}
         >
           <div className="feedback-modal">
-            <button
-              className="feedback-modal-close"
-              onClick={() => setModalData(null)}
-            >
+            <button className="feedback-modal-close" onClick={() => setModalData(null)}>
               ×
             </button>
             <h2>Descrição do Feedback</h2>
@@ -509,28 +475,40 @@ export default function Feedbacks_M1() {
 
             <div className="feedback-modal-botoes">
               <p>Nota do Evento</p>
-              <div className="feedback-modal-actions">
+
+              <div className="feedback-modal-actions" role="radiogroup" aria-label="Nota do evento">
+                {/* LIKE — minimal: pill, outline verde no neutro; preenchido verde no ativo */}
                 <button
-                  className={`nota-button ${
-                    modalData.nota === "like" ? "nota-ativo" : "nota-neutra"
-                  }`}
+                  className={[
+                    "nota-button",
+                    "nota-like-min",
+                    modalData.nota === "like" ? "nota-ativo" : "nota-neutra",
+                  ].join(" ")}
+                  role="radio"
+                  aria-checked={modalData.nota === "like"}
                   disabled
                 >
-                  {modalData.nota === "like" ? <BiSolidLike /> : <BiLike />}
-                  <span>Gostei</span>
+                  <span className="nota-icon">
+                    {modalData.nota === "like" ? <BiSolidLike /> : <BiLike />}
+                  </span>
+                  <span className="nota-text">Gostei</span>
                 </button>
+
+                {/* DISLIKE — minimal: pill, outline vermelho no neutro; preenchido vermelho no ativo */}
                 <button
-                  className={`nota-button ${
-                    modalData.nota === "dislike" ? "nota-ativo" : "nota-neutra"
-                  }`}
+                  className={[
+                    "nota-button",
+                    "nota-dislike-min",
+                    modalData.nota === "dislike" ? "nota-ativo" : "nota-neutra",
+                  ].join(" ")}
+                  role="radio"
+                  aria-checked={modalData.nota === "dislike"}
                   disabled
                 >
-                  {modalData.nota === "dislike" ? (
-                    <BiSolidDislike />
-                  ) : (
-                    <BiDislike />
-                  )}
-                  <span>Não Gostei</span>
+                  <span className="nota-icon">
+                    {modalData.nota === "dislike" ? <BiSolidDislike /> : <BiDislike />}
+                  </span>
+                  <span className="nota-text">Não Gostei</span>
                 </button>
               </div>
             </div>
@@ -538,30 +516,18 @@ export default function Feedbacks_M1() {
         </div>
       )}
 
-      {/* NOVO: Modal inicial de seleção de evento */}
+      {/* Modal inicial: seleção de evento */}
       {mostrarSeletorEventos && (
-        <div
-          className="seletor-evento-overlay"
-          aria-modal="true"
-          role="dialog"
-          onClick={(e) => {
-            // bloqueia clique fora de fechar; é um pré-modal obrigatório até escolher
-          }}
-        >
+        <div className="seletor-evento-overlay" aria-modal="true" role="dialog">
           <div className="seletor-evento-modal" role="document">
             <h2 className="seletor-title">Selecione um evento</h2>
 
-            {eventosLoading && (
-              <div className="seletor-loading">Carregando eventos…</div>
-            )}
+            {eventosLoading && <div className="seletor-loading">Carregando eventos…</div>}
 
             {eventosErro && (
               <div className="seletor-erro">
                 {eventosErro}
-                <button
-                  className="seletor-retry"
-                  onClick={() => setMostrarSeletorEventos(true)}
-                >
+                <button className="seletor-retry" onClick={retryEventos}>
                   Tentar novamente
                 </button>
               </div>

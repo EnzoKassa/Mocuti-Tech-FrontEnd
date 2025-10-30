@@ -137,10 +137,21 @@
   min-height: 110px;
 }
 
-.cardMini.azul { border-left: 10px solid #3DA5E1; }
-.cardMini.verde { border-left: 10px solid #45AA48; }
-.cardMini.vermelho { border-left: 10px solid #FF4848; }
-.cardMini.amarelo { border-left: 10px solid #FBBF24; }
+.cardMini.azul {
+  border-left: 10px solid #3DA5E1;
+}
+
+.cardMini.verde {
+  border-left: 10px solid #45AA48;
+}
+
+.cardMini.vermelho {
+  border-left: 10px solid #FF4848;
+}
+
+.cardMini.amarelo {
+  border-left: 10px solid #FBBF24;
+}
 
 /* título e número */
 .cardTitle {
@@ -231,7 +242,9 @@
   padding: 10px 12px;
 }
 
-.colunaHeader { font-weight: 700; }
+.colunaHeader {
+  font-weight: 700;
+}
 
 .linhas {
   background-color: white;
@@ -283,10 +296,14 @@
   .boxDashboardFeedback {
     grid-template-columns: 1fr;
   }
-  .chartCard { height: 300px; }
+
+  .chartCard {
+    height: 300px;
+  }
 }
 
 @media (max-width: 800px) {
+
   .colunas,
   .linhas {
     grid-template-columns: 1.2fr 0.9fr 1fr 0.8fr;
@@ -329,7 +346,9 @@
     cursor: pointer;
   }
 
-  .modalClose:hover { background: #e5e7eb; }
+  .modalClose:hover {
+    background: #e5e7eb;
+  }
 
   .modalTitulo {
     font-size: 28px;
@@ -339,7 +358,9 @@
     margin: 4px 0 24px;
   }
 
-  .modalGrupo { margin-bottom: 16px; }
+  .modalGrupo {
+    margin-bottom: 16px;
+  }
 
   .modalLabel {
     display: block;
@@ -368,11 +389,22 @@
     color: #111827;
   }
 
-  .modalRating { margin-top: 16px; text-align: center; }
+  .modalRating {
+    margin-top: 16px;
+    text-align: center;
+  }
 
-  .ratingTitulo { font-size: 12px; color: #6b7280; margin-bottom: 8px; }
+  .ratingTitulo {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 8px;
+  }
 
-  .ratingOpcoes { display: flex; justify-content: center; gap: 28px; }
+  .ratingOpcoes {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+  }
 
   .ratingItem {
     display: flex;
@@ -382,12 +414,22 @@
     opacity: .6;
   }
 
-  .ratingItem span { font-size: 22px; }
+  .ratingItem span {
+    font-size: 22px;
+  }
 
-  .ratingItem.ativo { opacity: 1; font-weight: 700; }
+  .ratingItem.ativo {
+    opacity: 1;
+    font-weight: 700;
+  }
 
-  .ratingItem.like span { color: #22c55e; }
-  .ratingItem.dislike span { color: #ef4444; }
+  .ratingItem.like span {
+    color: #22c55e;
+  }
+
+  .ratingItem.dislike span {
+    color: #ef4444;
+  }
 
   .cardValue.big {
     font-size: 2.4rem;
@@ -420,7 +462,7 @@
   background: #fff;
   border-radius: 16px;
   border: 1px solid #E5E7EB;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -500,7 +542,9 @@
   border-bottom: 1px solid #f3f4f6;
 }
 
-.seletor-row:hover { background: #F9FAFB; }
+.seletor-row:hover {
+  background: #F9FAFB;
+}
 
 .col-id {
   font-variant-numeric: tabular-nums;
@@ -531,12 +575,220 @@
   transition: transform 0.05s ease, opacity 0.15s ease;
 }
 
-.btn-selecionar-evento:hover { opacity: 0.95; }
-.btn-selecionar-evento:active { transform: translateY(1px); }
+.btn-selecionar-evento:hover {
+  opacity: 0.95;
+}
+
+.btn-selecionar-evento:active {
+  transform: translateY(1px);
+}
 
 @media (max-width: 640px) {
+
   .seletor-head,
   .seletor-row {
     grid-template-columns: 80px 1fr 120px;
   }
 }
+
+/* ===== Modal de Feedback — botões minimalistas ===== */
+.feedback-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Base */
+.nota-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  /* pill */
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  font-weight: 700;
+  cursor: not-allowed;
+  /* modal é só leitura */
+  user-select: none;
+  transition: background .15s ease, color .15s ease, border-color .15s ease, transform .12s ease, box-shadow .12s ease, opacity .15s ease;
+}
+
+.nota-button .nota-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nota-button .nota-text {
+  font-size: .95rem;
+  line-height: 1;
+}
+
+/* Estado neutro: apenas outline suave e cor sutil */
+.nota-button.nota-neutra {
+  opacity: .9;
+}
+
+/* LIKE minimal (verde) */
+.nota-like-min.nota-neutra {
+  color: #16a34a;
+  /* green-600 */
+  border-color: #bbf7d0;
+  /* green-200 */
+  background: #ffffff;
+  /* branco, bem clean */
+}
+
+/* LIKE ativo: preenchido e legível */
+.nota-like-min.nota-ativo {
+  color: #ffffff;
+  background: #22c55e;
+  /* green-500 */
+  border-color: #16a34a;
+  /* green-600 */
+  box-shadow: 0 4px 16px rgba(34, 197, 94, .25);
+  transform: translateY(-1px);
+}
+
+/* DISLIKE minimal (vermelho) */
+.nota-dislike-min.nota-neutra {
+  color: #dc2626;
+  /* red-600 */
+  border-color: #fecaca;
+  /* red-200 */
+  background: #ffffff;
+}
+
+/* DISLIKE ativo: preenchido e legível */
+.nota-dislike-min.nota-ativo {
+  color: #ffffff;
+  background: #ef4444;
+  /* red-500 */
+  border-color: #dc2626;
+  /* red-600 */
+  box-shadow: 0 4px 16px rgba(239, 68, 68, .25);
+  transform: translateY(-1px);
+}
+
+/* ============================
+   1) Micro-interação em botões
+   ============================ */
+.btnTrocarEvento,
+.botaoMaisInfoFeedback {
+  transform: translateZ(0);
+  /* cria camada própria (GPU) */
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+
+.btnTrocarEvento:active,
+.botaoMaisInfoFeedback:active {
+  transform: scale(0.98);
+  filter: brightness(0.98);
+}
+
+/* Foco visível acessível */
+.btnTrocarEvento:focus-visible,
+.botaoMaisInfoFeedback:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .35);
+}
+
+/* ============================
+   2) Animações de entrada (modais)
+   ============================ */
+
+/* Overlay: fade-in rápido */
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Pop-in para o seletor de eventos */
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* SlideUp para o modal de feedback */
+@keyframes slideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Aplica nos overlays já existentes */
+.seletor-evento-overlay {
+  animation: fadeInOverlay .18s ease-out;
+}
+
+.feedback-modal-overlay {
+  animation: fadeInOverlay .18s ease-out;
+}
+
+/* Cards dos modais */
+.seletor-evento-modal {
+  animation: popIn .22s cubic-bezier(.2, .7, .2, 1);
+  transform-origin: center;
+}
+
+.feedback-modal {
+  animation: slideUp .22s ease-out;
+  transform-origin: center;
+}
+
+/* ============================
+   3) Suavizar entrada de áreas grandes (opcional)
+   ============================ */
+@keyframes fadeUpSoft {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.boxDashboardFeedback,
+.boxListaFeedback {
+  animation: fadeUpSoft .22s ease-out;
+}
+
+/* ============================
+   4) Hover/Active em linhas da lista (feedbacks)
+   ============================ */
+.linhas {
+  transition: background-color .12s ease, transform .08s ease;
+}
+
+.linhas:hover {
+  background-color: #F9FAFB;
+}
+
+.linhas:active {
+  transform: translateY(1px);
+}
+
