@@ -1,0 +1,794 @@
+/* Base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ====== Header (título do evento — cor #F2F4F8) ====== */
+.headerEvento {
+  width: 95%;
+  margin: 16px auto 0;
+  background: #F2F4F8;
+  color: #111827;
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(17, 24, 39, 0.06);
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.headerLegenda {
+  font-size: 14px;
+  color: #374151;
+}
+
+.headerTitulo {
+  font-size: 28px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #111827;
+}
+
+.headerMeta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.metaLabel {
+  font-size: 14px;
+  color: #4B5563;
+}
+
+.metaValor {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+}
+
+/* Botão: Trocar evento */
+.btnTrocarEvento {
+  background: #0F62FE;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, opacity 0.15s ease, box-shadow 0.15s;
+  line-height: 1.1;
+}
+
+.btnTrocarEvento:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.btnTrocarEvento:active {
+  transform: translateY(0);
+}
+
+.btnTrocarEvento:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
+}
+
+/* ====== Topo ====== */
+.boxTopFeedback {
+  background-color: white;
+  width: 95%;
+  margin: 12px auto 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tituloFeedback {
+  background-color: #F2F4F8;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 64px;
+  padding: 0 16px;
+  font-size: 42px;
+  font-weight: 800;
+}
+
+/* Cards + Gráfico em grid */
+.boxDashboardFeedback {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 20px;
+  width: 100%;
+  align-items: stretch;
+}
+
+/* Cards (esquerda) */
+.dashPalestra {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.cardMini {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 110px;
+}
+
+.cardMini.azul {
+  border-left: 10px solid #3DA5E1;
+}
+
+.cardMini.verde {
+  border-left: 10px solid #45AA48;
+}
+
+.cardMini.vermelho {
+  border-left: 10px solid #FF4848;
+}
+
+.cardMini.amarelo {
+  border-left: 10px solid #FBBF24;
+}
+
+/* título e número */
+.cardTitle {
+  font-weight: 400;
+  text-align: center;
+  margin-bottom: 6px;
+  font-size: 1.2rem;
+}
+
+.cardValue {
+  text-align: center;
+  font-size: 2.5rem;
+  line-height: 1;
+  font-weight: 900;
+  margin: 0;
+}
+
+/* Gráfico (direita) */
+.dashQuantidadeFeedback {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.chartCard {
+  width: 100%;
+  height: 360px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.boxLoading {
+  background: #fff;
+  border: 1px dashed #e5e7eb;
+  color: #6b7280;
+  border-radius: 12px;
+  padding: 16px;
+  width: 100%;
+  text-align: center;
+}
+
+.alertErro {
+  margin: 8px 0;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+/* ====== Lista ====== */
+.boxLowFeedback {
+  background-color: white;
+  width: 95%;
+  margin: 16px auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tituloFeedbackLow {
+  font-size: 28px;
+  padding: 8px 16px;
+  background: #F2F4F8;
+  border-radius: 10px;
+}
+
+.boxListaFeedback {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 52vh;
+  overflow: auto;
+}
+
+.colunas {
+  background-color: #F2F4F8;
+  display: grid;
+  grid-template-columns: 25% 20% 20% 1fr;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+}
+
+.colunaHeader {
+  font-weight: 700;
+}
+
+.linhas {
+  background-color: white;
+  display: grid;
+  grid-template-columns: 25% 20% 20% 1fr;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.colunaFeedback,
+.colunaNome,
+.colunaEmail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.boxBotaoFeedback {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+}
+
+.botaoMaisInfoFeedback {
+  background-color: #0F62FE;
+  color: white;
+  border: none;
+  width: 160px;
+  height: 36px;
+  padding: 0 12px;
+  font-size: 0.82rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.botaoMaisInfoFeedback:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* ====== Responsivo ====== */
+@media (max-width: 1024px) {
+  .boxDashboardFeedback {
+    grid-template-columns: 1fr;
+  }
+
+  .chartCard {
+    height: 300px;
+  }
+}
+
+@media (max-width: 800px) {
+
+  .colunas,
+  .linhas {
+    grid-template-columns: 1.2fr 0.9fr 1fr 0.8fr;
+  }
+
+  /* Modal genérico responsivo (se usado) */
+  .modalBackdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 1000;
+  }
+
+  .modalCard {
+    background: #fff;
+    width: min(780px, 92vw);
+    max-height: 86vh;
+    overflow: auto;
+    border-radius: 14px;
+    border: 2px solid #1d4ed8;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, .35);
+    padding: 24px 24px 28px;
+    position: relative;
+  }
+
+  .modalClose {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 8px;
+    background: #f3f4f6;
+    font-size: 22px;
+    cursor: pointer;
+  }
+
+  .modalClose:hover {
+    background: #e5e7eb;
+  }
+
+  .modalTitulo {
+    font-size: 28px;
+    font-weight: 800;
+    color: #111827;
+    text-align: center;
+    margin: 4px 0 24px;
+  }
+
+  .modalGrupo {
+    margin-bottom: 16px;
+  }
+
+  .modalLabel {
+    display: block;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 6px;
+  }
+
+  .modalInput {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #111827;
+    font-weight: 600;
+  }
+
+  .modalTextarea {
+    width: 100%;
+    min-height: 130px;
+    resize: vertical;
+    border-radius: 10px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    padding: 10px 12px;
+    color: #111827;
+  }
+
+  .modalRating {
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  .ratingTitulo {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 8px;
+  }
+
+  .ratingOpcoes {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+  }
+
+  .ratingItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    opacity: .6;
+  }
+
+  .ratingItem span {
+    font-size: 22px;
+  }
+
+  .ratingItem.ativo {
+    opacity: 1;
+    font-weight: 700;
+  }
+
+  .ratingItem.like span {
+    color: #22c55e;
+  }
+
+  .ratingItem.dislike span {
+    color: #ef4444;
+  }
+
+  .cardValue.big {
+    font-size: 2.4rem;
+    font-weight: 900;
+    text-align: center;
+    line-height: 1.1;
+    margin-top: 6px;
+  }
+}
+
+/* ===================================================================== */
+/* ===== Modal inicial: seletor de eventos (consistente com paleta) ===== */
+/* ===================================================================== */
+
+.seletor-evento-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(17, 24, 39, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  backdrop-filter: blur(2px);
+}
+
+.seletor-evento-modal {
+  width: 100%;
+  max-width: 860px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.seletor-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.seletor-loading {
+  padding: 16px;
+  text-align: center;
+  color: #374151;
+}
+
+.seletor-erro {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+  border-radius: 12px;
+}
+
+.seletor-retry {
+  border: 0;
+  background: #ef4444;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.seletor-vazio {
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.seletor-tabela {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.seletor-head,
+.seletor-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 140px;
+  gap: 12px;
+  align-items: center;
+}
+
+.seletor-head {
+  background: #F2F4F8;
+  padding: 12px 16px;
+  font-weight: 700;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.seletor-body {
+  max-height: 420px;
+  overflow: auto;
+  background: #fff;
+}
+
+.seletor-row {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.seletor-row:hover {
+  background: #F9FAFB;
+}
+
+.col-id {
+  font-variant-numeric: tabular-nums;
+  color: #111827;
+  font-weight: 700;
+}
+
+.col-nome {
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-acao {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-selecionar-evento {
+  border: 0;
+  background: #0F62FE;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.05s ease, opacity 0.15s ease;
+}
+
+.btn-selecionar-evento:hover {
+  opacity: 0.95;
+}
+
+.btn-selecionar-evento:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 640px) {
+
+  .seletor-head,
+  .seletor-row {
+    grid-template-columns: 80px 1fr 120px;
+  }
+}
+
+/* ===== Modal de Feedback — botões minimalistas ===== */
+.feedback-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Base */
+.nota-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  /* pill */
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  font-weight: 700;
+  cursor: not-allowed;
+  /* modal é só leitura */
+  user-select: none;
+  transition: background .15s ease, color .15s ease, border-color .15s ease, transform .12s ease, box-shadow .12s ease, opacity .15s ease;
+}
+
+.nota-button .nota-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nota-button .nota-text {
+  font-size: .95rem;
+  line-height: 1;
+}
+
+/* Estado neutro: apenas outline suave e cor sutil */
+.nota-button.nota-neutra {
+  opacity: .9;
+}
+
+/* LIKE minimal (verde) */
+.nota-like-min.nota-neutra {
+  color: #16a34a;
+  /* green-600 */
+  border-color: #bbf7d0;
+  /* green-200 */
+  background: #ffffff;
+  /* branco, bem clean */
+}
+
+/* LIKE ativo: preenchido e legível */
+.nota-like-min.nota-ativo {
+  color: #ffffff;
+  background: #22c55e;
+  /* green-500 */
+  border-color: #16a34a;
+  /* green-600 */
+  box-shadow: 0 4px 16px rgba(34, 197, 94, .25);
+  transform: translateY(-1px);
+}
+
+/* DISLIKE minimal (vermelho) */
+.nota-dislike-min.nota-neutra {
+  color: #dc2626;
+  /* red-600 */
+  border-color: #fecaca;
+  /* red-200 */
+  background: #ffffff;
+}
+
+/* DISLIKE ativo: preenchido e legível */
+.nota-dislike-min.nota-ativo {
+  color: #ffffff;
+  background: #ef4444;
+  /* red-500 */
+  border-color: #dc2626;
+  /* red-600 */
+  box-shadow: 0 4px 16px rgba(239, 68, 68, .25);
+  transform: translateY(-1px);
+}
+
+/* ============================
+   1) Micro-interação em botões
+   ============================ */
+.btnTrocarEvento,
+.botaoMaisInfoFeedback {
+  transform: translateZ(0);
+  /* cria camada própria (GPU) */
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+
+.btnTrocarEvento:active,
+.botaoMaisInfoFeedback:active {
+  transform: scale(0.98);
+  filter: brightness(0.98);
+}
+
+/* Foco visível acessível */
+.btnTrocarEvento:focus-visible,
+.botaoMaisInfoFeedback:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .35);
+}
+
+/* ============================
+   2) Animações de entrada (modais)
+   ============================ */
+
+/* Overlay: fade-in rápido */
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Pop-in para o seletor de eventos */
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* SlideUp para o modal de feedback */
+@keyframes slideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Aplica nos overlays já existentes */
+.seletor-evento-overlay {
+  animation: fadeInOverlay .18s ease-out;
+}
+
+.feedback-modal-overlay {
+  animation: fadeInOverlay .18s ease-out;
+}
+
+/* Cards dos modais */
+.seletor-evento-modal {
+  animation: popIn .22s cubic-bezier(.2, .7, .2, 1);
+  transform-origin: center;
+}
+
+.feedback-modal {
+  animation: slideUp .22s ease-out;
+  transform-origin: center;
+}
+
+/* ============================
+   3) Suavizar entrada de áreas grandes (opcional)
+   ============================ */
+@keyframes fadeUpSoft {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.boxDashboardFeedback,
+.boxListaFeedback {
+  animation: fadeUpSoft .22s ease-out;
+}
+
+/* ============================
+   4) Hover/Active em linhas da lista (feedbacks)
+   ============================ */
+.linhas {
+  transition: background-color .12s ease, transform .08s ease;
+}
+
+.linhas:hover {
+  background-color: #F9FAFB;
+}
+
+.linhas:active {
+  transform: translateY(1px);
+}
+
