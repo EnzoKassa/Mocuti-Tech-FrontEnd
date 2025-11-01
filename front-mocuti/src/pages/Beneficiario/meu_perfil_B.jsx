@@ -26,3 +26,4 @@ const MeuPerfilBeneficiario = () => {
 };
 
 export default MeuPerfilBeneficiario;
+

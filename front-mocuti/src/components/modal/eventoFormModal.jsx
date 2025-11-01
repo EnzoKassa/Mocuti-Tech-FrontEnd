@@ -1,11 +1,16 @@
+/* eslint-disable no-unused-vars */
 import Swal from "sweetalert2";
+import "../../styles/pagina-evento-modal.css";
+import { buildPublicoOptions } from "./parts/PublicoSelect";
+import { buildEnderecosOptions } from "./parts/EnderecoFields";
+import { escapeHtml, formatCep } from "./parts/UtilsModal";
+import { attachModalBehavior } from "./parts/ModalBehavior";
 
-const escapeHtml = (str) => (str ? String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : "");
-
-// compact modal: usa max-height com scroll interno e layout em duas colunas melhor aproveitado
-export async function openEventoFormModal(evento = null, { categorias = [], statusList = [], getAuthHeaders, safeFetchJson, onSaved, enderecoVinculado = null }) {
+export async function openEventoFormModal(
+  evento = null,
+  { categorias = [], statusList = [], getAuthHeaders = () => ({}), safeFetchJson = null, onSaved = null, enderecos = [] } = {}
+) {
   const isEdit = !!evento;
-  const enderecoFonte = enderecoVinculado || evento?.endereco || null;
   const values = {
     nome: evento?.nomeEvento || evento?.nome || "",
     descricao: evento?.descricao || evento?.descricaoEvento || "",
@@ -15,482 +20,516 @@ export async function openEventoFormModal(evento = null, { categorias = [], stat
     dia: evento?.data_evento || evento?.dia || "",
     horaInicio: evento?.hora_inicio || evento?.horaInicio || "",
     horaFim: evento?.hora_fim || evento?.horaFim || "",
-    qtdVaga: evento?.qtdVaga || evento?.qtd_vaga || "",
-    endereco: {
-      idEndereco: enderecoFonte?.idEndereco || enderecoFonte?.id || evento?.enderecoId || null,
-      cep: enderecoFonte?.cep || evento?.cep || "",
-      logradouro: enderecoFonte?.logradouro || evento?.enderecoLogradouro || "",
-      numero: enderecoFonte?.numero ?? evento?.endereco?.numero ?? evento?.numero ?? "",
-      complemento: enderecoFonte?.complemento || evento?.endereco?.complemento || evento?.complemento || "",
-      uf: enderecoFonte?.uf || evento?.endereco?.uf || evento?.uf || "",
-      estado: enderecoFonte?.estado || enderecoFonte?.localidade || evento?.endereco?.estado || evento?.estado || "",
-      bairro: enderecoFonte?.bairro || evento?.endereco?.bairro || evento?.bairro || ""
-    }
+    qtdVaga: evento?.qtdVaga ?? evento?.qtd_vaga ?? "",
+    isAberto: evento?.isAberto ?? true,
+    enderecoId: evento?.endereco?.idEndereco ?? evento?.enderecoId ?? evento?.endereco?.id ?? ""
   };
 
-  const categoriaOptions = categorias.map(c => `<option value="${c.idCategoria}" ${String(c.idCategoria) === String(values.categoriaId) ? "selected" : ""}>${escapeHtml(c.nome)}</option>`).join("");
-  const statusOptions = statusList.map(s => `<option value="${s.idStatusEvento}" ${String(s.idStatusEvento) === String(values.statusId) ? "selected" : ""}>${escapeHtml(s.situacao)}</option>`).join("");
+  try {
+    if ((!categorias || categorias.length === 0)) {
+      if (typeof safeFetchJson === "function") {
+        try {
+          const c = await safeFetchJson("http://localhost:8080/categorias");
+          if (Array.isArray(c)) categorias = c;
+        } catch (err) {
+          console.debug("eventoFormModal: safeFetchJson categorias (abs) falhou:", err);
+        }
+      }
 
-  const buscarEnderecoPorCEP = async (cepRaw) => {
-    const cep = String(cepRaw || "").replace(/\D/g, "");
-    if (cep.length !== 8) return;
-    try {
-      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-      if (!res.ok) throw new Error("Falha ViaCEP");
-      const data = await res.json();
-      if (data.erro) { await Swal.fire("CEP não encontrado","Verifique o CEP.","warning"); return; }
-      const setIf = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ""; };
-      setIf("end-cep", data.cep || "");
-      setIf("end-logradouro", data.logradouro || "");
-      setIf("end-bairro", data.bairro || "");
-      setIf("end-uf", data.uf || "");
-      setIf("end-estado", data.localidade || "");
-    } catch (err) {
-      console.error("ViaCEP erro", err);
-      await Swal.fire("Erro", "Não foi possível consultar o CEP.", "error");
+      if ((!categorias || categorias.length === 0)) {
+        try {
+          const r = await fetch("http://localhost:8080/categorias", { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
+          if (r.ok) {
+            const data = await r.json().catch(() => null);
+            if (Array.isArray(data)) categorias = data;
+          } else {
+            console.debug("eventoFormModal: fetch direto categorias respondeu:", r.status, r.statusText);
+          }
+        } catch (err) {
+          console.debug("eventoFormModal: fetch direto categorias falhou:", err);
+        }
+      }
     }
-  };
+  } catch (err) {
+    console.debug("eventoFormModal: fetch categorias ignorado:", err);
+  }
+  try {
+    if ((!statusList || statusList.length === 0)) {
+      if (typeof safeFetchJson === "function") {
+        try {
+          const s = await safeFetchJson("http://localhost:8080/status-eventos");
+          if (Array.isArray(s)) statusList = s;
+        } catch (err) {
+          console.debug("eventoFormModal: safeFetchJson status-eventos (abs) falhou:", err);
+        }
+      }
+      if ((!statusList || statusList.length === 0)) {
+        try {
+          const r = await fetch("http://localhost:8080/status-eventos", { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
+          if (r.ok) {
+            const data = await r.json().catch(() => null);
+            if (Array.isArray(data)) statusList = data;
+          } else {
+            console.debug("eventoFormModal: fetch direto status-eventos respondeu:", r.status, r.statusText);
+          }
+        } catch (err) {
+          console.debug("eventoFormModal: fetch direto status-eventos falhou:", err);
+        }
+      }
+    }
+  } catch (err) {
+    console.debug("eventoFormModal: fetch status-eventos ignorado:", err);
+  }
+  try {
+    // tenta usar safeFetchJson (se fornecido) e, se não der certo, faz fetch direto ao backend
+    if (typeof safeFetchJson === "function") {
+      try {
+        const es = await safeFetchJson("http://localhost:8080/endereco/enderecos-eventos");
+        if (Array.isArray(es)) enderecos = es;
+      } catch (err) {
+        console.debug("eventoFormModal: safeFetchJson enderecos (abs) falhou:", err);
+      }
+    }
+
+    // fallback: fetch direto ao backend (evita roteamento pelo dev server)
+    if ((!Array.isArray(enderecos) || enderecos.length === 0)) {
+      try {
+        const headers = { Accept: "application/json", ...getAuthHeaders() };
+        const r = await fetch("http://localhost:8080/endereco/enderecos-eventos", { method: "GET", headers, mode: "cors" });
+        if (r.ok) {
+          const data = await r.json().catch(() => null);
+          if (Array.isArray(data)) enderecos = data;
+        } else {
+          console.debug("eventoFormModal: fetch direto enderecos respondeu:", r.status, r.statusText);
+        }
+      } catch (err) {
+        console.debug("eventoFormModal: fetch direto enderecos falhou:", err);
+      }
+    }
+  } catch (err) {
+    console.debug("eventoFormModal: fetch enderecos ignorado:", err);
+  }
+
+  let publicos = [];
+  try {
+    if (typeof safeFetchJson === "function") {
+      try {
+        const p = await safeFetchJson("http://localhost:8080/eventos/publico-alvo");
+        if (Array.isArray(p)) publicos = p;
+      } catch (err) {
+        console.debug("eventoFormModal: safeFetchJson publico-alvo (abs) falhou:", err);
+      }
+    }
+    if ((!Array.isArray(publicos) || publicos.length === 0)) {
+      try {
+        const r = await fetch("http://localhost:8080/eventos/publico-alvo", { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
+        if (r.ok) {
+          const data = await r.json().catch(() => null);
+          if (Array.isArray(data)) publicos = data;
+        } else {
+          console.debug("eventoFormModal: fetch direto publico-alvo respondeu:", r.status, r.statusText);
+        }
+      } catch (err) {
+        console.debug("eventoFormModal: fetch direto publico-alvo falhou:", err);
+      }
+    }
+  } catch (err) {
+    console.debug("eventoFormModal: fetch publico-alvo ignorado:", err);
+  }
+
+  const categoriaOptions = categorias
+    .map((c) => `<option value="${c.idCategoria ?? c.id}">${escapeHtml(c.nome ?? "")}</option>`)
+    .join("");
+  const statusOptions = statusList
+    .map((s) => `<option value="${s.idStatusEvento ?? s.id}">${escapeHtml(s.situacao ?? s.nome ?? "")}</option>`)
+    .join("");
+  const enderecosOptions = buildEnderecosOptions(enderecos);
+  const publicoOptions = buildPublicoOptions(publicos);
 
   const html = `
-    <div style="font-family:inherit; text-align:left; font-size:13px; color:#333;">
-      <div style="max-height:520px; overflow:auto; padding:8px;">
-        <div style="display:grid; grid-template-columns: 1fr 260px; gap:12px; align-items:start;">
-          <div>
-            <div style="margin-bottom:6px;">
-              <label style="font-weight:700; display:block; margin-bottom:6px;">Nome</label>
-              <input id="ev-nome" value="${escapeHtml(values.nome)}" class="sw-input" style="width:100%; padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;" />
-            </div>
-
-            <div style="margin-bottom:8px;">
-              <label style="font-weight:700; display:block; margin-bottom:6px;">Descrição</label>
-              <textarea id="ev-desc" class="sw-textarea" style="width:100%; min-height:72px; max-height:160px; padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;">${escapeHtml(values.descricao)}</textarea>
-            </div>
-
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
-              <div>
-                <label style="font-weight:700; display:block; margin-bottom:6px;">Público alvo</label>
-                <input id="ev-publico" value="${escapeHtml(values.publico)}" class="sw-input" style="padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;" />
-              </div>
-              <div>
-                <label style="font-weight:700; display:block; margin-bottom:6px;">Categoria</label>
-                <select id="ev-categoria" class="sw-select" style="padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;">
-                  <option value="">Selecione</option>${categoriaOptions}
-                </select>
-              </div>
-            </div>
-
-            <div style="display:grid; grid-template-columns: 1fr 110px 110px; gap:8px; margin-bottom:8px;">
-              <div>
-                <label style="font-weight:700; display:block; margin-bottom:6px;">Data</label>
-                <input id="ev-dia" type="date" value="${values.dia || ""}" class="sw-input" style="padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;" />
-              </div>
-              <div>
-                <label style="font-weight:700; display:block; margin-bottom:6px;">Início</label>
-                <input id="ev-hora-inicio" type="time" value="${values.horaInicio || ""}" class="sw-input" style="padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;" />
-              </div>
-              <div>
-                <label style="font-weight:700; display:block; margin-bottom:6px;">Término</label>
-                <input id="ev-hora-fim" type="time" value="${values.horaFim || ""}" class="sw-input" style="padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;" />
-              </div>
-            </div>
-
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
-              <div>
-                <label style="font-weight:700; display:block; margin-bottom:6px;">Qtd vagas</label>
-                <input id="ev-qtd" type="number" value="${escapeHtml(values.qtdVaga)}" class="sw-input" style="padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;" />
-              </div>
-              <div>
-                <label style="font-weight:700; display:block; margin-bottom:6px;">Status</label>
-                <select id="ev-status" class="sw-select" style="padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;">
-                  <option value="">Selecione</option>${statusOptions}
-                </select>
-              </div>
-            </div>
-
-            <div style="margin-top:6px; padding-top:8px; border-top:1px dashed #f0f0f0;">
-              <div style="font-weight:700; margin-bottom:8px;">Endereço (utilize o CEP para preencher automaticamente)</div>
-
-              <div style="display:grid; grid-template-columns: 1fr 90px; gap:8px; margin-bottom:8px;">
-                <input id="end-cep" placeholder="CEP" value="${escapeHtml(values.endereco.cep)}" class="sw-input" style="padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;" />
-                <input id="end-uf" placeholder="UF" value="${escapeHtml(values.endereco.uf)}" class="sw-input" style="padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;" />
+    <div class="pagina-evento-modal">
+      <div class="pagina-evento-conteudo" style="font-family:inherit; text-align:left; font-size:13px; color:#333;">
+        <div style="max-height:520px; overflow:auto; padding:8px;">
+          <div style="display:grid; grid-template-columns: 1fr 260px; gap:12px;">
+            <div>
+              <div style="margin-bottom:8px;">
+                <label style="font-weight:700; display:block; margin-bottom:6px;">Nome</label>
+                <input id="ev-nome" value="${escapeHtml(values.nome)}" class="campo-entrada" style="width:100%;" />
               </div>
 
               <div style="margin-bottom:8px;">
-                <input id="end-logradouro" placeholder="Logradouro" value="${escapeHtml(values.endereco.logradouro)}" class="sw-input" style="width:100%; padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;" />
+                <label style="font-weight:700; display:block; margin-bottom:6px;">Público alvo</label>
+                <select id="ev-publico" class="campo-selecao" style="width:100%; padding:8px;">
+                  <option value="" disabled selected hidden>Selecione</option>
+                  ${publicoOptions}
+                  <option value="__novo">Cadastrar novo público...</option>
+                </select>
+                <div id="ev-publico-novo" style="display:none; margin-top:6px;">
+                  <input id="ev-publico-novo-input" placeholder="Novo público (ex: Jovens)" class="campo-entrada" style="width:100%; margin-top:6px;" />
+                  <!-- removed immediate 'Salvar Público' button: new público será usado ao salvar o evento -->
+                </div>
+              </div>
+
+              <div style="margin-bottom:8px;">
+                <label style="font-weight:700; display:block; margin-bottom:6px;">Descrição</label>
+                <textarea id="ev-desc" class="campo-textarea" style="width:100%; min-height:72px;">${escapeHtml(values.descricao)}</textarea>
               </div>
 
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
-                <input id="end-numero" placeholder="Número" value="${escapeHtml(values.endereco.numero)}" class="sw-input" style="padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;" />
-                <input id="end-bairro" placeholder="Bairro" value="${escapeHtml(values.endereco.bairro)}" class="sw-input" style="padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;" />
+                <input id="ev-dia" type="date" value="${values.dia || ""}" class="campo-entrada" />
+                <input id="ev-qtd" type="number" value="${escapeHtml(values.qtdVaga)}" class="campo-entrada" placeholder="Qtd vagas" />
               </div>
 
-              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                <input id="end-estado" placeholder="Cidade" value="${escapeHtml(values.endereco.estado)}" class="sw-input" style="padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;" />
-                <input id="end-complemento" placeholder="Complemento" value="${escapeHtml(values.endereco.complemento)}" class="sw-input" style="padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px;" />
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+                <input id="ev-hora-inicio" type="time" value="${values.horaInicio || ""}" class="campo-entrada" />
+                <input id="ev-hora-fim" type="time" value="${values.horaFim || ""}" class="campo-entrada" />
+              </div>
+
+              <div style="margin-bottom:8px;">
+                <label style="font-weight:700; display:block; margin-bottom:6px;">Foto do evento</label>
+                <input id="ev-foto" type="file" accept="image/*" class="campo-entrada" />
+                <div id="ev-foto-preview" style="margin-top:8px;"></div>
               </div>
             </div>
-          </div>
 
-          <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
-            <div style="width:220px; height:120px; border-radius:8px; background:#fafafa; border:1px solid #eee; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-              ${evento?.imagemUrl ? `<img src="${evento.imagemUrl}" style="max-width:100%; max-height:100%;" alt="Imagem do evento" />` : `<div style="color:#999">Sem imagem</div>`}
-            </div>
-
-            <div style="display:flex; gap:8px; justify-content:center; align-items:center;">
-              <label for="ev-foto" style="background:#3DA5E1; color:white; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:700; font-size:13px;">Inserir imagem</label>
-              <input id="ev-foto" type="file" accept="image/*" style="display:none" />
-            </div>
-
-            <div id="ev-foto-info" style="font-size:12px; color:#666; max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-              ${evento?.imagemUrl ? "Imagem anexada" : ""}
-            </div>
-            <div style="font-size:11px; color:#888; text-align:center;">Formatos: JPG, PNG. Máx. recomendado 2MB.</div>
-
-            <!-- lista de checkboxes de usuários M2 (substitui select múltiplo) -->
-            <div style="width:220px; margin-top:10px;">
-              <label style="font-weight:700; display:block; margin-bottom:6px;">Convidar usuários (M2)</label>
-              <div id="ev-usuarios-m2-list" style="width:100%; max-height:120px; padding:6px; border-radius:8px; border:1px solid #e6e6e6; font-size:13px; overflow:auto; display:flex; flex-direction:column; gap:6px;">
-                <div style="color:#999; font-size:13px;">Carregando...</div>
+            <div>
+              <div style="margin-bottom:8px;">
+                <label style="font-weight:700; display:block; margin-bottom:6px;">Categoria</label>
+                <select id="ev-categoria" class="campo-selecao" style="width:100%;">
+                  <option value="">Selecione</option>
+                  ${categoriaOptions}
+                </select>
               </div>
-              <div id="ev-usuarios-m2-info" style="font-size:12px; color:#666; margin-top:6px;">Marque as caixas para convidar (pode selecionar vários).</div>
-            </div>
 
-            <!-- convites já enviados (só em edição terá conteúdo) -->
-            <div style="width:220px; margin-top:10px;">
-              <label style="font-weight:700; display:block; margin-bottom:6px;">Convites enviados</label>
-              <div id="ev-convidados-list" style="width:100%; max-height:160px; padding:6px; border-radius:8px; border:1px solid #eee; font-size:13px; overflow:auto; color:#666;">
-                <div style="color:#999">Nenhum convite enviado</div>
+              <div style="margin-bottom:8px;">
+                <label style="font-weight:700; display:block; margin-bottom:6px;">Status</label>
+                <select id="ev-status" class="campo-selecao" style="width:100%;">
+                  <option value="">Selecione</option>
+                  ${statusOptions}
+                </select>
               </div>
-              <div style="font-size:12px; color:#666; margin-top:6px;">Lista de convites e status (Aceitou / Recusou / Pendente).</div>
+
+              <div style="margin-bottom:8px;">
+                <label style="font-weight:700; display:block; margin-bottom:6px;">Endereço</label>
+                <select id="ev-endereco-select" class="campo-selecao" style="width:100%; padding:8px;">
+                  <option value="" disabled selected hidden>Selecione uma opção</option>
+                  ${enderecosOptions}
+                  <option value="__novo">Cadastrar novo endereço...</option>
+                </select>
+              </div>
+
+              <div id="ev-endereco-novo" style="display:none; border:1px solid #eee; padding:8px; border-radius:6px;">
+                <input id="ev-cep" placeholder="CEP" class="campo-entrada" style="margin-bottom:6px;" />
+                <input id="ev-logradouro" placeholder="Logradouro" class="campo-entrada" style="margin-bottom:6px;" />
+                <input id="ev-numero" placeholder="Número" class="campo-entrada" style="margin-bottom:6px;" />
+                <input id="ev-complemento" placeholder="Complemento" class="campo-entrada" style="margin-bottom:6px;" />
+                <input id="ev-bairro" placeholder="Bairro" class="campo-entrada" style="margin-bottom:6px;" />
+                <input id="ev-uf" placeholder="UF" class="campo-entrada" style="margin-bottom:6px;" />
+                <input id="ev-cidade" placeholder="Cidade" class="campo-entrada" style="margin-bottom:6px;" />
+                <!-- botão de salvar endereço removido: endereço novo será persistido automaticamente ao salvar o evento -->
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   `;
-  
-let selectedFile = null;
 
   const popup = await Swal.fire({
     title: isEdit ? "Editar Evento" : "Cadastrar novo evento",
     html,
     showCancelButton: true,
-    confirmButtonText: isEdit ? "Salvar alterações" : "Cadastrar",
+    confirmButtonText: isEdit ? "Salvar" : "Cadastrar",
     cancelButtonText: "Fechar",
     width: 760,
+    focusConfirm: false,
     didOpen: () => {
-      const fileInput = document.getElementById("ev-foto");
-      const info = document.getElementById("ev-foto-info");
-      if (fileInput) {
-        fileInput.addEventListener("change", (e) => {
-          const f = e.target.files && e.target.files[0];
-          selectedFile = f || null;
-          info.textContent = f ? `${f.name}` : (evento?.imagemUrl ? "Imagem anexada" : "");
-        });
-      }
-
-      // carregar lista de usuários M2 para o picklist
-      (async () => {
-        const sel = document.getElementById("ev-usuarios-m2-list");
-        const infoUsers = document.getElementById("ev-usuarios-m2-info");
-        if (!sel) return;
-        sel.innerHTML = `<div style="color:#999">Carregando...</div>`;
-        try {
-          const url = "http://localhost:8080/convites/usuarios-m2";
-          const headers = (typeof getAuthHeaders === "function") ? (getAuthHeaders() || {}) : {};
-          let list;
-          if (typeof safeFetchJson === "function") {
-            list = await safeFetchJson(url);
-          } else {
-            const r = await fetch(url, { headers });
-            // tratar 204 No Content corretamente
-            if (r.status === 204) list = [];
-            else list = await r.json().catch(() => []);
-          }
-          const usuarios = Array.isArray(list) ? list : [];
-          if (!usuarios.length) {
-            sel.innerHTML = '<div style="color:#999">Nenhum usuário disponível</div>';
-            return;
-          }
-          const preSelected = new Set((evento && Array.isArray(evento.convidados)) ? evento.convidados.map(v => String(v)) : []);
-          sel.innerHTML = usuarios.map(u => {
-            const id = u.idUsuario ?? u.id ?? "";
-            const label = escapeHtml(u.nome || u.nomeCompleto || u.email || "Usuário");
-            const email = escapeHtml(u.email || "");
-            const checked = preSelected.has(String(id)) ? "checked" : "";
-            // importante: adicionar classe usada na coleta
-            return `<label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-              <input class="ev-usuario-checkbox" type="checkbox" value="${id}" ${checked} style="width:18px; height:18px; cursor:pointer;" />
-              <span style="flex:1; color:#333; font-size:13px;">${label} ${email ? `(${email})` : ""}</span>
-            </label>`;
-          }).join("");
-        } catch (err) {
-          sel.innerHTML = '<div style="color:#e74c3c">Erro ao carregar</div>';
-          console.error("Erro ao carregar usuarios M2:", err);
-          if (infoUsers) infoUsers.textContent = "Falha ao carregar usuários.";
-        }
-
-        // carregar convites já enviados (apenas quando editando)
-        try {
-          const convContainer = document.getElementById("ev-convidados-list");
-          if (!convContainer) return;
-          const eventId = evento?.idEvento || evento?.id || evento?.id_evento;
-          if (!eventId) {
-            convContainer.innerHTML = '<div style="color:#999">Nenhum convite enviado</div>';
-            return;
-          }
-          const url = `http://localhost:8080/convites/${encodeURIComponent(eventId)}/convidados`;
-          const headers = (typeof getAuthHeaders === "function") ? (getAuthHeaders() || {}) : {};
-          let listConv = null;
-          try {
-            if (typeof safeFetchJson === "function") {
-              listConv = await safeFetchJson(url);
-            } else {
-              const r = await fetch(url, { headers });
-              if (r.status === 204 || r.status === 404) { convContainer.innerHTML = '<div style="color:#999">Nenhum convite enviado</div>'; return; }
-              if (!r.ok) throw new Error(`HTTP ${r.status}`);
-              listConv = await r.json().catch(() => null);
-            }
-          } catch (err) {
-            // trata 404/erros como "nenhum convite" sem poluir o console com stacktrace
-            console.debug("convites fetch failed (treated as empty):", err && err.message ? err.message : err);
-            convContainer.innerHTML = '<div style="color:#999">Nenhum convite enviado</div>';
-            return;
-          }
-
-          if (!Array.isArray(listConv) || !listConv.length) {
-            convContainer.innerHTML = '<div style="color:#999">Nenhum convite enviado</div>';
-            return;
-          }
-
-          convContainer.innerHTML = listConv.map(item => {
-            const usuario = item["usuario"] ?? item["user"] ?? item["usuarioDto"] ?? null;
-            const nome = item["nome"] || (usuario && (usuario.nome || usuario.nomeCompleto)) || item["nomeUsuario"] || item["nomeCompleto"] || item["email"] || "Usuário";
-            const email = item["email"] || (usuario && usuario.email) || "";
-            let status = item["situacao"] ?? item["status"] ?? item["resposta"] ?? item["aceitou"] ?? item["aceitouConvite"] ?? null;
-            if (typeof status === "boolean") status = status ? "Aceitou" : "Recusou";
-            else if (status) {
-              const s = String(status).toLowerCase();
-              if (s.includes("aceit") || s.includes("sim")) status = "Aceitou";
-              else if (s.includes("recus") || s.includes("nao") || s.includes("não")) status = "Recusou";
-              else status = "Pendente";
-            } else status = "Pendente";
-            const color = status === "Aceitou" ? "#27ae60" : (status === "Recusou" ? "#e74c3c" : "#999");
-            return `<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #f7f7f7;">
-                      <div style="min-width:0">
-                        <div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(nome)}</div>
-                        <div style="font-size:12px;color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(email)}</div>
-                      </div>
-                      <div style="font-size:13px;color:${color}; white-space:nowrap; margin-left:6px;">${status}</div>
-                    </div>`;
-          }).join("");
-        } catch (err) {
-          console.error("Erro ao carregar convites no modal:", err);
-          const convContainer = document.getElementById("ev-convidados-list");
-          if (convContainer) convContainer.innerHTML = '<div style="color:#e74c3c">Falha ao carregar convites</div>';
-        }
-       })();
-
-      // preenche endereço vinculado se houver
-      const setIf = (id, val) => { const el = document.getElementById(id); if (el && (el.value === "" || el.value === null)) el.value = val || ""; };
-      if (enderecoFonte) {
-        setIf("end-cep", enderecoFonte.cep || "");
-        setIf("end-logradouro", enderecoFonte.logradouro || "");
-        setIf("end-bairro", enderecoFonte.bairro || "");
-        setIf("end-uf", enderecoFonte.uf || "");
-        setIf("end-estado", enderecoFonte.estado || enderecoFonte.localidade || "");
-        setIf("end-numero", enderecoFonte.numero ?? "");
-        setIf("end-complemento", enderecoFonte.complemento || "");
-      } else {
-        const eventoId = evento?.idEvento || evento?.id || evento?.id_evento;
-        if (eventoId && safeFetchJson) {
-          (async () => {
-            try {
-              const e = await safeFetchJson(`http://localhost:8080/endereco/evento/${encodeURIComponent(eventoId)}`);
-              if (e) {
-                setIf("end-cep", e.cep || "");
-                setIf("end-logradouro", e.logradouro || "");
-                setIf("end-bairro", e.bairro || "");
-                setIf("end-uf", e.uf || "");
-                setIf("end-estado", e.estado || e.localidade || "");
-                setIf("end-numero", e.numero ?? "");
-                setIf("end-complemento", e.complemento || "");
-              }
-            } catch (err) {
-              console.error(err);
-            }
-          })();
-        }
-      }
-
-      const cepEl = document.getElementById("end-cep");
-      if (cepEl) {
-        cepEl.addEventListener("blur", async () => { await buscarEnderecoPorCEP(cepEl.value || ""); });
-        cepEl.addEventListener("keydown", async (ev) => { if (ev.key === "Enter") { ev.preventDefault(); await buscarEnderecoPorCEP(cepEl.value || ""); } });
-      }
+      try { attachModalBehavior({ values, enderecos, getAuthHeaders }); } catch (err) { console.debug("eventoFormModal: attachModalBehavior falhou:", err); }
     },
-    preConfirm: () => {
-      // validação e coleta 
+    preConfirm: async () => {
       const nome = document.getElementById("ev-nome")?.value?.trim();
-      const dia = document.getElementById("ev-dia")?.value || null;
+
+      const diaRaw = (document.getElementById("ev-dia")?.value || "").trim();
+      const dia = diaRaw || null;
+      if (diaRaw) {
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const diaDate = new Date(diaRaw + "T00:00:00");
+        if (isNaN(diaDate.getTime()) || diaDate < today) {
+          Swal.showValidationMessage("Data inválida: o evento deve ser hoje ou uma data futura.");
+          return false;
+        }
+      }
       const descricao = document.getElementById("ev-desc")?.value?.trim() || "";
-      // validações mínimas compatíveis com as constraints do backend
-      if (!nome || !dia) { Swal.showValidationMessage("Nome e data são obrigatórios."); return false; }
-      if (!descricao || descricao.length < 2 || descricao.length > 255) { Swal.showValidationMessage("Descrição deve ter entre 2 e 255 caracteres."); return false; }
+      const categoriaId = document.getElementById("ev-categoria")?.value || null;
+      const statusEventoId = document.getElementById("ev-status")?.value || null;
+      const horaInicio = document.getElementById("ev-hora-inicio")?.value || null;
+      const horaFim = document.getElementById("ev-hora-fim")?.value || null;
+      const qtdVaga = Number(document.getElementById("ev-qtd")?.value || 0);
+      const enderecoSelectVal = document.getElementById("ev-endereco-select")?.value || "";
 
-      const cepRaw = document.getElementById("end-cep")?.value?.trim() || null;
-      const cep = formatCep(cepRaw);
-
-      const logradouro = document.getElementById("end-logradouro")?.value?.trim() || null;
-      const numeroRaw = document.getElementById("end-numero")?.value?.trim() || null;
-      const numero = numeroRaw ? Number(numeroRaw) : null;
-      const complemento = document.getElementById("end-complemento")?.value?.trim() || null;
-      const uf = document.getElementById("end-uf")?.value?.trim() || null;
-      const estado = document.getElementById("end-estado")?.value?.trim() || null;
-      const bairro = document.getElementById("end-bairro")?.value?.trim() || null;
-
-      const enderecoPreenchido = cep && logradouro && numero !== null && uf && estado && bairro;
-      if (!enderecoPreenchido && !values.endereco.idEndereco) {
-        Swal.showValidationMessage("Preencha o endereço completo (CEP, logradouro, número, UF, cidade e bairro) ou edite um endereço existente.");
+      if (!nome || !dia) {
+        Swal.showValidationMessage("Nome e data são obrigatórios.");
+        return false;
+      }
+      if (!descricao || descricao.length < 2 || descricao.length > 1000) {
+        Swal.showValidationMessage("Descrição deve ter entre 2 e 1000 caracteres.");
         return false;
       }
 
-      // coletar usuários selecionados no picklist
-      const checkboxes = Array.from(document.querySelectorAll("#ev-usuarios-m2-list .ev-usuario-checkbox") || []);
-      const convidados = checkboxes.filter(cb => cb.checked).map(cb => Number(cb.value)).filter(Boolean);
+      let enderecoId = null;
+      if (enderecoSelectVal === "__novo") {
+        const cep = document.getElementById("ev-cep")?.value?.trim() || "";
+        const logradouro = document.getElementById("ev-logradouro")?.value?.trim() || "";
+        const numero = document.getElementById("ev-numero")?.value?.trim() || "";
+        const complemento = document.getElementById("ev-complemento")?.value?.trim() || "";
+        const bairro = document.getElementById("ev-bairro")?.value?.trim() || "";
+        const uf = document.getElementById("ev-uf")?.value?.trim() || "";
+        const cidade = document.getElementById("ev-cidade")?.value?.trim() || "";
 
-      return {
-        nome: document.getElementById("ev-nome")?.value?.trim(),
-        descricao: document.getElementById("ev-desc")?.value?.trim(),
-        publico: document.getElementById("ev-publico")?.value?.trim(),
-        categoriaId: document.getElementById("ev-categoria")?.value || null,
-        statusId: document.getElementById("ev-status")?.value || null,
-        dia: document.getElementById("ev-dia")?.value || null,
-        horaInicio: document.getElementById("ev-hora-inicio")?.value || null,
-        horaFim: document.getElementById("ev-hora-fim")?.value || null,
-        qtdVaga: Number(document.getElementById("ev-qtd")?.value || 0),
-        endereco: { idEndereco: values.endereco.idEndereco, cep, logradouro, numero, complemento, uf, estado, bairro },
-        convidados
-      };
+        if (!logradouro || !cep) {
+          Swal.showValidationMessage("CEP e Logradouro são obrigatórios para salvar endereço.");
+          return false;
+        }
+
+        try {
+          const headers = { Accept: "application/json", "Content-Type": "application/json", ...getAuthHeaders() };
+          const MAP_UF_ESTADO = {
+            AC: "Acre", AL: "Alagoas", AP: "Amapá", AM: "Amazonas", BA: "Bahia",
+            CE: "Ceará", DF: "Distrito Federal", ES: "Espírito Santo", GO: "Goiás",
+            MA: "Maranhão", MT: "Mato Grosso", MS: "Mato Grosso do Sul", MG: "Minas Gerais",
+            PA: "Pará", PB: "Paraíba", PR: "Paraná", PE: "Pernambuco", PI: "Piauí",
+            RJ: "Rio de Janeiro", RN: "Rio Grande do Norte", RS: "Rio Grande do Sul",
+            RO: "Rondônia", RR: "Roraima", SC: "Santa Catarina", SP: "São Paulo",
+            SE: "Sergipe", TO: "Tocantins"
+          };
+
+          const cepDigits = (cep || "").replace(/\D/g, "");
+          const cepFormatted = formatCep(cepDigits) || null;
+          const ufClean = (uf || "").toUpperCase();
+          let numeroNum = numero ? Number(numero) : 1;
+          if (!Number.isFinite(numeroNum) || numeroNum < 1) {
+            Swal.showValidationMessage("Número do endereço inválido. Informe um número inteiro maior ou igual a 1.");
+            return false;
+          }
+          const estadoNome = MAP_UF_ESTADO[ufClean] || (cidade || "");
+
+          const payloadEndereco = {
+            cep: cepFormatted || null,
+            logradouro,
+            numero: numeroNum,
+            complemento: complemento || null,
+            bairro: bairro || null,
+            uf: ufClean || null,
+            cidade: cidade || null,
+            estado: estadoNome || null
+          };
+
+          const rEnd = await fetch("http://localhost:8080/endereco", { method: "POST", headers, body: JSON.stringify(payloadEndereco) });
+          if (!rEnd.ok) {
+            let bodyText = await rEnd.text().catch(() => "");
+            let parsed = bodyText;
+            try { parsed = JSON.parse(bodyText); } catch (err) { /* ignore parse error */ }
+            let friendly = "";
+            if (!parsed) friendly = `HTTP ${rEnd.status}`;
+            else if (typeof parsed === "string") friendly = parsed;
+            else if (parsed.fieldErrors && Array.isArray(parsed.fieldErrors)) {
+              friendly = parsed.fieldErrors.map(fe => `${fe.field}: ${fe.defaultMessage || fe.message || JSON.stringify(fe)}`).join("; ");
+            } else if (parsed.message || parsed.error) {
+              friendly = parsed.message || parsed.error;
+            } else {
+              friendly = JSON.stringify(parsed);
+            }
+            Swal.showValidationMessage(`Falha ao salvar endereço: ${friendly}`);
+            return false;
+          }
+
+          const savedEndereco = await rEnd.json().catch(() => null);
+          enderecoId = savedEndereco?.idEndereco ?? savedEndereco?.id ?? null;
+          if (!enderecoId) {
+            Swal.showValidationMessage("Endereço salvo, mas id não retornado pelo servidor.");
+            return false;
+          }
+          try {
+            const sel = document.getElementById("ev-endereco-select");
+            if (sel) {
+              const opt = document.createElement("option");
+              opt.value = enderecoId;
+              opt.text = `${savedEndereco.logradouro || ""}${savedEndereco.numero ? ", " + savedEndereco.numero : ""}${savedEndereco.bairro ? " - " + savedEndereco.bairro : ""} (${savedEndereco.cep || ""})`;
+              const last = sel.querySelector('option[value="__novo"]');
+              if (last) sel.insertBefore(opt, last);
+              sel.value = enderecoId;
+            }
+          } catch (err) {
+            console.debug("eventoFormModal: atualizar select ev-endereco-select falhou:", err);
+          }
+        } catch (err) {
+          Swal.showValidationMessage(`Erro ao salvar novo endereço: ${err?.message || err}`);
+          return false;
+        }
+      } else if (enderecoSelectVal) {
+        const idNum = Number(enderecoSelectVal);
+        if (Number.isFinite(idNum) && idNum > 0) {
+          const existe = Array.isArray(enderecos) ? enderecos.some(e => (e.idEndereco ?? e.id) === idNum) : true;
+          if (!existe) {
+            Swal.showValidationMessage("Endereço selecionado inválido.");
+            return false;
+          }
+          enderecoId = idNum;
+        } else {
+          Swal.showValidationMessage("Endereço selecionado inválido.");
+          return false;
+        }
+      } else {
+        if (isEdit && values.enderecoId) {
+          enderecoId = Number(values.enderecoId) || null;
+        } else {
+          enderecoId = null;
+        }
+      }
+
+      const payloadEvento = {
+        nomeEvento: nome,
+        descricao,
+        // if user selected "Cadastrar novo público...", use the input value on save
+        publicoAlvo: (function() {
+          const sel = document.getElementById("ev-publico")?.value;
+          if (sel === "__novo") {
+            const novo = (document.getElementById("ev-publico-novo-input")?.value || "").trim();
+            return novo || values.publico || "";
+          }
+          return document.getElementById("ev-publico")?.value?.trim() || values.publico || "";
+        })(),
+         categoriaId: categoriaId ? Number(categoriaId) : null,
+         statusEventoId: statusEventoId ? Number(statusEventoId) : null,
+         dia,
+         horaInicio,
+         horaFim,
+         qtdVaga,
+         isAberto: values.isAberto,
+         enderecoId,
+         idEndereco: enderecoId,
+       };
+      if (enderecoId) {
+        payloadEvento.endereco = { idEndereco: Number(enderecoId) };
+      }
+
+      try {
+        const fileInput = document.getElementById("ev-foto");
+        const file = fileInput?.files?.[0] ?? null;
+        const authHeaders = { ...getAuthHeaders() };
+
+        let resultJson = null;
+        let resultSaved = null;
+
+        if (!isEdit) {
+          const fd = new FormData();
+          fd.append("dados", new Blob([JSON.stringify(payloadEvento)], { type: "application/json" }));
+          if (file) fd.append("foto", file);
+
+          const res = await fetch("http://localhost:8080/eventos/cadastrar", {
+            method: "POST",
+            headers: { ...authHeaders },
+            body: fd,
+          });
+
+          if (!res.ok) {
+            let body = await res.text().catch(() => "");
+            try { const j = JSON.parse(body); body = j?.message || j?.error || JSON.stringify(j); } catch (err) { /* ignore parse error */ }
+            Swal.showValidationMessage(`Falha ao cadastrar evento: ${body || res.status}`);
+            throw new Error(body || `Erro ${res.status}`);
+          }
+
+          try { resultJson = await res.json().catch(() => null); } catch (err) { resultJson = null; }
+
+          if (typeof onSaved === "function") {
+            try { await onSaved(resultJson); } catch (err) { console.debug("eventoFormModal: onSaved falhou:", err); }
+          }
+
+          return resultJson ?? true;
+        }
+
+        // EDIÇÃO
+        const idEvento = evento?.idEvento ?? evento?.id ?? evento?.id_evento;
+        if (!idEvento) {
+          Swal.showValidationMessage("ID do evento não disponível para edição.");
+          return false;
+        }
+
+        const payloadForPut = { ...payloadEvento };
+        delete payloadForPut.idEndereco;
+        delete payloadForPut.endereco;
+        if (enderecoId) {
+          payloadForPut.enderecoId = Number(enderecoId);
+        } else {
+          delete payloadForPut.enderecoId;
+        }
+
+         console.debug("eventoFormModal: PUT payloadEvento:", payloadForPut);
+ 
+         const resDados = await fetch(`http://localhost:8080/eventos/${encodeURIComponent(idEvento)}`, {
+           method: "PUT",
+           headers: { ...authHeaders, "Content-Type": "application/json", Accept: "application/json" },
+           body: JSON.stringify(payloadForPut),
+         });
+
+        if (!resDados.ok) {
+          let respText = await resDados.text().catch(() => "");
+          let parsed = respText;
+          try { const j = JSON.parse(respText); parsed = j; } catch (err) { /* ignore parse error */ }
+          console.error("eventoFormModal: PUT /eventos response not ok", { status: resDados.status, statusText: resDados.statusText, body: parsed, headers: Array.from(resDados.headers.entries()) });
+          Swal.showValidationMessage(`Falha ao salvar dados: ${typeof parsed === "string" ? parsed : JSON.stringify(parsed) || resDados.status}`);
+          throw new Error(typeof parsed === "string" ? parsed : JSON.stringify(parsed) || `Erro ${resDados.status}`);
+        }
+
+        try { resultSaved = await resDados.json().catch(() => null); } catch (err) { resultSaved = null; }
+
+        if (file) {
+          const fd = new FormData();
+          fd.append("foto", file);
+          const resFoto = await fetch(`http://localhost:8080/eventos/foto/${encodeURIComponent(idEvento)}`, {
+            method: "PATCH",
+            headers: { ...authHeaders },
+            body: fd,
+          });
+
+          if (!resFoto.ok) {
+            let body = await resFoto.text().catch(() => "");
+            try {
+              const j = JSON.parse(body);
+              body = j?.message || j?.error || JSON.stringify(j);
+            } catch (err) {
+              /* ignore parse error */
+            }
+            Swal.showValidationMessage(`Falha ao enviar foto: ${body || resFoto.status}`);
+            throw new Error(body || `Erro ao enviar foto: ${resFoto.status}`);
+          }
+
+          try {
+            const fotoJson = await resFoto.json().catch(() => null);
+            resultSaved = { ...(resultSaved || {}), foto: fotoJson };
+          } catch (err) {
+            console.debug("eventoFormModal: parse fotoJson falhou:", err);
+          }
+        }
+
+        if (typeof onSaved === "function") {
+          try { await onSaved(resultSaved); } catch (err) { console.debug("eventoFormModal: onSaved falhou:", err); }
+        }
+
+        return resultSaved ?? true;
+      } catch (err) {
+        console.error("Erro ao salvar evento:", err);
+        Swal.showValidationMessage("Falha ao salvar evento. Veja console para detalhes.");
+        return false;
+      }
     }
   });
 
-  if (popup.isConfirmed && popup.value) {
-    // salvar evento + endereço + upload 
-    const toTimeWithSeconds = (t) => { if (!t) return null; return t.length === 5 ? `${t}:00` : t; };
-    try {
-      let enderecoId = popup.value.endereco.idEndereco || values.endereco.idEndereco || null;
-      const addr = popup.value.endereco;
-
-      if (!enderecoId && addr && addr.cep) {
-        const rEnd = await fetch("http://localhost:8080/endereco", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-          body: JSON.stringify({ cep: formatCep(addr.cep), logradouro: addr.logradouro, numero: addr.numero, complemento: addr.complemento, uf: addr.uf, estado: addr.estado, bairro: addr.bairro })
-        });
-        if (!rEnd.ok) { const txt = await rEnd.text().catch(() => `Erro ${rEnd.status}`); Swal.fire("Erro", `Falha ao salvar endereço: ${txt}`, "error"); return; }
-        const createdEnd = await rEnd.json().catch(() => null);
-        enderecoId = createdEnd?.idEndereco || createdEnd?.id;
-      } else if (enderecoId && addr && addr.cep) {
-        const rUpd = await fetch(`http://localhost:8080/endereco/${encodeURIComponent(enderecoId)}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-          body: JSON.stringify({ cep: formatCep(addr.cep), logradouro: addr.logradouro, numero: addr.numero, complemento: addr.complemento, uf: addr.uf, estado: addr.estado, bairro: addr.bairro })
-        });
-        if (!rUpd.ok) { const txt = await rUpd.text().catch(() => `Erro ${rUpd.status}`); Swal.fire("Erro", `Falha ao atualizar endereço: ${txt}`, "error"); return; }
-      }
-
-      const body = {
-        nomeEvento: popup.value.nome,
-        descricao: popup.value.descricao,
-        publicoAlvo: popup.value.publico,
-        categoriaId: popup.value.categoriaId ? Number(popup.value.categoriaId) : null,
-        statusEventoId: popup.value.statusId ? Number(popup.value.statusId) : null,
-        dia: popup.value.dia,
-        horaInicio: toTimeWithSeconds(popup.value.horaInicio),
-        horaFim: toTimeWithSeconds(popup.value.horaFim),
-        qtdVaga: popup.value.qtdVaga,
-        enderecoId: enderecoId
-      };
-
-      const url = isEdit ? `http://localhost:8080/eventos/${encodeURIComponent(evento.idEvento || evento.id || evento.id_evento)}` : `http://localhost:8080/eventos`;
-      const method = isEdit ? "PUT" : "POST";
-      const res = await fetch(url, { method, headers: { "Content-Type": "application/json", ...getAuthHeaders() }, body: JSON.stringify(body) });
-
-      if (!res.ok) { const t = await res.text().catch(() => `Erro ${res.status}`); Swal.fire("Erro", t, "error"); return; }
-      const created = await res.json().catch(() => null);
-      const eventId = created?.idEvento || created?.id || (isEdit ? (evento?.idEvento || evento?.id || evento?.id_evento) : null);
-
-      if (selectedFile && eventId) {
-        try {
-          const form = new FormData();
-          form.append("foto", selectedFile);
-          const up = await fetch(`http://localhost:8080/eventos/foto/${encodeURIComponent(eventId)}`, {
-            method: "PATCH",
-            headers: { ...getAuthHeaders() },
-            body: form,
-            mode: "cors"
-          });
-          if (!up.ok) { const t = await up.text().catch(() => `Erro ${up.status}`); Swal.fire("Aviso", `Evento salvo, mas upload da imagem falhou: ${t}`, "warning"); }
-        } catch (err) {
-          console.error("Erro upload imagem:", err);
-          Swal.fire("Aviso", "Evento salvo, mas falha ao enviar imagem.", "warning");
-        }
-      }
-
-      // enviar convites para os usuários selecionados (se houver)
-      try {
-        const convidados = Array.isArray(popup.value.convidados) ? popup.value.convidados : [];
-        if (convidados.length && eventId) {
-          let remetente = null;
-          const tryKeys = ["idUsuario", "id_usuario", "usuarioId", "id", "userId"];
-          for (const k of tryKeys) {
-            const raw = localStorage.getItem(k);
-            if (!raw) continue;
-            try {
-              const parsed = JSON.parse(raw);
-              remetente = Number(parsed?.id ?? parsed?.idUsuario ?? parsed ?? raw) || null;
-            } catch {
-              remetente = Number(raw) || null;
-            }
-            if (remetente) break;
-          }
-        
-          if (!remetente) {
-            Swal.fire("Aviso", "Não foi possível identificar o remetente (usuário atual). Convites não enviados.", "warning");
-          } else {
-            try {
-              const urlInvite = `http://localhost:8080/convites/${encodeURIComponent(eventId)}/enviar?idRemetente=${encodeURIComponent(remetente)}`;
-              const headersInvite = { "Content-Type": "application/json", ...(typeof getAuthHeaders === "function" ? getAuthHeaders() : {}) };
-              const r = await fetch(urlInvite, { method: "POST", headers: headersInvite, body: JSON.stringify(convidados) });
-              if (!r.ok) {
-                const txt = await r.text().catch(() => null);
-                Swal.fire("Aviso", `Falha ao enviar convites: ${txt || r.status}`, "warning");
-              } else {
-                console.debug("Convites enviados (bulk):", convidados.length);
-              }
-            } catch (err) {
-              console.error("Erro ao enviar convites (bulk):", err);
-              Swal.fire("Erro", "Falha ao enviar convites.", "error");
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Erro ao enviar convites:", err);
-      }
-
-      Swal.fire("Sucesso", isEdit ? "Evento atualizado." : "Evento cadastrado.", "success");
-      if (onSaved) onSaved();
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Erro", "Falha ao conectar com servidor.", "error");
-    }
+  if (popup.isConfirmed) {
+    return true;
   }
+  return false;
 }
 
-function formatCep(cep) {
-  if (!cep) return cep;
-  const digits = String(cep).replace(/\D/g, "");
-  if (digits.length === 8) return digits.slice(0, 5) + "-" + digits.slice(5);
-  return cep;
-}
+

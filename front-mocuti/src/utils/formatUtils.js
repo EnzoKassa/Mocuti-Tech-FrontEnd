@@ -62,3 +62,5 @@ console.log(formatCep("12345678"));              // "12345-678"
 console.log(formatEmail("   teste@email.com "))
 
 // para importar: import { formatNomeCompleto, formatCpf, formatTelefone, formatCep, formatEmail } from '../utils/formatUtils';
+
+

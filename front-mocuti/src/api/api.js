@@ -23,3 +23,20 @@ async function api(endpoint, options = {}) {
 
 // Exporta a função `api` para que possa ser usada em outros arquivos do React
 export default api
+
+export async function fetchInscritosCargo2Count(idEvento) {
+  try {
+    const res = await fetch(`http://localhost:8080/participacoes/inscritos/cargo2/contagem/${encodeURIComponent(idEvento)}`, {
+      method: "GET",
+      headers: { Accept: "application/json" }
+    });
+    if (!res.ok) return 0;
+    const json = await res.json().catch(() => null);
+    return Number(json?.quantidade ?? 0);
+  } catch (err) {
+    console.debug("fetchInscritosCargo2Count failed:", err);
+    return 0;
+  }
+}
+
+

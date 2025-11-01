@@ -52,3 +52,4 @@ export function NavLateral({ rotasPersonalizadas }) {
     </div>
   );
 }
+

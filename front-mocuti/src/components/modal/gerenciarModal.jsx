@@ -221,3 +221,4 @@ export async function openGerenciarModal(evento, { onEdit, onDelete, onLista, na
     },
   });
 }
+

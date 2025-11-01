@@ -1,9 +1,11 @@
-import React from "react";
+/* eslint-disable no-unused-vars */
+import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import "../styles/EspacoEventosBeneficiario.css";
 import calendar from "../assets/images/calendar.png";
 import people from "../assets/images/Person.png";
+import { fetchInscritosCargo2Count } from "../api/api";
 
 export default function EspacoEventosBeneficiario({
   eventos = [],
@@ -15,6 +17,31 @@ export default function EspacoEventosBeneficiario({
   hideParticipar = false,
   onOpenModal,
 }) {
+  const [inscritosCounts, setInscritosCounts] = useState({});
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadCounts() {
+      const map = {};
+      await Promise.all(
+        (eventos || []).map(async (ev) => {
+          const id = ev?.idEvento ?? ev?.id;
+          if (!id) return;
+          try {
+            map[id] = await fetchInscritosCargo2Count(id);
+          } catch (err) {
+            map[id] = 0;
+          }
+        })
+      );
+      if (mounted) setInscritosCounts(map);
+    }
+    if (eventos.length) loadCounts();
+    return () => {
+      mounted = false;
+    };
+  }, [eventos]);
+
   const exibirParticipar =
     hideParticipar === true
       ? false
@@ -92,7 +119,7 @@ export default function EspacoEventosBeneficiario({
         title: "swal2-title my-swal-title",
         content: "swal2-content my-swal-content",
         closeButton: "swal2-close my-swal-close",
-        confirmButton: "sw-btn sw-btn-confirm"
+        confirmButton: "sw-btn sw-btn-confirm",
       },
       buttonsStyling: false,
     });
@@ -105,92 +132,98 @@ export default function EspacoEventosBeneficiario({
           <div className="espaco-eventos-beneficiario-lista">
             {(!eventos || eventos.length === 0) && <p>Nenhum evento encontrado.</p>}
             {eventos.map((evento, idx) => {
-              const qtdVaga = Number(evento.qtdVaga ?? evento.qtd_vaga ?? evento.qtdVagas ?? evento.qtd_vagas ?? evento.qtdVagasTotal ?? 0);
+              const qtdVaga = Number(
+                evento.qtdVaga ?? evento.qtd_vaga ?? evento.qtdVagas ?? evento.qtd_vagas ?? evento.qtdVagasTotal ?? 0
+              );
               const qtdInteressado =
                 Number(evento.qtdInteressado ?? evento.qtd_interessado ?? evento.qtd_interessos ?? evento.qtdInteressos ?? 0) ||
-                (Array.isArray(evento.interessados) ? evento.interessados.length : (Array.isArray(evento.inscritos) ? evento.inscritos.length : 0));
-              
+                (Array.isArray(evento.interessados) ? evento.interessados.length : Array.isArray(evento.inscritos) ? evento.inscritos.length : 0);
+
+              const id = evento?.idEvento ?? evento?.id;
+              const count = inscritosCounts[id] ?? 0;
+              const max = evento?.qtdVaga ?? 0;
+
               return (
-               <div className="eventos-beneficiario-lista" key={evento.id_evento || evento.idEvento || idx}>
-                 {evento.imagemUrl ? (
-                   <img src={evento.imagemUrl} alt="Foto evento" className="eventos-foto-beneficiario" />
-                 ) : (
-                   <div className="evento-sem-imagem">Sem imagem</div>
-                 )}
- 
-                <div className="eventos-descricao-beneficiario">
-                  <div className="eventos-titulo-beneficiario">
-                    <h3>{evento.nome_evento || evento.nomeEvento || evento.nome}</h3>
-                  </div>
-                  <div className="eventos-tipocategoria-beneficiario">
-                    <div className="eventos-categoria-beneficiario">
-                      Categoria:{" "}
-                      <a href="#">
-                        {evento.categoriaNome || evento.categoria?.nome || "Não informada"}
-                      </a>
-                    </div>
-                    <div className="eventos-status-beneficiario">
-                      Status: <a href="#">{evento.status_evento || evento.statusEvento?.situacao || "Aberto"}</a>
-                    </div>
-                  </div>
-                </div>
- 
-                <div className="eventos-data-beneficiario">
-                  <img src={calendar} style={{ width: "30%" }} alt="Ícone de Calendário" />
-                  <a href="#">
-                    {formatarData(evento.data_evento || evento.dia)}{" "}
-                    {evento.hora_inicio || evento.horaInicio ? `às ${formatarHora(evento.hora_inicio || evento.horaInicio)}` : ""}
-                  </a>
-                </div>
- 
-                <div className="eventos-pessoas-beneficiario">
-                  <img src={people} style={{ width: "40%" }} alt="Ícone de Pessoas" />
-                  <a href="#">{qtdInteressado}/{qtdVaga || 0}</a>
-                </div>
- 
-                <div className="eventos-tiposbotoes-beneficiario">
-                  <button
-                    style={{ backgroundColor: "#3DA5E1" }}
-                    onClick={() =>
-                      onMostrarDetalhes
-                        ? onMostrarDetalhes(evento)
-                        : onOpenModal
-                        ? onOpenModal(evento)
-                        : mostrarDetalhesLocal(evento)
-                    }
-                  >
-                    Mais Informações
-                  </button>
- 
-                  {exibirParticipar && (
-                    <button
-                      style={{
-                        backgroundColor: (qtdVaga && qtdInteressado >= qtdVaga) ? "#999" : "#4FBD34",
-                        cursor: (qtdVaga && qtdInteressado >= qtdVaga) ? "not-allowed" : "pointer"
-                      }}
-                      disabled={qtdVaga && qtdInteressado >= qtdVaga}
-                      onClick={() => {
-                        const full = qtdVaga && (Number(qtdInteressado ?? 0) >= Number(qtdVaga));
-                        if (full) {
-                          Swal.fire("Lotado", "Este evento atingiu o número máximo de vagas.", "info");
-                          return;
-                        }
-                        if (onParticipar) {
-                          onParticipar(evento);
-                          return;
-                        }
-                        if (onInscrever) {
-                          onInscrever(evento.idEvento || evento.id || evento.id_evento);
-                          return;
-                        }
-                        Swal.fire("Atenção", "Ação não disponível.", "info");
-                      }}
-                    >
-                      Quero Participar
-                    </button>
+                <div className="eventos-beneficiario-lista" key={evento.id_evento || evento.idEvento || idx}>
+                  {evento.imagemUrl ? (
+                    <img src={evento.imagemUrl} alt="Foto evento" className="eventos-foto-beneficiario" />
+                  ) : (
+                    <div className="evento-sem-imagem">Sem imagem</div>
                   )}
+
+                  <div className="eventos-descricao-beneficiario">
+                    <div className="eventos-titulo-beneficiario">
+                      <h3>{evento.nome_evento || evento.nomeEvento || evento.nome}</h3>
+                    </div>
+                    <div className="eventos-tipocategoria-beneficiario">
+                      <div className="eventos-categoria-beneficiario">
+                        Categoria:{" "}
+                        <a href="#">
+                          {evento.categoriaNome || evento.categoria?.nome || "Não informada"}
+                        </a>
+                      </div>
+                      <div className="eventos-status-beneficiario">
+                        Status: <a href="#">{evento.status_evento || evento.statusEvento?.situacao || "Aberto"}</a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="eventos-data-beneficiario">
+                    <img src={calendar} style={{ width: "30%" }} alt="Ícone de Calendário" />
+                    <a href="#">
+                      {formatarData(evento.data_evento || evento.dia)}{" "}
+                      {evento.hora_inicio || evento.horaInicio ? `às ${formatarHora(evento.hora_inicio || evento.horaInicio)}` : ""}
+                    </a>
+                  </div>
+
+                  <div className="eventos-pessoas-beneficiario">
+                    <img src={people} style={{ width: "40%" }} alt="Ícone de Pessoas" />
+                    <a href="#">{count}/{max || 0}</a>
+                  </div>
+
+                  <div className="eventos-tiposbotoes-beneficiario">
+                    <button
+                      style={{ backgroundColor: "#3DA5E1" }}
+                      onClick={() =>
+                        onMostrarDetalhes
+                          ? onMostrarDetalhes(evento)
+                          : onOpenModal
+                          ? onOpenModal(evento)
+                          : mostrarDetalhesLocal(evento)
+                      }
+                    >
+                      Mais Informações
+                    </button>
+
+                    {exibirParticipar && (
+                      <button
+                        style={{
+                          backgroundColor: qtdVaga && qtdInteressado >= qtdVaga ? "#999" : "#4FBD34",
+                          cursor: qtdVaga && qtdInteressado >= qtdVaga ? "not-allowed" : "pointer",
+                        }}
+                        disabled={qtdVaga && qtdInteressado >= qtdVaga}
+                        onClick={() => {
+                          const full = qtdVaga && Number(qtdInteressado ?? 0) >= Number(qtdVaga);
+                          if (full) {
+                            Swal.fire("Lotado", "Este evento atingiu o número máximo de vagas.", "info");
+                            return;
+                          }
+                          if (onParticipar) {
+                            onParticipar(evento);
+                            return;
+                          }
+                          if (onInscrever) {
+                            onInscrever(evento.idEvento || evento.id || evento.id_evento);
+                            return;
+                          }
+                          Swal.fire("Atenção", "Ação não disponível.", "info");
+                        }}
+                      >
+                        Quero Participar
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
               );
             })}
           </div>
@@ -199,3 +232,5 @@ export default function EspacoEventosBeneficiario({
     </div>
   );
 }
+
+
