@@ -18,7 +18,7 @@
 .inputsespacobeneficiario {
     display: flex;
     height: 100%;
-    width: 80%;
+    width: 100%;
     background-color: purple;
     flex-direction: column;
 }
@@ -26,18 +26,33 @@
 .inputespacobeneficiarioseparacao1 {
     display: flex;
     height: 50%;
+    justify-content: space-between;
     width: 100%;
+    align-items: center;
     background-color: #F5F5F5;
-    flex-direction: column;
+    flex-direction: row;
 } 
 
 .inputespacobeneficiarioseparacao1 input {
     height: 60%;
-    width: 93.7%;
-    margin-left: 3%;
-    margin-top: 1.5%;
+    width: 80%;
     border: none;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding-left: 10px;
+}
+
+.inputespacobeneficiarioseparacao1 button {
+    height: 60%;
+    width: 18%;
+    border: none;
+    background-color: #3DA5E1;
+    color: white;
+}
+
+.inputespacobeneficiarioseparacao1 button:hover {
+  scale: 1.05;
+  background-color: #52a9db;
+
 }
 
 .inputespacobeneficiarioseparacao2 {
@@ -55,6 +70,7 @@
 .inputespacobeneficiarioseparacao2-caixa1 {
     display: flex;
     height: 70%;
+    padding-left: 5px;
     width: 35vh;
     background-color: WHITE;
     flex-direction: row;

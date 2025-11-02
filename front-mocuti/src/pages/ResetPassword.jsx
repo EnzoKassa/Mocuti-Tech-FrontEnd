@@ -58,7 +58,7 @@ export default function ResetPassword() {
   );
 
   return (
-    <div className="container">
+    <div className="containerReset">
       <div className="form-wrapper">
         <div className="form-card">
           <h1 className="form-title">

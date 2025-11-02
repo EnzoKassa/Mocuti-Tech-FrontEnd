@@ -123,7 +123,7 @@ export default function Feedbacks_M1() {
   const [modalData, setModalData] = useState(null);
 
   const rotasPersonalizadas = [
-    { texto: "Visão Geral", rota: "/admin/dashboard", img: Visao },
+    { texto: "Visão Geral", rota: "/admin/geral", img: Visao },
     { texto: "Eventos", rota: "/admin/eventos", img: Calendario },
     { texto: "Usuários", rota: "/admin/lista-usuarios", img: Lista },
     { texto: "Feedbacks", rota: "/admin/feedbacks", img: feedback },

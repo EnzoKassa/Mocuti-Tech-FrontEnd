@@ -29,7 +29,7 @@ export default function EventosM1() {
   const navigate = useNavigate();
 
   const rotasPersonalizadas = [
-    { texto: "Visão Geral", rota: "/admin/dashboard", img: Visao },
+    { texto: "Visão Geral", rota: "/admin/geral", img: Visao },
     { texto: "Eventos", rota: "/admin/eventos", img: Calendario },
     { texto: "Usuários", rota: "/admin/lista-usuarios", img: Lista },
     { texto: "Feedbacks", rota: "/admin/feedbacks", img: feedback },
@@ -346,13 +346,13 @@ export default function EventosM1() {
   return (
     <div className="TelaComNavLateral">
       <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
-      <div className="MainContenEventostM1" style={{ flex: 1 }}>
+      <div className="MainContenEventostM2" style={{ flex: 1 }}>
         <div className="scroll-page">
           <main className="conteudo-com-nav" style={{ paddingTop: "20px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div className="titulo-eventos-m1">
               <h1 style={{ margin: 0 }}>Tela de eventos do sistema</h1>
               <div>
-                <button className="sw-btn sw-btn-confirm" onClick={() => abrirFormularioEvento()} style={{ background: "#4CAF50" }}>
+                <button className="BotaoCadastrarEvento" onClick={() => abrirFormularioEvento()} style={{ background: "#4CAF50" }}>
                   Criar novo evento
                 </button>
               </div>

@@ -9,6 +9,54 @@
   width: 100%;
 }
 
+.MainContenEventostM2{
+  width: 85%;
+  display: flex;
+  justify-content: center;
+  background-color: #ededed;
+}
+.titulo-eventos{
+    font-size: 3rem;
+    font-weight: 700;
+    color: #1e293b;
+
+}
+
+.titulo-eventos-m1{
+    font-size: 3rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    margin: 0;
+    padding: 0;
+
+}
+
+.BotaoCadastrarEvento{
+  margin: 0;
+  padding: 0;
+  font-size: 1rem;
+  display: flex;
+  padding: 10px;
+
+}
+
+.BotaoCadastrarEvento:hover{
+  margin: 0;
+  padding: 0;
+  font-size: 1rem;
+  display: flex;
+  padding: 10px;
+scale: 1.15;
+}
+
+
+
 /* tabela */
 .feedback-table {
   width: 100%;

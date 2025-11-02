@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Swal from 'sweetalert2';
 import '../styles/Cadastro.css';
 import { useNavigate } from 'react-router-dom';
 import { formatNomeCompleto, formatCpf, formatTelefone, formatCep, formatEmail } from '../utils/formatUtils';
@@ -173,13 +174,25 @@ function Cadastro() {
       });
 
       if (!res.ok) throw new Error("Erro ao cadastrar usuário");
-      alert("Cadastro realizado com sucesso!");
+     Swal.fire({
+  icon: 'success',
+  title: 'Sucesso!',
+  text: 'Cadastro realizado com sucesso!',
+  confirmButtonText: 'OK'
+});
+
 
       navigate('/login');
     } catch (err) {
-      console.error(err);
-      alert("Erro ao cadastrar usuário.");
-    }
+  console.error(err);
+  Swal.fire({
+    icon: 'error',
+    title: 'Erro!',
+    text: 'Erro ao cadastrar usuário.',
+    confirmButtonText: 'OK'
+  });
+}
+
   };
 
   const handleSubmitStep2 = (e) => {
