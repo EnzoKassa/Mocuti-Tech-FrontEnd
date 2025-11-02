@@ -93,6 +93,21 @@
     border: 2px solid #FFBB00;
 }
 
+.btn-comentarios {
+    border-bottom: 2px solid #4FBD34;
+  }
+  .btn-comentarios:hover {
+    border: 2px solid #4FBD34;
+  }
+
+  .btn-sair {
+    border-bottom: 2px solid #FF4848;
+  }
+  .btn-sair:hover {
+    border: 2px solid #FF4848;
+  }
+
+
 .header-botoes-beneficiario {
   width: 100vw;         /* Ocupa toda a largura da viewport */
   min-width: 100vw;     /* Garante que não fique menor */

@@ -16,6 +16,7 @@ export default function MeusEventosBeneficiario() {
     { onClick: () => navigate("/usuario/eventos"), label: "Eventos", className: "btn-inicio" },
     { onClick: () => navigate("/usuario/perfil"), label: "Meu Perfil", className: "btn-sobre" },
     { onClick: () => navigate("/usuario/meus-eventos"), label: "Meus Eventos", className: "btn-linha" },
+    { onClick: () => navigate("/usuario/feedback"), label: "Feedback", className: "btn-comentarios" }
   ];
 
   const { user } = useAuth();
