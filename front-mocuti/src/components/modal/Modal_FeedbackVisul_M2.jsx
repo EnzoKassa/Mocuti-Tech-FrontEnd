@@ -33,3 +33,5 @@ const ModalVisualizacao = ({ modalData, onClose }) => (
 );
 
 export default ModalVisualizacao;
+
+

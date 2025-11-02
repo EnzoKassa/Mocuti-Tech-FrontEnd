@@ -177,7 +177,7 @@ export default function MeusEventosBeneficiario() {
   };
 
   return (
-    <div className="scroll-page">
+    <div className="scroll-page-usuario">
       <HeaderBeneficiario />
       <HeaderBeneficiarioBotoes botoes={botoesNav} />
 
@@ -205,3 +205,5 @@ export default function MeusEventosBeneficiario() {
     </div>
   );
 }
+
+

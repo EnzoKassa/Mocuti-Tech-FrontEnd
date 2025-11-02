@@ -13,10 +13,37 @@ export async function openListaPresencaModal(evento, { getAuthHeaders }) {
 
   let interessados = [];
   try {
-    const res = await fetch(`http://localhost:8080/participacoes/${encodeURIComponent(idEvento)}/interessados`, { headers });
+    console.debug('Headers enviados:', headers);
+    const relUrl = `/participacoes/inscritos/cargo2/pendente/${encodeURIComponent(idEvento)}`;
+    let res = await fetch(relUrl, { method: 'GET', headers });
+    console.debug('fetch (rel):', res.status, res.url);
+
+    if (res.status === 404) {
+      const absUrl = `http://localhost:8080/participacoes/inscritos/cargo2/pendente/${encodeURIComponent(idEvento)}`;
+      console.debug('Rota relativa retornou 404 — tentando URL absoluta:', absUrl);
+      res = await fetch(absUrl, { method: 'GET', headers });
+      console.debug('fetch (abs):', res.status, res.url);
+    }
+
     if (res.status === 204) interessados = [];
-    else if (res.ok) interessados = await res.json();
-    else throw new Error(`Erro ${res.status}`);
+    else if (res.ok) {
+      const data = await res.json();
+
+      interessados = (Array.isArray(data) ? data : []).map((item) => {
+        const usuario = item.usuario || {};
+        const idUsuario = item.idUsuario ?? item.id?.usuarioId ?? usuario.idUsuario ?? item.usuarioId ?? item.id;
+        const nomeCompleto = item.nomeCompleto ?? usuario.nomeCompleto ?? usuario.nome ?? item.nome ?? "";
+        const telefone = item.telefone ?? usuario.telefone ?? "";
+        const email = item.email ?? usuario.email ?? "";
+        const presente = !!(item.isPresente ?? item.is_presente ?? item.presente);
+        return { ...item, idUsuario, nomeCompleto, telefone, email, presente };
+      });
+    } else {
+      const text = await res.text().catch(() => '');
+      console.error('Resposta não OK ao buscar inscritos:', res.status, res.statusText, text);
+      Swal.fire("Erro", `Falha ao carregar interessados: ${res.status} ${res.statusText}\n${text}`, "error");
+      return;
+    }
   } catch (err) {
     console.error("Erro ao buscar interessados:", err);
     Swal.fire("Erro", "Não foi possível carregar a lista de interessados.", "error");
@@ -74,26 +101,66 @@ export async function openListaPresencaModal(evento, { getAuthHeaders }) {
       const changed = currentState.filter((u, i) => u.presente !== initialState[i].presente);
       if (changed.length === 0) return null;
 
+      // monta lista para enviar em massa
+      const listaPresenca = changed.map(u => {
+        const userId = u.idUsuario ?? u.id ?? u.usuario?.idUsuario;
+        return { idUsuario: Number(userId), presente: !!u.presente };
+      }).filter(x => Number.isFinite(x.idUsuario));
+
+      if (listaPresenca.length === 0) {
+        Swal.showValidationMessage("Nenhum usuário válido para atualizar.");
+        return false;
+      }
+
       try {
-        for (const u of changed) {
-          const userId = u.idUsuario || u.id || u.id_usuario;
-          const url = `http://localhost:8080/participacoes/${encodeURIComponent(idEvento)}/marcar-presenca?idUsuario=${encodeURIComponent(userId)}`;
-          const r = await fetch(url, { method: "PATCH", headers: { ...headers } });
-          if (!r.ok) {
-            const txt = await r.text().catch(() => `Erro ${r.status}`);
-            throw new Error(txt || `Erro ${r.status}`);
+        const urlRel = `/participacoes/${encodeURIComponent(idEvento)}/presenca/bulk`;
+        console.debug('Enviando PUT (rel):', urlRel, listaPresenca);
+
+        let r = await fetch(urlRel, {
+          method: "PUT",
+          headers: { ...headers, "Content-Type": "application/json" },
+          body: JSON.stringify({ listaPresenca })
+        });
+        console.debug('Resposta (rel):', r.status, r.url);
+
+        // se 404 no dev-server, tenta URL absoluta (pode ativar CORS)
+        if (r.status === 404) {
+          const urlAbs = `http://localhost:8080/participacoes/${encodeURIComponent(idEvento)}/presenca/bulk`;
+          console.debug('Relativa retornou 404 — tentando absoluta:', urlAbs);
+          try {
+            r = await fetch(urlAbs, {
+              method: "PUT",
+              headers: { ...headers, "Content-Type": "application/json" },
+              body: JSON.stringify({ listaPresenca })
+            });
+            console.debug('Resposta (abs):', r.status, r.url);
+          } catch (errAbs) {
+            console.error('Erro fetch absoluta (possível CORS):', errAbs);
+            Swal.showValidationMessage("Falha ao alcançar backend via URL absoluta (possível CORS). Verifique proxy ou CORS no servidor.");
+            return false;
           }
         }
-        return true;
+
+        if (!r.ok) {
+          const txt = await r.text().catch(() => `Erro ${r.status}`);
+          console.error('Resposta não OK ao enviar bulk:', r.status, txt);
+          throw new Error(txt || `Erro ${r.status}`);
+        }
+
+        const json = await r.json().catch(() => null);
+        return json ?? true;
       } catch (err) {
-        console.error("Erro ao atualizar presenças:", err);
-        Swal.showValidationMessage("Falha ao salvar presenças.");
+        console.error("Erro ao atualizar presenças em massa:", err);
+        Swal.showValidationMessage("Falha ao salvar presenças em massa.");
         return false;
       }
     }
   });
 
   if (popup.isConfirmed) {
-    Swal.fire("Sucesso", "Presenças atualizadas.", "success");
+    // popup.value pode conter o json retornado do backend
+    const info = popup.value && popup.value.totalAtualizado ? ` (${popup.value.totalAtualizado} registros atualizados)` : "";
+    Swal.fire("Sucesso", `Presenças atualizadas.${info}`, "success");
   }
 }
+

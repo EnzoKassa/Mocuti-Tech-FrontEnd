@@ -1,9 +1,11 @@
-import React from "react";
+/* eslint-disable no-unused-vars */
+import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import "../styles/EspacoEventosBeneficiario.css";
 import calendar from "../assets/images/calendar.png";
 import people from "../assets/images/Person.png";
+import { fetchInscritosCargo2Count } from "../api/api";
 
 export default function EspacoEventosBeneficiario({
   eventos = [],
@@ -100,6 +102,7 @@ export default function EspacoEventosBeneficiario({
         title: "swal2-title my-swal-title",
         content: "swal2-content my-swal-content",
         closeButton: "swal2-close my-swal-close",
+        confirmButton: "sw-btn sw-btn-confirm",
         confirmButton: "sw-btn sw-btn-confirm",
       },
       buttonsStyling: false,
@@ -283,3 +286,5 @@ export default function EspacoEventosBeneficiario({
     </div>
   );
 }
+
+

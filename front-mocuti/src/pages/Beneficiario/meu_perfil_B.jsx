@@ -26,3 +26,4 @@ const botoesNav = [
 };
 
 export default MeuPerfilBeneficiario;
+

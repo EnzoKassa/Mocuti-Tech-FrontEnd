@@ -107,11 +107,13 @@ const FeedbacksM2 = () => {
 
   return (
     <>
+
+    <div className="MainFeedbackM2">
       <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
-      <div className="MainContentFeedbackM2">
+     
         <div className="scroll-page">
           <div className="feedback">
-            <div className="feedback-container">
+            <div className="m2-feedback-container">
               <div className="feedback-title">Feedbacks</div>
               <h1>Eventos para comentar</h1>
               <EventosTable
@@ -146,8 +148,11 @@ const FeedbacksM2 = () => {
           </div>
         </div>
       </div>
+
     </>
   );
 };
 
 export default FeedbacksM2;
+
+

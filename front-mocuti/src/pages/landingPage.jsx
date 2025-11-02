@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import "../styles/bottom.css";
+import React from "react";
 import mocutiRodape from "../assets/images/mocuti-rodape.svg";
 import natal from "../assets/images/natal.png";
 import parceiro from "../assets/images/parceiros.svg";
@@ -12,256 +11,216 @@ import insta from "../assets/images/Instagram.svg";
 import inicio from "../assets/images/fundo-inicio.svg";
 import logo from "../assets/images/image (1).svg";
 import location from "../assets/images/location.svg";
-
-import { useNavigate } from 'react-router-dom';
-
+import { useNavigate } from "react-router-dom";
+import { NavHome } from "../components/NavBarHome";
 
 const Home = () => {
-
   const navigate = useNavigate();
 
   return (
-    <div className="landing-body">
-      {/* <div> */}
-        {/* Navbar */}
-        <div className="nav-home">
-          <div className="nav-box">
-            <div className="nav-endereco">
-              <img src={location} alt="" />
-              Av dos Metalurgicos, 1081
+    <div className="w-full overflow-x-hidden font-[Montserrat]">
+      {/* NAVBAR FIXA */}
+        <NavHome/>
+
+      {/* INÍCIO */}
+      <section
+        id="inicio"
+        className="flex justify-start items-center w-screen h-screen bg-cover bg-center pl-[5%]"
+        style={{ backgroundImage: `url(${inicio})` }}
+      >
+        <div className="w-1/2 h-full flex justify-center items-end flex-col">
+          <div className="w-full h-[60%] flex flex-col justify-center items-center bg-white/80 backdrop-blur-sm rounded-tr-[30px] rounded-bl-[30px] border-2 border-[#4FBD34]">
+            <div className="w-[90%] h-[40%] flex flex-col justify-start items-start p-[2%]">
+              <h1 className="text-[48px] font-extrabold">Bem-vindo ao Mocuti</h1>
+              <h3 className="text-[24px] font-extrabold">
+                Participe dos nossos eventos, compartilhe ideias e faça parte
+                dessa mudança!
+              </h3>
             </div>
-            <div className="nav-contato">
-              <img src={telefone} alt="" />
-              11 980711297
-              <img src={insta} alt="" />
-              <img src={zap} alt="" />
-              <img src={face} alt="" />
-              <img src={email} alt="" />
+            <div className="w-[90%] h-[20%] flex flex-col justify-start items-start pl-[2%]">
+              <p className="text-[18px] font-semibold">
+                Desde a nossa fundação, concentramos nosso foco em fortalecer a
+                identidade do território, dando voz e protagonismo aos moradores
+                do bairro de forma inclusiva e sustentável.
+              </p>
+            </div>
+            <div className="w-[90%] flex flex-col justify-center items-start pl-[2%]">
+              <a
+                href="#sobre"
+                className="w-[300px] h-[60px] flex items-center justify-center text-white text-[16px] font-semibold bg-[#4FBD34] hover:bg-[#0b9b13] transition rounded-none [clip-path:polygon(3%_0,98%_0,100%_52%,98%_100%,3%_100%,0_45%)]"
+              >
+                Saiba Mais
+              </a>
             </div>
           </div>
-          <div className="nav-links">
-            <div className="nav-box-botoes">
-              <div className="nav-box-logo">
-                <img src={logo} alt="" />
-              </div>
-              <div className="nav-links-botoes">
+        </div>
+      </section>
 
-                <div className="nav-links-botoes">
-                  <a href="#inicio" className="botoes-nav btn-inicio">Início</a>
-                  <a href="#sobre" className="botoes-nav btn-sobre">Sobre Nós</a>
-                  <a href="#linha-do-tempo" className="botoes-nav btn-linha">Linha do Tempo</a>
-                  <a href="#eventos" className="botoes-nav btn-eventos">Eventos</a>
-                </div>
+      {/* SOBRE NÓS */}
+      <div id="sobre" className="w-screen h-[80vh] flex justify-center items-center">
+        <div className="w-[80%] h-[80%] flex justify-around items-center gap-[5%] bg-white">
+          <div className="w-[45%] h-full flex flex-col justify-center items-center">
+            <div className="w-full h-1/2 flex flex-col justify-center items-start">
+              <h1 className="text-[32px] font-extrabold">Sobre Nós</h1>
+              <p className="text-[16px] font-normal">
+                Movimento Cultural de Cidade Tiradentes, ou Mocuti, é uma
+                organização não governamental sem fins lucrativos localizada no
+                bairro Cidade Tiradentes, distrito da zona leste da cidade de
+                São Paulo.
+              </p>
+              <p className="text-[16px] font-normal mt-3">
+                O movimento exerce diversas atividades culturais, comunitárias e
+                sociais na região, com o propósito de valorizar a cultura
+                territorial e empoderar os moradores.
+              </p>
+            </div>
+            <div className="w-full h-[20%] flex justify-start items-center">
+              <a
+                href="#linha-do-tempo"
+                className="w-[300px] h-[60px] flex items-center justify-center text-white text-[16px] font-semibold bg-[#3DA5E1] hover:bg-[#2a8acc] transition rounded-none [clip-path:polygon(3%_0,98%_0,100%_52%,98%_100%,3%_100%,0_45%)]"
+              >
+                Saiba Mais Sobre Nossa História
+              </a>
+            </div>
+          </div>
+          <div className="w-[40%] h-full flex justify-center items-center">
+            <img src={parceiro} alt="" />
+          </div>
+        </div>
+      </div>
 
+      {/* LINHA DO TEMPO */}
+     <div id="linha-do-tempo" className="w-screen h-[65vh] flex flex-col justify-center items-center gap-10">
 
-              </div>
-              <div className="nav-box-cadastro">
-                <a onClick={() => navigate('/cadastro')} className="botoes-cadastro-nav">Criar Conta</a>
-                <a onClick={() => navigate('/login')} className="botoes-cadastro-nav-blue">Entrar</a>
-              </div>
+        <div className="w-[80%] flex items-center justify-start">
+          <h1 className="text-[32px] font-extrabold">Linha do Tempo</h1>
+        </div>
+
+        <div className="w-[80%] flex flex-col justify-center items-center">
+          <div className="flex justify-start items-center gap-[5%] w-[80%] mb-4">
+            <div className="w-[40%] text-left font-[Montserrat]">
+              <p>
+                <strong className="text-[#3DA5E1]">1997 - Fundação MOCUTI</strong>
+                <br />
+                Nasce o MOCUTI com o objetivo de apoiar famílias em situação de vulnerabilidade.
+              </p>
+            </div>
+            <div className="w-[40%] text-left font-[Montserrat]">
+              <p>
+                <strong className="text-[#FFBB00]">
+                  1998 - Primeira Campanha de Alimentos
+                </strong>
+                <br />
+                Realizamos nossa primeira grande campanha, arrecadando e distribuindo alimentos.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end items-center gap-[5%] w-[80%]">
+            <div className="w-[40%] text-left font-[Montserrat]">
+              <p>
+                <strong className="text-[#FF4848]">1999 - Abertura de Sede Comunitária</strong>
+                <br />
+                Inauguramos nossa sede própria com espaço para oficinas e reforço escolar.
+              </p>
+            </div>
+            <div className="w-[40%] text-left font-[Montserrat]">
+              <p>
+                <strong className="text-[#4FBD34]">2000 - Curso Pré-vestibular</strong>
+                <br />
+                Primeiro curso pré-vestibular em parceria com o Educafro.
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Tela Início com fundo SVG */}
-        <section
-          className="tela-inicio"
-          style={{
-            display: "flex",
-            justifyContent: "start",
-            alignItems: "center",
-            flexDirection: "row",
-            width: "95vw",
-            height: "100vh",
-            backgroundImage: `url(${inicio})`,
-            backgroundSize: "cover",
-            paddingLeft: "5%"
-          }}
-        >
-          <div className="alinhar-esquerda-inicio">
-            <div className="box-texto-inicio">
-              <div className="box-texto-inicio-title">
-                <h1>Bem-vindo ao Mocuti</h1>
-                <h3>Participe dos nossos eventos, compartilhe ideias e faça parte dessa mudança!</h3>
-              </div>
-              <div className="box-texto-inicio-texto">
-                <p>Desde a nossa fundação, concentramos nosso foco em fortalecer a identidade do território, dando voz e protagonismo aos moradores do bairro de forma inclusiva e sustentável. Somos uma rede viva, feita de histórias, encontros e ações que transformam.</p>
-              </div>
-              <div className="box-alinharmento-texto-button">
-                <a href="#sobre" className="btn-diferenciado">
-                  Saiba Mais
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
+        <div className="w-[80%] flex items-center justify-start mt-6">
+          <a
+            href="#eventos"
+            className="w-[300px] h-[60px] flex items-center justify-center text-white text-[16px] font-semibold bg-[#FFBB00] hover:bg-[#e1a600] transition rounded-none [clip-path:polygon(3%_0,98%_0,100%_52%,98%_100%,3%_100%,0_45%)]"
+          >
+            Conheça Nossos Eventos
+          </a>
+        </div>
+      </div>
 
-        {/* Sobre Nós */}
-        <div className="sobre-nos" id="sobre">
-          <div className="box-sobre-nos">
-            <div className="box-sobre-nos-left">
-              <div className="box-sobre-nos-textos">
-                <h1>Sobre Nós</h1>
-                <p>
-                  Movimento Cultural de Cidade Tiradentes, ou Mocuti, é uma
-                  organização não governamental sem fins lucrativos localizada no
-                  bairro Cidade Tiradentes, distrito da zona leste da cidade de
-                  São Paulo fundada em 1989 e oficialmente registrada no ano de
-                  1997.
-                </p>
-                <p>
-                  O movimento exerce diversas atividades de aspecto cultural,
-                  comunitário e social na região, tendo como propósito valorizar a
-                  cultura territorial, empoderar o público com projetos educativos
-                  e combater desigualdades. Desde sua fundação a associação tem
-                  concentrado seu foco em buscar a “identidade do território” a
-                  fim de dar protagonismo aos moradores do bairro de maneira
-                  inclusiva e sustentável.
-                </p>
-              </div>
-              <div className="box-sobre-nos-botoes">
-                <a href="#linha-do-tempo" className="btn-diferenciado" style={{ backgroundColor: "#3DA5E1" }}>
-                  Saiba Mais Sobre Nossa História
-                </a>
-              </div>
-            </div>
-            <div className="box-sobre-nos-imagem">
-              <img src={parceiro} alt="" />
-            </div>
-          </div>
+      {/* NOSSOS EVENTOS */}
+      <div id="eventos" className="min-h-screen w-screen gap-7 flex flex-col justify-center items-center overflow-hidden">
+        <div className="w-1/2 h-1/4 flex justify-center items-center">
+          <h1 className="text-[32px] font-extrabold">Nossos Eventos</h1>
         </div>
 
-        {/* Linha do Tempo */}
-        <div id="linha-do-tempo" className="linha-do-tempo">
-          <div className="titulo-linha-do-tempo">
-            <h1>Linha do Tempo</h1>
-          </div>
-          <div className="conteudo-linha-do-tempo">
-            <div className="top-linha-do-tempo">
-              <div className="item-linha-do-tempo">
-                <p>
-                  <strong style={{ color: "#3DA5E1" }}>1997 - Fundação MOCUTI</strong>
-                  <br />
-                  Nasce o MOCUTI com o objetivo de apoiar famílias em situação de
-                  vulnerabilidade social.
-                </p>
+        <div className="flex gap-8 items-center justify-center w-screen h-1/2 overflow-x-auto whitespace-nowrap px-8">
+          {[
+            { img: inicio, title: "Natal Consciente", bg: "#4FBD34" },
+            { img: natal, title: "Natal Consciente", bg: "#3DA5E1" },
+            { img: inicio, title: "Infância sem Racismo", bg: "#FFBB00" },
+            { img: varal, title: "Varal Solidário", bg: "#FF4848" },
+            { img: inicio, title: "Apadrinhamento", bg: "#4FBD34" },
+          ].map((event, index) => (
+            <div
+              key={index}
+              className="flex-none w-[30vw] h-[90%] flex flex-col rounded-2xl overflow-hidden"
+              style={{ backgroundColor: event.bg }}
+            >
+              <div className="h-[80%] w-full">
+                <img
+                  src={event.img}
+                  alt={event.title}
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <div className="item-linha-do-tempo">
-                <p>
-                  <strong style={{ color: "#FFBB00" }}>1998 - Primeira Campanha de Alimentos</strong>
-                  <br />
-                  Realizamos nossa primeira grande campanha, arrecadando e distribuindo mais de 3 toneladas de alimentos.
-                </p>
-              </div>
-            </div>
-            <div className="low-linha-do-tempo">
-              <div className="item-linha-do-tempo">
-                <p>
-                  <strong style={{ color: "#FF4848" }}>1997 - Abertura de Sede Comunitária</strong>
-                  <br />
-                  Inauguramos nossa sede própria com espaço para oficinas, apoio psicológico e reforço escolar.
-                </p>
-              </div>
-              <div className="item-linha-do-tempo">
-                <p>
-                  <strong style={{ color: "#4FBD34" }}>1999 - Curso Pré-vestibular</strong>
-                  <br />
-                  Primeiro curso pré-vestibular em parceria com o Educafro, ajudando diversos jovens a iniciar em uma universidade.
-                </p>
+              <div className="h-[20%] w-full flex justify-center items-center">
+                <p className="text-[20px] font-[Montserrat]">{event.title}</p>
               </div>
             </div>
-          </div>
-          <div className="botao-linha-do-tempo">
-            <a href="#eventos" className="btn-diferenciado" style={{ backgroundColor: "#FFBB00" }}>
-              Conheça Nossos Eventos
-            </a>
-          </div>
+          ))}
         </div>
 
-        {/* Nossos Eventos */}
-        <div id="eventos" className="nossos-eventos">
-          <div className="titulos-nossos-eventos">
-            <h1>Nossos Eventos</h1>
-          </div>
-          <div className="box-cards-nossos-eventos">
-            <div className="card-nossos-eventos" style={{ backgroundColor: "4FBD34" }}>
-              <div className="box-img-card-eventos">
-                <img src={inicio} alt="Imagem evento" />
-              </div>
-              <div className="titulo-card-eventos">
-                <p>Natal Consciente</p>
-              </div>
-            </div>
+        <div className="h-[20%] w-[20vw] flex justify-center items-center">
+          <a className="w-[300px] h-[60px] flex items-center justify-center text-white text-[16px] font-semibold bg-[#4FBD34] hover:bg-[#0b9b13] transition rounded-none [clip-path:polygon(3%_0,98%_0,100%_52%,98%_100%,3%_100%,0_45%)]">
+            Eventos Agendados
+          </a>
+        </div>
 
-            <div className="card-nossos-eventos" style={{ backgroundColor: "#3DA5E1" }}>
-              <div className="box-img-card-eventos">
-                <img src={natal} alt="Imagem evento" />
-              </div>
-              <div className="titulo-card-eventos">
-                <p>Natal Consciente</p>
-              </div>
-            </div>
-
-            <div className="card-nossos-eventos" style={{ backgroundColor: "#FFBB00" }}>
-              <div className="box-img-card-eventos">
-                <img src={inicio} alt="Imagem evento" />
-              </div>
-              <div className="titulo-card-eventos">
-                <p>Infância sem Racismo</p>
-              </div>
-            </div>
-
-            <div className="card-nossos-eventos" style={{ backgroundColor: "#FF4848" }}>
-              <div className="box-img-card-eventos">
-                <img src={varal} alt="Imagem evento" />
-              </div>
-              <div className="titulo-card-eventos">
-                <p>Varal Solidário</p>
-              </div>
-            </div>
-
-            <div className="card-nossos-eventos" style={{ backgroundColor: "#4FBD34" }}>
-              <div className="box-img-card-eventos">
-                <img src={inicio} alt="Imagem evento" />
-              </div>
-              <div className="titulo-card-eventos">
-                <p>Apadrinhamento</p>
-              </div>
-            </div>
-          </div>
-          <div className="box-botao-nossos-eventos">
-            <a className="btn-diferenciado" style={{ backgroundColor: "#4FBD34" }}>
-              Eventos Agendados
-            </a>
+        {/* RODAPÉ */}
+        <div className="h-[50vh] w-screen bg-[#E2E2E2] flex justify-center items-center">
+          <div className="w-[25vw] h-full flex justify-start items-center">
+            <img src={mocutiRodape} alt="" />
           </div>
 
-          {/* Rodapé */}
-          <div className="rodape">
-            <div className="box-logo-rodape">
-              <img src={mocutiRodape} />
+          <div className="w-[33vw] h-full flex flex-col justify-center items-start gap-4 font-semibold">
+            <p>Caso existir dúvidas, entre em contato:</p>
+            <input
+              type="text"
+              placeholder="Email:"
+              className="w-full h-[3vh] border-0"
+            />
+            <input
+              type="text"
+              placeholder="Mensagem:"
+              className="w-full h-[8vh] border-0"
+            />
+            <button className="h-[4vh] w-[35%] bg-[#4FBD34] text-white flex justify-center items-center font-semibold">
+              Enviar Email
+            </button>
+          </div>
+
+          <div className="w-[25vw] h-full flex flex-row justify-end items-center">
+            <div className="w-[40%] h-[80%] flex flex-col justify-center items-start gap-[10%]">
+              <a href="">Sobre Nós</a>
+              <a href="">Home</a>
+              <a href="">Nossos Eventos</a>
             </div>
-            <div className="form-rodape">
-              <p>Caso existir dúvidas, entre em contato:</p>
-              <input type="text" className="Email" placeholder="Email:" />
-              <input type="text" className="mensagem" placeholder="Mensagem:" />
-              <button className="botao-form">Enviar Email</button>
-            </div>
-            <div className="box-links-rodape">
-              <div className="links">
-                <a href="">Sobre Nós</a>
-                <a href="">Home</a>
-                <a href="">Nossos Eventos</a>
-              </div>
-              <div className="links">
-                <a href="">Login</a>
-                <a href="">Teste</a>
-                <a href="">Teste</a>
-              </div>
+            <div className="w-[40%] h-[80%] flex flex-col justify-center items-start gap-[10%]">
+              <a href="">Login</a>
+              <a href="">Teste</a>
+              <a href="">Teste</a>
             </div>
           </div>
         </div>
       </div>
-    // </div>
+    </div>
   );
 };
 

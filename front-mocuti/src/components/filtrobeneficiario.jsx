@@ -18,6 +18,8 @@ export default function FiltroBeneficiario({
         value={filtros.nome}
         onChange={(e) => onFiltroChange("nome", e.target.value)}
         />
+
+         <button onClick={onPesquisar}>Pesquisar</button>
         </div>
         <div className="inputespacobeneficiarioseparacao2">
         <div className="inputespacobeneficiarioseparacao2-caixa1">
@@ -64,10 +66,9 @@ export default function FiltroBeneficiario({
         </div>
         </div>
         </div>
-        <div className="botaoespacobeneficiario">
-        <button onClick={onPesquisar}>Pesquisar</button>
-        </div>
+       
         </div>
         </div>
     );
     }
+

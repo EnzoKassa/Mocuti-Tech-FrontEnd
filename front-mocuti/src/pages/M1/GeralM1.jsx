@@ -76,7 +76,7 @@ const GeralM1 = () => {
     { texto: "Lista de Usuários", img: listaUsuarios, rota: "/admin/lista-usuarios" },
     { texto: "Feedbacks", img: feedback, rota: "/admin/feedbacks" },
     { texto: "Meu Perfil", img: MeuPerfil, rota: "/admin/perfil" },
-    { texto: "Visão Geral", img: VisaoGeral, rota: "/admin" },
+    { texto: "Visão Geral", img: VisaoGeral, rota: "/admin/geral" },
   ]
 
     useEffect(() => {
@@ -343,227 +343,182 @@ return faixaEtariaDistribuicao.length > 0 ? <ChartBar data={data} options={optio
     }
 
     return (
-        <div className="TelaGeralComNavLateral">
-      <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
-            <div className="MainDashGeral">
-                <div className="boxTituloDashGeral">Visão Geral</div>
+ <div className="flex flex-row w-full h-screen font-[Montserrat]">
+  <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
 
-                <div className="boxUsuariosAtividade">
-                    <div className="usuariosAtividade">
-                        <div className="usuariosAtivos">
-                            <h1>Usuários Ativos</h1>
-                            <h2>{totalUserAtivo}</h2>
-                        </div>
-                        <div className="TotalDeUsuarios">
-                            <h1>Total de Usuários</h1>
-                            <h2>{totalUser}</h2>
-                        </div>
-                    </div>
+  {/* Div destacada com rolagem */}
+  <div className="w-[85%] h-full flex flex-col justify-start items-center overflow-y-auto gap-6 p-6">
 
-                    <div className="usuariosAtividade">
-                        <div className="usuariosAtivos">
-                            <h1>M1 Ativos</h1>
-                            <h2>{M1Ativos}</h2>
-                        </div>
-                        <div className="TotalDeUsuarios">
-                            <h1>Total de M1</h1>
-                            <h2>{TotalM1}</h2>
-                        </div>
-                    </div>
+    {/* Título */}
+    <div className="w-[90%] min-h-[10vh] flex justify-start items-center text-[3rem] font-semibold">
+      Visão Geral
+    </div>
 
-                    <div className="usuariosAtividade">
-                        <div className="usuariosAtivos">
-                            <h1>M2 Ativos</h1>
-                            <h2>{M2Ativos}</h2>
-                        </div>
-                        <div className="TotalDeUsuarios">
-                            <h1>Total de M2</h1>
-                            <h2>{TotalM2}</h2>
-                        </div>
-                    </div>
+    {/* Usuários e Atividades */}
+    <div className="w-[90%] min-h-[25vh] flex justify-between items-center">
+      {[
+        { titulo: "Usuários Ativos", valor: totalUserAtivo, total: "Total de Usuários", totalValor: totalUser },
+        { titulo: "M1 Ativos", valor: M1Ativos, total: "Total de M1", totalValor: TotalM1 },
+        { titulo: "M2 Ativos", valor: M2Ativos, total: "Total de M2", totalValor: TotalM2 },
+        { titulo: "Benef. Ativos", valor: benefAtivos, total: "Total Benef.", totalValor: TotalBeneficiarios },
+      ].map((item, i) => (
+        <div key={i} className="bg-white h-[90%] w-[22%] flex flex-col rounded-[5%] shadow-md">
+          <div className="h-[55%] flex flex-col gap-[5%] justify-center items-center border-b border-gray-700 pt-[5%]">
+            <h1 className="text-[1.5rem] font-semibold m-0">{item.titulo}</h1>
+            <h2 className="text-[1.5rem] font-extrabold m-0">{item.valor}</h2>
+          </div>
+          <div className="h-[45%] flex flex-col gap-[10%] justify-center items-center text-gray-700">
+            <h1 className="text-[1.5rem] font-semibold m-0">{item.total}</h1>
+            <h2 className="text-[1.5rem] font-semibold m-0">{item.totalValor}</h2>
+          </div>
+        </div>
+      ))}
+    </div>
 
-                    <div className="usuariosAtividade">
-                        <div className="usuariosAtivos">
-                            <h1>Benef. Ativos</h1>
-                            <h2>{benefAtivos}</h2>
-                        </div>
-                        <div className="TotalDeUsuarios">
-                            <h1>Total Benef.</h1>
-                            <h2>{TotalBeneficiarios}</h2>
-                        </div>
-                    </div>
-                </div>
+    {/* Gráficos */}
+    <div className="w-[90%] min-h-[65vh] flex justify-between items-center gap-4">
+      {/* Gráfico Mensal */}
+      <div className="h-[90%] bg-white w-[48%] flex flex-col justify-center items-center px-2 shadow-md">
+        <div className="w-full h-[25%] flex flex-col justify-center items-center text-center mb-4">
+          <h1 className="text-[1.5rem] font-semibold text-gray-700 mb-2">
+            Feedbacks de categoria no mês
+          </h1>
+          <p className="text-gray-700 text-[1rem]">
+            Aqui você confere o total de pessoas que avaliaram as categorias por evento deste mês, todos os likes e dislikes registrados.
+          </p>
+        </div>
+        <ResponsiveContainer width="100%" height="80%">
+          <BarChart data={feedbackDataMensal} margin={{ top: 10, right: 30, left: 0, bottom: 10 }} barGap={5}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="categoria" tick={{ fontSize: 10 }} />
+            <YAxis
+              label={{
+                value: "Quantidade de feedbacks",
+                angle: -90,
+                position: "insideLeft",
+                fontSize: 10,
+              }}
+            />
+            <Tooltip />
+            <Legend verticalAlign="top" height={36} />
+            <Bar dataKey="Likes" fill="#2ecc71" name="Likes" />
+            <Bar dataKey="Dislikes" fill="#e74c3c" name="Dislikes" />
+            <Bar dataKey="Total" fill="#5dade2" name="Total" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
-                {/* === GRÁFICOS === */}
-                <div className="BoxGraficosPai">
+      {/* Gráfico Geral */}
+      <div className="h-[90%] bg-white w-[48%] flex flex-col justify-center items-center px-2 shadow-md">
+        <div className="w-full h-[25%] flex flex-col justify-center items-center text-center mb-4">
+          <h1 className="text-[1.5rem] font-semibold text-gray-700 mb-2">
+            Feedbacks de categoria geral
+          </h1>
+          <p className="text-gray-700 text-[1rem]">
+            Aqui você confere o total de feedbacks sobre as categorias dos eventos, com todos os likes e dislikes registrados.
+          </p>
+        </div>
+        <ResponsiveContainer width="100%" height="80%">
+          <BarChart data={feedbackData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }} barGap={5}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="categoria" tick={{ fontSize: 10 }} />
+            <YAxis
+              label={{
+                value: "Quantidade de feedbacks",
+                angle: -90,
+                position: "insideLeft",
+                fontSize: 10,
+              }}
+            />
+            <Tooltip />
+            <Legend verticalAlign="top" height={36} />
+            <Bar dataKey="Likes" fill="#2ecc71" name="Likes" />
+            <Bar dataKey="Dislikes" fill="#e74c3c" name="Dislikes" />
+            <Bar dataKey="Total" fill="#5dade2" name="Total" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
 
-                    {/* Gráfico 1 - Exemplo reservado */}
-                    <div className="BoxGraficos" >
+    {/* Ranking e Inscrições */}
+    <div className="w-[90%] min-h-[50vh] flex justify-between items-center mt-8">
+      {/* Ranking */}
+      <div className="h-[90%] bg-white w-[40%] flex flex-col items-center shadow-md">
+        <div className="w-full h-[25%] flex flex-col justify-center items-center text-center">
+          <h1 className="text-[1.5rem] font-semibold text-gray-700 mb-2">
+            Ranking categorias preferidas
+          </h1>
+          <p className="text-gray-700 text-[1rem]">Aqui você confere as categorias preferidas por quem já faz parte da nossa plataforma.</p>
+        </div>
+        <div className="w-full border-b border-gray-700 flex justify-center items-center h-[5vh] font-semibold text-[1.2rem]">
+          <div className="w-[25%] text-left flex items-center gap-2">Rank <img src={imgTrofeu} alt="" /></div>
+          <div className="w-[35%] text-left">Categoria</div>
+          <div className="w-[30%] text-right">Nº de preferidos</div>
+        </div>
+        <div className="w-full flex flex-col overflow-y-auto">
+          {rankingCategoria.length > 0 ? (
+            rankingCategoria.map((item, index) => (
+              <div key={index} className="flex justify-center items-center h-[4.9vh] border-b border-gray-700">
+                <div className="w-[25%] text-left">{index + 1}º</div>
+                <div className="w-[35%] text-left">{item.nome}</div>
+                <div className="w-[30%] text-right">{item.total_votos}</div>
+              </div>
+            ))
+          ) : (
+            <p>Carregando ranking...</p>
+          )}
+        </div>
+      </div>
 
-                        <div className="titulosBoxGraficosRanking">
-                            <h1>   Feedbacks de categoria no mês</h1>
-                            <p>  Aqui você confere o total de pessoas que avaliaram as categorias por evento deste mês, todos os likes e dislikes registrados.</p>
-                        </div>
-                       
-
-                        <ResponsiveContainer width="100%" height="80%">
-                            <BarChart
-                                data={feedbackDataMensal}
-                                margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
-                                barGap={5}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="categoria" tick={{ fontSize: 10 }} />
-                                <YAxis
-                                    label={{
-                                        value: "Quantidade de feedbacks",
-                                        angle: -90,
-                                        position: "insideLeft",
-                                        fontSize: 10,
-                                    }}
-                                />
-                                <Tooltip />
-                                <Legend verticalAlign="top" height={36} />
-                                <Bar dataKey="Likes" fill="#2ecc71" name="Likes" />
-                                <Bar dataKey="Dislikes" fill="#e74c3c" name="Dislikes" />
-                                <Bar dataKey="Total" fill="#5dade2" name="Total" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-
-
-                    {/* Gráfico 2 - Feedback por categoria */}
-                    <div className="BoxGraficos">
-
-                       
-                         <div className="titulosBoxGraficosRanking">
-                            <h1>  Feedbacks de categoria geral</h1>
-                            <p>  Aqui você confere o total de feedbacks sobre as categorias dos eventos,
-                            com todos os likes e dislikes registrados.</p>
-                        </div>
-
-                        <ResponsiveContainer width="90%" height="80%">
-                            <BarChart
-                                data={feedbackData}
-                                margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
-                                barGap={5}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="categoria" tick={{ fontSize: 10 }} />
-                                <YAxis
-                                    label={{
-                                        value: "Quantidade de feedbacks",
-                                        angle: -90,
-                                        position: "insideLeft",
-                                        fontSize: 10,
-                                    }}
-                                />
-                                <Tooltip />
-                                <Legend verticalAlign="top" height={36} />
-                                <Bar dataKey="Likes" fill="#2ecc71" name="Likes" />
-                                <Bar dataKey="Dislikes" fill="#e74c3c" name="Dislikes" />
-                                <Bar dataKey="Total" fill="#5dade2" name="Total" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                <div className="BoxRankingEInscricoes">
-                    <div className="BoxGraficosRanking">
-                        <div className="titulosBoxGraficosRanking">
-                            <h1>Ranking categorias preferidas</h1>
-                            <p>Aqui você confere as categorias preferidas por quem <br />já faz parte da nossa plataforma.</p>
-                        </div>
-                        <div className="ranking">
-                            <div className="topRanking">
-                                <div className="parteRanking" style={{ fontWeight: 800, fontSize: '1.2rem' }}>
-                                    Rank {<img src={imgTrofeu} alt="" />}
-                                </div>
-                                <div className="parteCategoria" style={{ fontWeight: 800, fontSize: '1.2rem' }}>
-                                    Categoria
-                                </div>
-                                <div className="partePreferidos" style={{ fontWeight: 800, fontSize: '1.2rem' }}>
-                                    Nº de preferidos
-                                </div>
-                            </div>
-                        </div>
-                        <div className="rankingContainer">
-                            {rankingCategoria.length > 0 ? (
-                                rankingCategoria.map((item, index) => (
-                                    <div key={index} className="topRanking">
-                                        <div className="parteRanking"> {index + 1}º</div>
-                                        <div className="parteCategoria">{item.nome}</div>
-                                        <div className="partePreferidos">{item.total_votos} </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <p>Carregando ranking...</p>
-                            )}
-                        </div>
+      {/* Inscrições */}
+      <div className="h-[90%] bg-white w-[58%] flex flex-col items-center shadow-md">
+        <div className="w-full h-[25%] flex flex-col justify-center items-center text-center">
+          <h1 className="text-[1.5rem] font-semibold text-gray-700 mb-2">
+            Inscrições de usuários durante o ano
+          </h1>
+          <p className="text-gray-700 text-[1rem]">
+            Aqui você confere quantas pessoas se inscreveram a cada mês, considerando os últimos quatro meses.
+          </p>
+        </div>
+        <div className="w-full h-[70%] flex justify-center items-start">
+          {inscricaoUsuarioMes.length > 0 && <GraficoInscricoes dados={inscricaoUsuarioMes} />}
+        </div>
+      </div>
+    </div>
 
 
-                    </div>
-                    <div className="BoxGraficosInscricoes">
-                        <div className="titulosBoxGraficosRanking">
-                            <h1> Inscrições de usuários durante o ano</h1>
-                            <p>Aqui você confere quantas pessoas se inscreveram a cada mês, considerando os últimos quatro meses.</p>
-                        </div>
-                        <div className="graficoInscricoes">
-                            {inscricaoUsuarioMes.length > 0 && <GraficoInscricoes dados={inscricaoUsuarioMes} />}
-                        </div>
-
-                    </div>
-
-
-
-                </div>
-
-
-{/* Graficos de genero e faixa etaria
-Graficos de genero e faixa etaria
-Graficos de genero e faixa etaria
-Graficos de genero e faixa etaria
-Graficos de genero e faixa etaria */}
-
-
-
-                <div className="GeneroIdade">
-                    <div className="boxGenero">
-                        <div className="titulosBoxGraficosRanking">
-                            <h1> Gêneros ativos na plataforma</h1>
-                            <p>Este pictograma mostra a quantidade de pessoas que se identificam como gênero feminino, masculino e aquelas que preferiram não informar.</p>
-                        </div>
-                        <div className="GraficoGenero">
-                            <GraficoGenero />
-                        </div>
-
-
-                       
-
-
-
-
-                    </div>
-
-                    <div className="boxIdade">
-                         <div className="titulosBoxGraficosRanking">
-                            <h1> Faixa Etária Ativa</h1>
-                            <p>Aqui você confere quantas pessoas se inscreveram a cada mês, considerando os últimos quatro meses.</p>
-                        </div>
-                            <div className="GraficoFaixaEtaria">
-                               <GraficoFaixaEtaria />
-
-                            </div>
-                        
-                    </div>
-                </div>
-
-
-
-            </div>
+      {/* Gênero e Idade */}
+       <div className="w-[90%] min-h-[50vh] flex justify-between items-center mt-8">
+        <div className="h-[90%] bg-white w-[40%] flex flex-col items-center shadow-md">
+          <div className="w-full h-[25%] flex flex-col justify-center items-center text-center">
+            <h1 className="text-[1.5rem] font-semibold text-gray-700 mb-2">Gêneros ativos na plataforma</h1>
+            <p className="text-gray-700 text-[1rem]">
+              Este pictograma mostra a quantidade de pessoas que se identificam como gênero feminino, masculino e aquelas que preferiram não informar.
+            </p>
+          </div>
+          <div className="w-full h-[60%] flex justify-center items-end">
+            <GraficoGenero />
+          </div>
         </div>
 
-    );
+        <div className="h-[90%] bg-white w-[58%] flex flex-col items-center shadow-md">
+          <div className="w-full h-[25%] flex flex-col justify-center items-center text-center">
+            <h1 className="text-[1.5rem] font-semibold text-gray-700 mb-2">Faixa Etária Ativa</h1>
+            <p className="text-gray-700 text-[1rem]">
+              Aqui você confere quantas pessoas se inscreveram a cada mês, considerando os últimos quatro meses.
+            </p>
+          </div>
+          <div className="w-full h-[70%] flex justify-center items-end">
+            <GraficoFaixaEtaria />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 };
 
 export default GeralM1;
+
+

@@ -9,3 +9,4 @@ export function BotaoNav({ texto, imgLink, onClick }) {
     </button>
   );
 }
+

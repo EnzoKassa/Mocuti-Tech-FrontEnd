@@ -1,6 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
 
 
+.ContainerDashGeral {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+
+}
+
+.MainDashGeral{
+    width: 85%;
+}
+
 
 .boxTituloDashGeral {
     width: 90%;

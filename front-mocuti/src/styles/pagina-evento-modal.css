@@ -1,0 +1,63 @@
+/* Estilos exclusivos para o modal de Evento (pagina-evento) */
+.pagina-evento-modal .pagina-evento-conteudo {
+  font-family: inherit;
+  text-align: left;
+  font-size: 13px;
+  color: #333;
+}
+
+/* Inputs / selects / textarea específicos da página */
+.pagina-evento-modal .campo-entrada,
+.pagina-evento-modal .campo-selecao,
+.pagina-evento-modal .campo-textarea,
+.pagina-evento-modal input[type="date"],
+.pagina-evento-modal input[type="time"],
+.pagina-evento-modal input[type="number"],
+.pagina-evento-modal input[type="text"] {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 10px;
+  font: 13px/1.3 "Inter", "Helvetica Neue", Arial, sans-serif;
+  color: #111827;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  transition: box-shadow .12s ease, border-color .12s ease;
+}
+
+/* Textarea */
+.pagina-evento-modal .campo-textarea { min-height: 84px; resize: vertical; }
+
+/* Focus */
+.pagina-evento-modal .campo-entrada:focus,
+.pagina-evento-modal .campo-selecao:focus,
+.pagina-evento-modal .campo-textarea:focus,
+.pagina-evento-modal input[type="date"]:focus,
+.pagina-evento-modal input[type="time"]:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.08);
+}
+
+/* Aparência consistente para selects (seta) e padding extra à direita */
+.pagina-evento-modal .campo-selecao {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 38px;
+  background-image: linear-gradient(45deg, transparent 50%, #111 50%),
+                    linear-gradient(135deg, #111 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(1em + 2px), calc(100% - 13px) calc(1em + 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+/* Arquivo: tornar menos estranho */
+.pagina-evento-modal input[type="file"].campo-entrada {
+  padding: 6px;
+  height: auto;
+}
+
+/* pequenas variações visuais */
+.pagina-evento-modal .campo-entrada[disabled],
+.pagina-evento-modal .campo-selecao[disabled] { opacity: 0.7; }

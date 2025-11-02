@@ -86,3 +86,5 @@ const EventosTable = ({ eventos, onFeedback, onDetalhes, editable }) => {
 };
 
 export default EventosTable;
+
+

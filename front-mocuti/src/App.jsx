@@ -175,7 +175,14 @@ function App() {
               </PrivateRoute>
             }
           />
-
+        <Route
+            path="/admin/Geral"
+            element={
+              <PrivateRoute roles={["Administrador"]}>
+                <GeralM1 />
+              </PrivateRoute>
+            }
+          />
             {/* Acesso negado */}
             <Route path="/nao-autorizado" element={<h1>Acesso negado ❌</h1>} />
           </Routes>
@@ -188,3 +195,5 @@ function App() {
 }
 
 export default App;
+
+

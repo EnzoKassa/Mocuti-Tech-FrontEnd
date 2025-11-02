@@ -353,10 +353,10 @@ export default function EventosM2() {
   return (
     <div className="TelaComNavLateral">
       <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
-      <div className="MainContenEventostM1" style={{ flex: 1 }}>
+      <div className="MainContenEventostM2">
         <div className="scroll-page">
           <main className="conteudo-com-nav" style={{ paddingTop: "20px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div className="titulo-eventos">
               <h1 style={{ margin: 0 }}>Tela de eventos</h1>
             </div>
 
@@ -385,3 +385,5 @@ export default function EventosM2() {
     </div>
   );
 }
+
+

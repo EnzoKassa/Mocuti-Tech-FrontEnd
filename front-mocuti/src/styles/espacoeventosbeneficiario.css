@@ -20,8 +20,10 @@ a {
     align-items: center;
 }
 
+
+
 .espaco-eventos-beneficiario-eventos {
-    width: 90%;
+    width: 95%;
     height: 100%;
     background-color: white;
     display: flex;
@@ -32,7 +34,7 @@ a {
 
 .espaco-eventos-beneficiario-lista {
     margin-top: 30px;
-    width: 80%;
+    width: 90%;
     height: 90%; 
     background-color: white;
     display: flex;
@@ -66,14 +68,14 @@ a {
 
 .eventos-beneficiario-lista {
     margin-top: 2px;
-    width: 98%;
+    width: 100%;
     min-height: 140px; 
     background-color: rgb(255, 255, 255);
     display: flex;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     flex-direction: row;
     align-items: center;
-    gap: 5px;
+    gap: 2%;
     padding-left: 10px;
 }
 
@@ -152,7 +154,7 @@ a {
     display: flex;
     margin: 2px;
     height: 90%;
-    width: 14%;
+    width: 20%;
     background-color: white;
     flex-direction: column;
     align-items: center;
