@@ -65,7 +65,7 @@
 }
 
 /* estilo dos botões de nota no modo editável */
-.nota-button {
+.nota-butao {
   border: none;
   background: transparent;
   cursor: pointer;
@@ -77,16 +77,16 @@
   padding: 0.1rem;
 }
 
-.nota-button:hover {
+.nota-botao:hover {
   transform: scale(1.15);
 }
 
-.nota-button svg {
+.nota-botao svg {
   font-size: 1.6rem;
   color: #000000;
 }
 
-.nota-button.active svg {
+.nota-botao.active svg {
   color: #000000;
 }
 

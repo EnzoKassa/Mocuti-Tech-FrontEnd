@@ -51,9 +51,9 @@ const ModalFeedback = ({ modalData, onClose, onSave }) => {
 
         <div className="feedback-modal-botoes">
           <p>Gostou do evento?</p>
-          <div className="feedback-modal-actions">
+          <div className="feedback-modal-acao">
             <button
-              className={`nota-button ${
+              className={`nota-botao ${
                 modalData.nota === "like" ? "nota-ativo" : "nota-neutra"
               }`}
               onClick={() =>
@@ -66,8 +66,9 @@ const ModalFeedback = ({ modalData, onClose, onSave }) => {
               {modalData.nota === "like" ? <BiSolidLike /> : <BiLike />}
               <span>Gostei</span>
             </button>
+
             <button
-              className={`nota-button ${
+              className={`nota-botao ${
                 modalData.nota === "dislike" ? "nota-ativo" : "nota-neutra"
               }`}
               onClick={() =>

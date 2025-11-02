@@ -17,12 +17,12 @@ const ModalVisualizacao = ({ modalData, onClose }) => (
 
       <div className="feedback-modal-botoes">
         <p>Nota do Evento</p>
-        <div className="feedback-modal-actions">
-          <button className="nota-button" disabled>
+        <div className="feedback-modal-acao">
+          <button className="nota-botao" disabled>
             {modalData.nota === "like" ? <BiSolidLike /> : <BiLike />}
             <span>Gostei</span>
           </button>
-          <button className="nota-button" disabled>
+          <button className="nota-botao" disabled>
             {modalData.nota === "dislike" ? <BiSolidDislike /> : <BiDislike />}
             <span>Não Gostei</span>
           </button>
