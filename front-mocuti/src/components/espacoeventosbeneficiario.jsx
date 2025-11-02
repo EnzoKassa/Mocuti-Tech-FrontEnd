@@ -102,8 +102,7 @@ export default function EspacoEventosBeneficiario({
         title: "swal2-title my-swal-title",
         content: "swal2-content my-swal-content",
         closeButton: "swal2-close my-swal-close",
-        confirmButton: "sw-btn sw-btn-confirm",
-        confirmButton: "sw-btn sw-btn-confirm",
+        confirmButton: "sw-btn sw-btn-confirm"
       },
       buttonsStyling: false,
     });
