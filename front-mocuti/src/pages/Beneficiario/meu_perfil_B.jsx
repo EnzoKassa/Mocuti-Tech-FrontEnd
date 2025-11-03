@@ -3,19 +3,19 @@ import HeaderBeneficiario from "../../components/HeaderBeneficiario";
 import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
 import PerfilUsuario from "../../components/PerfilUsuario";
 import "../../styles/meu_Perfil_B.css";
-
-/**
- * ENDPOINTS
- * - http://localhost:8080/usuarios/editar/:idUsuario
- */
-
-const botoesNav = [
-  { href: "#Eventos", label: "Eventos", className: "btn-inicio" },
-  { href: "#MeuPerfil", label: "Meu Perfil", className: "btn-sobre" },
-  { href: "#MeusEventos", label: "Meus Eventos", className: "btn-linha" },
-];
+import { useNavigate } from "react-router-dom";
 
 const MeuPerfilBeneficiario = () => {
+
+const navigate = useNavigate();
+
+const botoesNav = [
+  { onClick: () => navigate("/usuario/eventos"), label: "Eventos", className: "btn-inicio" },
+  { onClick: () => navigate("/usuario/perfil"), label: "Meu Perfil", className: "btn-sobre" },
+  { onClick: () => navigate("/usuario/meus-eventos"), label: "Meus Eventos", className: "btn-linha" },
+  { onClick: () => navigate("/usuario/feedback"), label: "Feedback", className: "btn-comentarios" }
+];
+
   return (
     <div className="meu-perfil-page">
       <HeaderBeneficiario />

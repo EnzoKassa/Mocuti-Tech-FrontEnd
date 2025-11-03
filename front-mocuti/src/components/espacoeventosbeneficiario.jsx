@@ -16,32 +16,9 @@ export default function EspacoEventosBeneficiario({
   mostrarParticipar,
   hideParticipar = false,
   onOpenModal,
+  showFeedbackButton = false, // NOVO: controla se o botão aparece
+  onFeedbackClick, // opcional: callback ao clicar
 }) {
-  const [inscritosCounts, setInscritosCounts] = useState({});
-
-  useEffect(() => {
-    let mounted = true;
-    async function loadCounts() {
-      const map = {};
-      await Promise.all(
-        (eventos || []).map(async (ev) => {
-          const id = ev?.idEvento ?? ev?.id;
-          if (!id) return;
-          try {
-            map[id] = await fetchInscritosCargo2Count(id);
-          } catch (err) {
-            map[id] = 0;
-          }
-        })
-      );
-      if (mounted) setInscritosCounts(map);
-    }
-    if (eventos.length) loadCounts();
-    return () => {
-      mounted = false;
-    };
-  }, [eventos]);
-
   const exibirParticipar =
     hideParticipar === true
       ? false
@@ -75,16 +52,22 @@ export default function EspacoEventosBeneficiario({
 
   const mostrarDetalhesLocal = (evento) => {
     const titulo = evento.nomeEvento || evento.nome || "Evento";
-    const descricao = evento.descricao || evento.descricaoEvento || "Sem descrição.";
+    const descricao =
+      evento.descricao || evento.descricaoEvento || "Sem descrição.";
     const dataFormat = formatarData(evento.dia || evento.dataInicio || "");
-    const horaInicio = evento.horaInicio ? formatarHora(evento.horaInicio) : "-";
+    const horaInicio = evento.horaInicio
+      ? formatarHora(evento.horaInicio)
+      : "-";
     const horaFim = evento.horaFim ? formatarHora(evento.horaFim) : "-";
-    const local = evento.local || evento.endereco || evento.rua || "Local não informado";
+    const local =
+      evento.local || evento.endereco || evento.rua || "Local não informado";
     const vagas = evento.qtdVaga ? evento.qtdVaga : "Evento aberto ao público";
     const publico = evento.publico || "Público";
     const categoria = evento.categoria?.nome || evento.categoriaNome || "-";
     const status = evento.statusEvento?.situacao || evento.status || "-";
-    const img = evento.imagemUrl ? `<img src="${evento.imagemUrl}" alt="${titulo}" class="sw-img" />` : `<div class="sw-img sw-noimg">Sem imagem</div>`;
+    const img = evento.imagemUrl
+      ? `<img src="${evento.imagemUrl}" alt="${titulo}" class="sw-img" />`
+      : `<div class="sw-img sw-noimg">Sem imagem</div>`;
 
     const html = `
       <div class="sw-modal">
@@ -119,7 +102,7 @@ export default function EspacoEventosBeneficiario({
         title: "swal2-title my-swal-title",
         content: "swal2-content my-swal-content",
         closeButton: "swal2-close my-swal-close",
-        confirmButton: "sw-btn sw-btn-confirm",
+        confirmButton: "sw-btn sw-btn-confirm"
       },
       buttonsStyling: false,
     });
@@ -130,55 +113,98 @@ export default function EspacoEventosBeneficiario({
       <div className="espaco-eventos-beneficiario-engloba-eventos">
         <div className="espaco-eventos-beneficiario-eventos">
           <div className="espaco-eventos-beneficiario-lista">
-            {(!eventos || eventos.length === 0) && <p>Nenhum evento encontrado.</p>}
+            {(!eventos || eventos.length === 0) && (
+              <p>Nenhum evento encontrado.</p>
+            )}
             {eventos.map((evento, idx) => {
               const qtdVaga = Number(
-                evento.qtdVaga ?? evento.qtd_vaga ?? evento.qtdVagas ?? evento.qtd_vagas ?? evento.qtdVagasTotal ?? 0
+                evento.qtdVaga ??
+                  evento.qtd_vaga ??
+                  evento.qtdVagas ??
+                  evento.qtd_vagas ??
+                  evento.qtdVagasTotal ??
+                  0
               );
               const qtdInteressado =
-                Number(evento.qtdInteressado ?? evento.qtd_interessado ?? evento.qtd_interessos ?? evento.qtdInteressos ?? 0) ||
-                (Array.isArray(evento.interessados) ? evento.interessados.length : Array.isArray(evento.inscritos) ? evento.inscritos.length : 0);
-
-              const id = evento?.idEvento ?? evento?.id;
-              const count = inscritosCounts[id] ?? 0;
-              const max = evento?.qtdVaga ?? 0;
+                Number(
+                  evento.qtdInteressado ??
+                    evento.qtd_interessado ??
+                    evento.qtd_interessos ??
+                    evento.qtdInteressos ??
+                    0
+                ) ||
+                (Array.isArray(evento.interessados)
+                  ? evento.interessados.length
+                  : Array.isArray(evento.inscritos)
+                  ? evento.inscritos.length
+                  : 0);
 
               return (
-                <div className="eventos-beneficiario-lista" key={evento.id_evento || evento.idEvento || idx}>
+                <div
+                  className="eventos-beneficiario-lista"
+                  key={evento.id_evento || evento.idEvento || idx}
+                >
                   {evento.imagemUrl ? (
-                    <img src={evento.imagemUrl} alt="Foto evento" className="eventos-foto-beneficiario" />
+                    <img
+                      src={evento.imagemUrl}
+                      alt="Foto evento"
+                      className="eventos-foto-beneficiario"
+                    />
                   ) : (
                     <div className="evento-sem-imagem">Sem imagem</div>
                   )}
 
                   <div className="eventos-descricao-beneficiario">
                     <div className="eventos-titulo-beneficiario">
-                      <h3>{evento.nome_evento || evento.nomeEvento || evento.nome}</h3>
+                      <h3>
+                        {evento.nome_evento || evento.nomeEvento || evento.nome}
+                      </h3>
                     </div>
                     <div className="eventos-tipocategoria-beneficiario">
                       <div className="eventos-categoria-beneficiario">
                         Categoria:{" "}
                         <a href="#">
-                          {evento.categoriaNome || evento.categoria?.nome || "Não informada"}
+                          {evento.categoriaNome ||
+                            evento.categoria?.nome ||
+                            "Não informada"}
                         </a>
                       </div>
                       <div className="eventos-status-beneficiario">
-                        Status: <a href="#">{evento.status_evento || evento.statusEvento?.situacao || "Aberto"}</a>
+                        Status:{" "}
+                        <a href="#">
+                          {evento.status_evento ||
+                            evento.statusEvento?.situacao ||
+                            "Aberto"}
+                        </a>
                       </div>
                     </div>
                   </div>
 
                   <div className="eventos-data-beneficiario">
-                    <img src={calendar} style={{ width: "30%" }} alt="Ícone de Calendário" />
+                    <img
+                      src={calendar}
+                      style={{ width: "30%" }}
+                      alt="Ícone de Calendário"
+                    />
                     <a href="#">
                       {formatarData(evento.data_evento || evento.dia)}{" "}
-                      {evento.hora_inicio || evento.horaInicio ? `às ${formatarHora(evento.hora_inicio || evento.horaInicio)}` : ""}
+                      {evento.hora_inicio || evento.horaInicio
+                        ? `às ${formatarHora(
+                            evento.hora_inicio || evento.horaInicio
+                          )}`
+                        : ""}
                     </a>
                   </div>
 
                   <div className="eventos-pessoas-beneficiario">
-                    <img src={people} style={{ width: "40%" }} alt="Ícone de Pessoas" />
-                    <a href="#">{count}/{max || 0}</a>
+                    <img
+                      src={people}
+                      style={{ width: "40%" }}
+                      alt="Ícone de Pessoas"
+                    />
+                    <a href="#">
+                      {qtdInteressado}/{qtdVaga || 0}
+                    </a>
                   </div>
 
                   <div className="eventos-tiposbotoes-beneficiario">
@@ -198,14 +224,26 @@ export default function EspacoEventosBeneficiario({
                     {exibirParticipar && (
                       <button
                         style={{
-                          backgroundColor: qtdVaga && qtdInteressado >= qtdVaga ? "#999" : "#4FBD34",
-                          cursor: qtdVaga && qtdInteressado >= qtdVaga ? "not-allowed" : "pointer",
+                          backgroundColor:
+                            qtdVaga && qtdInteressado >= qtdVaga
+                              ? "#999"
+                              : "#4FBD34",
+                          cursor:
+                            qtdVaga && qtdInteressado >= qtdVaga
+                              ? "not-allowed"
+                              : "pointer",
                         }}
                         disabled={qtdVaga && qtdInteressado >= qtdVaga}
                         onClick={() => {
-                          const full = qtdVaga && Number(qtdInteressado ?? 0) >= Number(qtdVaga);
+                          const full =
+                            qtdVaga &&
+                            Number(qtdInteressado ?? 0) >= Number(qtdVaga);
                           if (full) {
-                            Swal.fire("Lotado", "Este evento atingiu o número máximo de vagas.", "info");
+                            Swal.fire(
+                              "Lotado",
+                              "Este evento atingiu o número máximo de vagas.",
+                              "info"
+                            );
                             return;
                           }
                           if (onParticipar) {
@@ -213,13 +251,28 @@ export default function EspacoEventosBeneficiario({
                             return;
                           }
                           if (onInscrever) {
-                            onInscrever(evento.idEvento || evento.id || evento.id_evento);
+                            onInscrever(
+                              evento.idEvento || evento.id || evento.id_evento
+                            );
                             return;
                           }
                           Swal.fire("Atenção", "Ação não disponível.", "info");
                         }}
                       >
                         Quero Participar
+                      </button>
+                    )}
+
+                    {showFeedbackButton && (
+                      <button
+                        style={{ backgroundColor: "#F5A623", marginTop: "6px" }}
+                        onClick={() => {
+                          if (onFeedbackClick) {
+                            onFeedbackClick(evento); // dispara a função passada pela tela
+                          }
+                        }}
+                      >
+                        Enviar Feedback
                       </button>
                     )}
                   </div>

@@ -14,6 +14,7 @@ import Login from "./pages/login";
 import Eventos_B from "./pages/Beneficiario/eventos_B";
 import MeuPerfil_B from "./pages/Beneficiario/meu_perfil_B";
 import MeusEventos_B from "./pages/Beneficiario/meus_eventos_B";
+import Feedback_B from "./pages/Beneficiario/feedbacks_B";
 
 // Rotas de Moderador
 import Eventos_M2 from "./pages/M2/eventos_M2";
@@ -94,6 +95,15 @@ function App() {
               element={
                 <PrivateRoute roles={["Usuário"]}>
                   <MeusEventos_B />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/usuario/feedback"
+              element={
+                <PrivateRoute roles={["Usuário"]}>
+                  <Feedback_B />
                 </PrivateRoute>
               }
             />

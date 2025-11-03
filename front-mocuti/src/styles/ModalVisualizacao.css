@@ -5,7 +5,7 @@
   width: 100%;
 }
 
-.feedback-modal-actions {
+.feedback-modal-acao {
   display: flex;
   justify-content: center;
   gap: 2rem;
@@ -19,7 +19,7 @@
   margin-left: 1.2rem;
 }
 
-.feedback-modal-actions .nota-button {
+.feedback-modal-acao .nota-botao {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -37,12 +37,12 @@
   color: #000000;
 }
 
-.feedback-modal-actions .nota-button svg {
+.feedback-modal-acao .nota-botao svg {
   font-size: 1.6rem;
   color: #000000;
 }
 
-.nota-button{
+.nota-botao{
 color: #000000;
 }
 
@@ -53,15 +53,15 @@ color: #000000;
     height: auto;
   }
 
-  .feedback-modal-actions {
+  .feedback-modal-acao {
     gap: 1rem;
   }
 
-  .feedback-modal-actions .nota-button {
+  .feedback-modal-acao .nota-botao {
     font-size: 0.9rem;
   }
 
-  .feedback-modal-actions .nota-button svg {
+  .feedback-modal-acao .nota-botao svg {
     font-size: 1.3rem;
   }
 }

@@ -102,6 +102,21 @@
   .btn-linha:hover {
     border: 2px solid #FFBB00;
   }
+
+   .btn-comentarios {
+    border-bottom: 2px solid #4FBD34;
+  }
+  .btn-comentarios:hover {
+    border: 2px solid #4FBD34;
+  }
+
+  .btn-sair {
+    border-bottom: 2px solid #FF4848;
+  }
+  .btn-sair:hover {
+    border: 2px solid #FF4848;
+  }
+  
   
   /* HEADER BENEFICIÁRIO */
   .header-beneficiario {

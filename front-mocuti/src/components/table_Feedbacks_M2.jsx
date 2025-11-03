@@ -39,7 +39,7 @@ const EventosTable = ({ eventos, onFeedback, onDetalhes, editable }) => {
                 {editable ? (
                   <div className="feedback-toggle-buttons">
                     <button
-                      className={`nota-button ${p.nota === "like" ? "active" : ""}`}
+                      className={`.nota-botao ${p.nota === "like" ? "active" : ""}`}
                       onClick={() =>
                         onFeedback({ ...p, nota: p.nota === "like" ? null : "like" })
                       }
@@ -48,7 +48,7 @@ const EventosTable = ({ eventos, onFeedback, onDetalhes, editable }) => {
                     </button>
 
                     <button
-                      className={`nota-button ${p.nota === "dislike" ? "active" : ""}`}
+                      className={`.nota-botao ${p.nota === "dislike" ? "active" : ""}`}
                       onClick={() =>
                         onFeedback({ ...p, nota: p.nota === "dislike" ? null : "dislike" })
                       }
