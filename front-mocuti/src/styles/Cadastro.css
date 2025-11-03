@@ -122,6 +122,11 @@
   min-width: 7.5rem;
 }
 
+.form-row .form-group.full-width {
+  flex: 1 1 100%;
+  min-width: 100%;
+}
+
 
 .form-label {
   font-size: 1em; 
@@ -364,3 +369,11 @@
     right: 0.5rem;
   }
 }
+
+/* mensagens de erro */
+.error-text {
+   color: #dc2626; /* vermelho */
+   font-size: 0.875rem;
+   margin-top: 0.25rem;
+   display: block;
+ }

@@ -26,9 +26,26 @@ const AuthProvider = ({ children }) => {
         body: JSON.stringify({ email, senha }),
       });
 
-      if (!res.ok) throw new Error("Credenciais inválidas");
-
+      if (!res.ok) {
+        // tenta extrair mensagem do servidor (json ou texto)
+        let msg = "Credenciais inválidas";
+        try {
+          const text = await res.text();
+          if (text) {
+            try {
+              const json = JSON.parse(text);
+              msg = json.message || json.error || text;
+            } catch {
+              msg = text;
+            }
+          }
+        } catch {
+          /* fallback */
+        }
+        throw new Error(msg);
+      }
       const data = await res.json();
+
       // setUser({ id: data.idUsuario, tipoCargo: data.cargo.tipoCargo });
       // localStorage.setItem("user", JSON.stringify({ id: data.idUsuario, tipoCargo: data.cargo.tipoCargo }));
 
@@ -40,11 +57,9 @@ const AuthProvider = ({ children }) => {
         email: data.email,
       };
 
+      // atualiza estado uma vez
       setUser(userData);
 
-      setUser(userData);
-
-   
       if (rememberMe) {
         localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("idUsuario", userData.id);
@@ -56,8 +71,12 @@ const AuthProvider = ({ children }) => {
         sessionStorage.setItem("nomeCompleto", userData.nomeCompleto);
         localStorage.removeItem("user");
       }
+      // retorna dados para o chamador confirmar sucesso
+      return userData;
     } catch (err) {
-      setError(err.message);
+      setError(err?.message || "Erro no login");
+      // relança para o caller (ex.: página de login) poder tratar
+      throw err;
     } finally {
       setLoading(false);
     }

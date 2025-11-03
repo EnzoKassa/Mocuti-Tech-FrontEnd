@@ -1,7 +1,21 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import '../styles/Login.css'
+
+const EyeIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+
+const EyeOffIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+    <line x1="1" y1="1" x2="23" y2="23"/>
+  </svg>
+);
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false)
@@ -9,7 +23,12 @@ const Login = () => {
     const {login} = useAuth();
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
+    const [errors, setErrors] = useState({});
+    const [submitError, setSubmitError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
+    const emailRef = useRef(null);
+    const senhaRef = useRef(null);
 
     const [rememberMe, setRememberMe] = useState(false);
 
@@ -20,15 +39,47 @@ const Login = () => {
         navigate('/forgot-password')
     }
 
+    const validateEmail = (value) => {
+        if (!value) return "Informe o email";
+        const re = /^[A-Za-z0-9.]+@[A-Za-z0-9.]+\.[A-Za-z]{2,}$/;
+        return re.test(value) ? null : "Email inválido. Deve conter '@' e '.' e não aceitar caracteres especiais";
+    };
+
+    const validateSenha = (value) => {
+        if (!value) return "Informe a senha";
+        if (value.length < 8) return "Senha deve ter no mínimo 8 caracteres";
+        return null;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await login(email, senha, rememberMe);
+        setSubmitError("");
+        const newErrors = {};
+        const emailErr = validateEmail(email);
+        if (emailErr) newErrors.email = emailErr;
+        const senhaErr = validateSenha(senha);
+        if (senhaErr) newErrors.senha = senhaErr;
+        setErrors(newErrors);
+        if (Object.keys(newErrors).length) {
+            // foco no primeiro campo com erro
+            if (newErrors.email && emailRef.current) emailRef.current.focus();
+            else if (newErrors.senha && senhaRef.current) senhaRef.current.focus();
+            return;
+        }
 
-        // redireciona baseado no cargo
-        const user = JSON.parse(localStorage.getItem("user") || sessionStorage.getItem("user"));
-        if (user?.tipoCargo === "Administrador") navigate("/admin/eventos");
-        else if (user?.tipoCargo === "Moderador") navigate("/moderador/eventos");
-        else if (user?.tipoCargo === "Usuário") navigate("/usuario/eventos");
+        setIsSubmitting(true);
+        try {
+            const userData = await login(email, senha, rememberMe);
+            const user = userData || JSON.parse(localStorage.getItem("user") || sessionStorage.getItem("user"));
+            if (user?.tipoCargo === "Administrador") navigate("/admin/eventos");
+            else if (user?.tipoCargo === "Moderador") navigate("/moderador/eventos");
+            else if (user?.tipoCargo === "Usuário") navigate("/usuario/eventos");
+        } catch (err) {
+            const msg = err?.message || "Falha ao autenticar";
+            setSubmitError(msg);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const increaseFontSize = () => {
@@ -88,7 +139,7 @@ const Login = () => {
                     </div>
 
                     {/* Formulário */}
-                    <form onSubmit={handleSubmit} className="login-form">
+                    <form onSubmit={handleSubmit} className="login-form" noValidate>
                         {/* Email */}
                         <div className="form-group">
                             <label htmlFor="email" className="form-label" style={{ fontSize: `${fontSize * 0.875}px` }}>
@@ -96,13 +147,19 @@ const Login = () => {
                             </label>
                             <input
                                 id="email"
+                                ref={emailRef}
                                 type="email"
                                 placeholder="Digite seu e-mail"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) => {
+                                    setEmail(e.target.value);
+                                    setErrors(prev => ({ ...prev, email: undefined }));
+                                    setSubmitError("");
+                                }}
                                 className="form-input"
                                 required
                             />
+                            {errors.email && <span className="error-text" role="alert">{errors.email}</span>}
                         </div>
 
                         {/* Senha */}
@@ -113,10 +170,15 @@ const Login = () => {
                             <div className="password-input-container">
                                 <input
                                     id="senha"
+                                    ref={senhaRef}
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder="Digite sua senha"
                                     value={senha}
-                                    onChange={(e) => setSenha(e.target.value)}
+                                    onChange={(e) => {
+                                        setSenha(e.target.value);
+                                        setErrors(prev => ({ ...prev, senha: undefined }));
+                                        setSubmitError("");
+                                    }}
                                     className="form-input password-input"
                                     required
                                 />
@@ -124,10 +186,12 @@ const Login = () => {
                                     type="button"
                                     onClick={togglePasswordVisibility}
                                     className="password-toggle-btn"
+                                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                                 >
-                                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                                    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                                 </button>
                             </div>
+                            {errors.senha && <span className="error-text" role="alert">{errors.senha}</span>}
                         </div>
 
                         {/* Opções adicionais */}
@@ -142,9 +206,11 @@ const Login = () => {
                         </div>
 
                         {/* Botão de Login */}
-                        <button type="submit" className="login-btn" style={{ fontSize: `${fontSize * 1}px` }}>
-                            Login
+                        <button type="submit" className="login-btn" style={{ fontSize: `${fontSize * 1}px` }} disabled={isSubmitting}>
+                            {isSubmitting ? (<><span className="spinner" aria-hidden="true"></span> Entrando...</>) : 'Login'}
                         </button>
+                        {/* mensagem de submissão (erro) */}
+                        {submitError && <div className="error-text" role="alert" aria-live="assertive" style={{ marginTop: 8 }}>{submitError}</div>}
 
                         {/* Link para cadastro */}
                         <div className="register-link-container" style={{ fontSize: `${fontSize * 0.875}px` }}>
