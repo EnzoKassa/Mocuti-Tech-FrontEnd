@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import '../styles/Login.css'
 
 const EyeIcon = () => (
@@ -19,8 +20,8 @@ const EyeOffIcon = () => (
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false)
-    const [fontSize, setFontSize] = useState(18) // fontSize inicial maior
-    const {login} = useAuth();
+    const [fontSize, setFontSize] = useState(18)
+    const { login } = useAuth();
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [errors, setErrors] = useState({});
@@ -29,13 +30,13 @@ const Login = () => {
     const navigate = useNavigate();
     const emailRef = useRef(null);
     const senhaRef = useRef(null);
-
     const [rememberMe, setRememberMe] = useState(false);
 
     const onSwitchToRegister = () => {
         navigate('/Cadastro')
     }
-       const onSwitchToPassword = () => {
+
+    const onSwitchToPassword = () => {
         navigate('/forgot-password')
     }
 
@@ -61,9 +62,13 @@ const Login = () => {
         if (senhaErr) newErrors.senha = senhaErr;
         setErrors(newErrors);
         if (Object.keys(newErrors).length) {
-            // foco no primeiro campo com erro
             if (newErrors.email && emailRef.current) emailRef.current.focus();
             else if (newErrors.senha && senhaRef.current) senhaRef.current.focus();
+            Swal.fire({
+                icon: "error",
+                title: "Erro",
+                text: "Verifique os campos e tente novamente."
+            });
             return;
         }
 
@@ -71,19 +76,32 @@ const Login = () => {
         try {
             const userData = await login(email, senha, rememberMe);
             const user = userData || JSON.parse(localStorage.getItem("user") || sessionStorage.getItem("user"));
+
+            Swal.fire({
+                icon: "success",
+                title: "Login realizado com sucesso!",
+                showConfirmButton: false,
+                timer: 1500
+            });
+
             if (user?.tipoCargo === "Administrador") navigate("/admin/eventos");
             else if (user?.tipoCargo === "Moderador") navigate("/moderador/eventos");
             else if (user?.tipoCargo === "Usuário") navigate("/usuario/eventos");
         } catch (err) {
             const msg = err?.message || "Falha ao autenticar";
             setSubmitError(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Erro ao autenticar",
+                text: msg
+            });
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const increaseFontSize = () => {
-        setFontSize(prev => Math.min(prev + 2, 28)) // limite aumentado para títulos grandes
+        setFontSize(prev => Math.min(prev + 2, 28))
     }
 
     const decreaseFontSize = () => {

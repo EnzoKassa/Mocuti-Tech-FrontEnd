@@ -33,7 +33,7 @@ export default function EventosM1() {
     { texto: "Eventos", rota: "/admin/eventos", img: Calendario },
     { texto: "Usuários", rota: "/admin/lista-usuarios", img: Lista },
     { texto: "Feedbacks", rota: "/admin/feedbacks", img: feedback },
-    { texto: "Meu Perfil", rota: "/admin/meu-perfil", img: MeuPerfil }
+    { texto: "Meu Perfil", rota: "/admin/perfil", img: MeuPerfil }
   ];
   
   // defaultMenu/menuItems removed — usamos rotasPersonalizadas diretamente no NavLateral

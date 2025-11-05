@@ -12,8 +12,7 @@ import "../../styles/FeedbacksM2.css";
 import Calendario from "../../assets/images/calendario.svg";
 import MeuPerfil from "../../assets/images/meuPerfil.svg";
 import feedback from "../../assets/images/feedbackLogo.svg";
-import Visao from "../../assets/images/visaoGeral.svg";
-import Lista from "../../assets/images/listausuariom1.svg";
+import convite from "../../assets/images/convitesLogo.svg";
 
 const INITIAL_FILTERS = {
   nome: "",
@@ -27,10 +26,11 @@ export default function EventosM2() {
   const navigate = useNavigate();
 
   const rotasPersonalizadas = [
-    { texto: "Eventos", rota: "/Moderador/dashboard", img: Calendario },
-    { texto: "Convites", rota: "/Moderador/eventos", img: Lista },
-    { texto: "Feedbacks", rota: "/Moderador/feedbacks", img: feedback },
-    { texto: "Meu Perfil", rota: "/Moderador/meu-perfil", img: MeuPerfil }
+    { texto: "Eventos", img: Calendario, rota: "/moderador/eventos" },
+    { texto: "Convites", img: convite, rota: "/moderador/convites" },
+     { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
+    { texto: "Meu Perfil", img: MeuPerfil, rota: "/moderador/perfil" },
+   
   ];
 
   const [eventos, setEventos] = useState([]);

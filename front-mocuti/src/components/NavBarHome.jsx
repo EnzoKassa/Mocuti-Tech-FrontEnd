@@ -13,12 +13,35 @@ export function NavHome({ texto, imgLink, onClick }) {
     return (
         <div className="nav-home">
             <div className="nav-box">
-                <div className="nav-endereco"> <img src={location} alt="" /> Av dos Metalurgicos, 1081 </div>
-                <div className="nav-contato"> <img src={telefone} alt="" /> 11 980711297 <img src={insta} alt="" />
-                    <img src={zap} alt="" />
-                    <img src={face} alt="" />
-                    <img src={email} alt="" />
+                <div
+                    className="nav-endereco"
+                    onClick={() => window.open("https://www.google.com/maps/place/Av+dos+Metalurgicos,+1081", "_blank")}
+                    style={{ cursor: "pointer" }}
+                >
+                    <img src={location} alt="Localização" />
+                    Av dos Metalúrgicos, 1081
                 </div>
+
+                <div className="nav-contato">
+                    <img src={telefone} alt="Telefone" /> 11 98971-1297
+
+                    <a href="https://www.instagram.com/anarita.producoes" target="_blank" rel="noopener noreferrer">
+                        <img src={insta} alt="Instagram" />
+                    </a>
+
+                    <a href="https://wa.me/5511989711297" target="_blank" rel="noopener noreferrer">
+                        <img src={zap} alt="WhatsApp" />
+                    </a>
+
+                    <a href="https://www.facebook.com/share/1CUjDLGFhT/" target="_blank" rel="noopener noreferrer">
+                        <img src={face} alt="Facebook" />
+                    </a>
+
+                    <a href="mailto:mocuti@gmail.com">
+                        <img src={email} alt="Email" />
+                    </a>
+                </div>
+
             </div>
             <div className="nav-links-home">
                 <div className="nav-box-botoes">

@@ -176,7 +176,7 @@ function App() {
             }
           />
         <Route
-            path="/admin/Geral"
+            path="/admin/geral"
             element={
               <PrivateRoute roles={["Administrador"]}>
                 <GeralM1 />

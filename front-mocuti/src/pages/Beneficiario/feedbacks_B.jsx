@@ -273,7 +273,7 @@ export default function FeedbackBeneficiario() {
   if (loading) return <p>Carregando eventos...</p>;
 
   return (
-    <div className="scroll-page">
+    <div className="scroll-page-usuario">
       <HeaderBeneficiario />
       <HeaderBeneficiarioBotoes botoes={botoesNav} />
 

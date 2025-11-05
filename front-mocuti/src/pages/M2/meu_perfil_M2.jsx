@@ -18,8 +18,9 @@ const MeuPerfilM2 = () => {
   const rotasPersonalizadas = [
     { texto: "Eventos", img: Calendario, rota: "/moderador/eventos" },
     { texto: "Convites", img: convite, rota: "/moderador/convites" },
+     { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
     { texto: "Meu Perfil", img: MeuPerfil, rota: "/moderador/perfil" },
-    { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
+   
   ];
 
   return  (

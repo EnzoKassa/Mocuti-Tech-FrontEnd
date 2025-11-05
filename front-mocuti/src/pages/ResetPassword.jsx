@@ -58,7 +58,7 @@ export default function ResetPassword() {
   );
 
   return (
-    <div className="containerReset">
+    <div className="container-redefinir-senha">
       <div className="form-wrapper">
         <div className="form-card">
           <h1 className="form-title">

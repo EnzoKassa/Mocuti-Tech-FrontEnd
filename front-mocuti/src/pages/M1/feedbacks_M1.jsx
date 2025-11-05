@@ -121,15 +121,13 @@ export default function Feedbacks_M1() {
 
   // Modal de detalhe do feedback
   const [modalData, setModalData] = useState(null);
-
   const rotasPersonalizadas = [
     { texto: "Visão Geral", rota: "/admin/geral", img: Visao },
     { texto: "Eventos", rota: "/admin/eventos", img: Calendario },
     { texto: "Usuários", rota: "/admin/lista-usuarios", img: Lista },
     { texto: "Feedbacks", rota: "/admin/feedbacks", img: feedback },
-    { texto: "Meu Perfil", rota: "/admin/meu-perfil", img: MeuPerfil },
+    { texto: "Meu Perfil", rota: "/admin/perfil", img: MeuPerfil }
   ];
-
   // Carregar eventos (para modal de seleção)
   useEffect(() => {
     let vivo = true;

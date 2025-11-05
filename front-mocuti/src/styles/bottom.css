@@ -99,7 +99,9 @@ margin: 0;
     border: 2px solid green;
     transition: 0.2s ease-in-out;
     border-radius: 5px;
+     scale: 1.03;
         font-family: 'Montserrat', sans-serif;
+        cursor: pointer;
 
 }
 
@@ -124,10 +126,12 @@ margin: 0;
 
 .botoes-cadastro-nav-blue:hover {
     border: none;
-    border: 2px solid #3DA5E1;
+    scale: 1.03;
+    border: 2px solid #2497d9;
     transition: 0.2s ease-in-out;
     border-radius: 5px;
         font-family: 'Montserrat', sans-serif;
+        cursor: pointer;
 
 }
 

@@ -1,26 +1,35 @@
-import React from "react";
+import React, { useState } from "react";
 import mocutiRodape from "../assets/images/mocuti-rodape.svg";
+import { Link } from "react-router-dom";
 import natal from "../assets/images/natal.png";
 import parceiro from "../assets/images/parceiros.svg";
-import telefone from "../assets/images/telefone.svg";
 import varal from "../assets/images/varal.png";
-import zap from "../assets/images/Wattsapp.svg";
-import face from "../assets/images/Facebook.svg";
-import email from "../assets/images/Email.svg";
-import insta from "../assets/images/Instagram.svg";
 import inicio from "../assets/images/fundo-inicio.svg";
-import logo from "../assets/images/image (1).svg";
-import location from "../assets/images/location.svg";
-import { useNavigate } from "react-router-dom";
 import { NavHome } from "../components/NavBarHome";
 
 const Home = () => {
-  const navigate = useNavigate();
+  // Estados para os campos do formulário
+  const [email, setEmail] = useState("");
+  const [mensagem, setMensagem] = useState("");
+
+  const handleEnviarEmail = () => {
+    if (!email || !mensagem) {
+      alert("Por favor, preencha todos os campos antes de enviar.");
+      return;
+    }
+
+    const destinatario = "ryan.oliviera@sptech.school";
+    const assunto = `Contato via site - ${email}`;
+    const corpo = encodeURIComponent(`Email: ${email}\n\nMensagem:\n${mensagem}`);
+    const link = `mailto:${destinatario}?subject=${encodeURIComponent(assunto)}&body=${corpo}`;
+
+    window.location.href = link;
+  };
 
   return (
     <div className="w-full overflow-x-hidden font-[Montserrat]">
       {/* NAVBAR FIXA */}
-        <NavHome/>
+      <NavHome />
 
       {/* INÍCIO */}
       <section
@@ -90,8 +99,7 @@ const Home = () => {
       </div>
 
       {/* LINHA DO TEMPO */}
-     <div id="linha-do-tempo" className="w-screen h-[65vh] flex flex-col justify-center items-center gap-10">
-
+      <div id="linha-do-tempo" className="w-screen h-[65vh] flex flex-col justify-center items-center gap-10">
         <div className="w-[80%] flex items-center justify-start">
           <h1 className="text-[32px] font-extrabold">Linha do Tempo</h1>
         </div>
@@ -178,9 +186,12 @@ const Home = () => {
         </div>
 
         <div className="h-[20%] w-[20vw] flex justify-center items-center">
-          <a className="w-[300px] h-[60px] flex items-center justify-center text-white text-[16px] font-semibold bg-[#4FBD34] hover:bg-[#0b9b13] transition rounded-none [clip-path:polygon(3%_0,98%_0,100%_52%,98%_100%,3%_100%,0_45%)]">
+          <Link
+            to="/login"
+            className="w-[300px] h-[60px] flex items-center justify-center text-white text-[16px] font-semibold bg-[#4FBD34] hover:bg-[#0b9b13] transition rounded-none [clip-path:polygon(3%_0,98%_0,100%_52%,98%_100%,3%_100%,0_45%)]"
+          >
             Eventos Agendados
-          </a>
+          </Link>
         </div>
 
         {/* RODAPÉ */}
@@ -191,31 +202,40 @@ const Home = () => {
 
           <div className="w-[33vw] h-full flex flex-col justify-center items-start gap-4 font-semibold">
             <p>Caso existir dúvidas, entre em contato:</p>
+
             <input
               type="text"
               placeholder="Email:"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full h-[3vh] border-0"
             />
+
             <input
               type="text"
               placeholder="Mensagem:"
+              value={mensagem}
+              onChange={(e) => setMensagem(e.target.value)}
               className="w-full h-[8vh] border-0"
             />
-            <button className="h-[4vh] w-[35%] bg-[#4FBD34] text-white flex justify-center items-center font-semibold">
+
+            <button
+              onClick={handleEnviarEmail}
+              className="h-[4vh] w-[35%] bg-[#4FBD34] text-white flex justify-center items-center font-semibold"
+            >
               Enviar Email
             </button>
           </div>
 
           <div className="w-[25vw] h-full flex flex-row justify-end items-center">
             <div className="w-[40%] h-[80%] flex flex-col justify-center items-start gap-[10%]">
-              <a href="">Sobre Nós</a>
-              <a href="">Home</a>
-              <a href="">Nossos Eventos</a>
+              <a href="#sobre">Sobre Nós</a>
+              <a href="#inicio">Home</a>
+              <a href="#eventos">Nossos Eventos</a>
             </div>
             <div className="w-[40%] h-[80%] flex flex-col justify-center items-start gap-[10%]">
-              <a href="">Login</a>
-              <a href="">Teste</a>
-              <a href="">Teste</a>
+              <Link to="/login">Login</Link>
+              <Link to="/cadastro">Cadastro</Link>
             </div>
           </div>
         </div>

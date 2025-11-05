@@ -3,6 +3,8 @@ import "../../styles/NavLateral.css";
 import { NavLateral } from "../../components/NavLateral";
 import "../../styles/DashGeral.css";
 import imgTrofeu from "../../assets/images/trofeu.svg";
+import Visao from "../../assets/images/visaoGeral.svg";
+import Lista from "../../assets/images/Listausuario.svg";
 import { Doughnut, Line} from 'react-chartjs-2';
 import { Bar as ChartBar } from 'react-chartjs-2';
 
@@ -71,14 +73,13 @@ const GeralM1 = () => {
     const [faixaEtariaDistribuicao, setFaixaEtariaDistribuicao] = useState([]);
 
     
- const rotasPersonalizadas = [
-    { texto: "Eventos", img: Calendario, rota: "/admin/eventos" },
-    { texto: "Lista de Usuários", img: listaUsuarios, rota: "/admin/lista-usuarios" },
-    { texto: "Feedbacks", img: feedback, rota: "/admin/feedbacks" },
-    { texto: "Meu Perfil", img: MeuPerfil, rota: "/admin/perfil" },
-    { texto: "Visão Geral", img: VisaoGeral, rota: "/admin/geral" },
-  ]
-
+  const rotasPersonalizadas = [
+    { texto: "Visão Geral", rota: "/admin/geral", img: Visao },
+    { texto: "Eventos", rota: "/admin/eventos", img: Calendario },
+    { texto: "Usuários", rota: "/admin/lista-usuarios", img: Lista },
+    { texto: "Feedbacks", rota: "/admin/feedbacks", img: feedback },
+    { texto: "Meu Perfil", rota: "/admin/perfil", img: MeuPerfil }
+  ];
     useEffect(() => {
         FaixaEtaria();
         visaoUser();

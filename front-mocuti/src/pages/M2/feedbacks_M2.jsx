@@ -28,12 +28,13 @@ const FeedbacksM2 = () => {
   const [error, setError] = useState(null);
   const [modalData, setModalData] = useState(null);
 
-  const rotasPersonalizadas = [
-    { texto: "Eventos", img: Calendario, rota: "/moderador/eventos" },
-    { texto: "Convites", img: convite, rota: "/moderador/convites" },
-    { texto: "Meu Perfil", img: MeuPerfil, rota: "/moderador/perfil" },
-    { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
-  ];
+   const rotasPersonalizadas = [
+     { texto: "Eventos", img: Calendario, rota: "/moderador/eventos" },
+     { texto: "Convites", img: convite, rota: "/moderador/convites" },
+      { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
+     { texto: "Meu Perfil", img: MeuPerfil, rota: "/moderador/perfil" },
+    
+   ];
 
   useEffect(() => {
     if (!idUsuario) return;

@@ -1,8 +1,7 @@
-.scroll-page {
-  height: 100vh;           /* ocupa toda a tela */
-  overflow-y: auto;        /* cria um scroll interno */
-  overflow-x: hidden;      /* evita scroll lateral */
-  position: relative;
+.scroll-page-usuario {
+  height: 100vh;           /* ocupa toda a tela */       /* cria um scroll interno */
+  display: flex;
+  flex-direction: column;
   scroll-behavior: smooth;
 }
 

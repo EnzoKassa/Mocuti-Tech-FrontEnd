@@ -37,7 +37,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="container">
+    <div className="container-redefinir-senha">
       <div className="form-wrapper">
         <div className="form-card">
           <h1 className="form-title">

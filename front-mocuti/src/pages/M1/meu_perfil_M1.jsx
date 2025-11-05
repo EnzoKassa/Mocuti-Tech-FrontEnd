@@ -6,16 +6,16 @@ import "../../styles/TelaComNavLateral.css";
 import Calendario from "../../assets/images/calendario.svg";
 import MeuPerfil from "../../assets/images/meuPerfil.svg";
 import feedback from "../../assets/images/feedbackLogo.svg";
-import VisaoGeral from "../../assets/images/VisaoGeral.svg";
-import listaUsuarios from "../../assets/images/listausuario.svg";
+import Visao from "../../assets/images/VisaoGeral.svg";
+import Lista from "../../assets/images/listausuario.svg";
 
 const MeuPerfilM1 = () => {
   const rotasPersonalizadas = [
-    { texto: "Eventos", img: Calendario, rota: "/admin/eventos" },
-    { texto: "Lista de Usuários", img: listaUsuarios, rota: "/admin/lista-usuarios" },
-    { texto: "Feedbacks", img: feedback, rota: "/admin/feedbacks" },
-    { texto: "Meu Perfil", img: MeuPerfil, rota: "/admin/perfil" },
-    { texto: "Visão Geral", img: VisaoGeral, rota: "/admin/Geral" },
+    { texto: "Visão Geral", rota: "/admin/geral", img: Visao },
+    { texto: "Eventos", rota: "/admin/eventos", img: Calendario },
+    { texto: "Usuários", rota: "/admin/lista-usuarios", img: Lista },
+    { texto: "Feedbacks", rota: "/admin/feedbacks", img: feedback },
+    { texto: "Meu Perfil", rota: "/admin/perfil", img: MeuPerfil }
   ];
   return  (
     <div className="meu-perfil-page2">
