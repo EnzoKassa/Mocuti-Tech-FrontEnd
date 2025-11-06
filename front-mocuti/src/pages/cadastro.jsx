@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import '../styles/Cadastro.css';
 import { useNavigate } from 'react-router-dom';
@@ -23,6 +23,19 @@ function Cadastro() {
   const [showPassword, setShowPassword] = useState(false);
   const [fontSize, setFontSize] = useState(16);
   const navigate = useNavigate();
+  const [categorias, setCategorias] = useState([]);
+
+  useEffect(() => {
+  fetch("http://localhost:8080/categorias")
+    .then((res) => {
+      if (!res.ok) throw new Error("Erro ao buscar categorias");
+      return res.json();
+    })
+    .then((data) => setCategorias(data))
+    .catch((err) => console.error("Erro ao carregar categorias:", err));
+}, []);
+
+
 
   const handleInputChange = (field, value) => {
     let formattedValue = value;
@@ -105,8 +118,8 @@ function Cadastro() {
     if (!formData.dataNascimento) newErrors.dataNascimento = "Informe a data de nascimento";
     if (!formData.genero) newErrors.genero = "Selecione o gênero";
     if (!formData.nacionalidade) newErrors.nacionalidade = "Selecione a nacionalidade";
-    // categoriaPreferida pode não existir no formulário antigo; somente checar se existe como obrigatório
-    if ('categoriaPreferida' in formData && !formData.categoriaPreferida) newErrors.categoriaPreferida = "Selecione uma categoria";
+    // categoria pode não existir no formulário antigo; somente checar se existe como obrigatório
+    if ('categoria' in formData && !formData.categoria) newErrors.categoria = "Selecione uma categoria";
     const emailErr = validateEmail(formData.email); if (emailErr) newErrors.email = emailErr;
     const senhaErr = validatePassword(formData.senha, formData.nomeCompleto, formData.email); if (senhaErr) newErrors.senha = senhaErr;
 
@@ -239,18 +252,19 @@ function Cadastro() {
         genero: formData.genero,
         email: formData.email,
         senha: formData.senha,
-        cargo: 1,
+        cargo: 2,
         endereco: {
           idEndereco: 0,
           cep: formData.cep,
           logradouro: formData.logradouro,
           numero: parseInt(formData.numero) || 0,
           complemento: formData.complemento,
-          uf: formData.uf,
+          uf: formData.uf,  
           estado: formData.estado,
           bairro: formData.bairro
         },
-        canalComunicacao: parseInt(formData.canalComunicacao) || 1
+        canalComunicacao: parseInt(formData.canalComunicacao) || 1,
+        idCategoriaPreferida: parseInt(formData.categoria)
       };
 
       const res = await fetch("http://localhost:8080/usuarios/cadastrar", {
@@ -377,18 +391,23 @@ function Cadastro() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="label" className="form-label">Categoria Preferida</label>
-                <select required className="form-select" onValueChange={(value) => handleInputChange('categoriaPreferida', value)}>
-                  <option disabled selected value="">Selecione uma categoria de evento</option>
-                  <option value="esportes">Esportes</option>
-                  <option value="cultura">Cultura</option>
-                  <option value="educacao">Educação</option>
-                  <option value="saude">Saúde</option>
-                  <option value="meio-ambiente">Meio Ambiente</option>
-                  <option value="assistencia-social">Assistência Social</option>                     
-                </select>
-              </div>
+             <div className="form-group">
+  <label htmlFor="label" className="form-label">Categoria Preferida</label>
+  <select
+    required
+    className="form-select"
+    value={formData.categoria || ""}
+    onChange={(e) => handleInputChange("categoria", e.target.value)}
+  >
+    <option disabled value="">Selecione uma categoria de evento</option>
+    {categorias.map((categoria) => (
+      <option key={categoria.idCategoria} value={categoria.idCategoria}>
+        {categoria.nome}
+      </option>
+    ))}
+  </select>
+  {errors.categoria && <span className="error-text">{errors.categoria}</span>}
+</div>
 
               <div className="form-group">
                 <label className="form-label">Email</label>
