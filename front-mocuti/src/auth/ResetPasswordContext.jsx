@@ -1,4 +1,3 @@
-// src/auth/ResetPasswordContext.jsx
 import React, { createContext, useState, useContext } from "react";
 
 const ResetPasswordContext = createContext();
@@ -17,5 +16,3 @@ export function ResetPasswordProvider({ children }) {
 export function useResetPassword() {
   return useContext(ResetPasswordContext);
 }
-
-

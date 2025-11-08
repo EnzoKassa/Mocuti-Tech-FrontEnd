@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import '../styles/Cadastro.css';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/api'
+import axios from 'axios'
 import { formatNomeCompleto, formatCpf, formatTelefone, formatCep, formatEmail } from '../utils/formatUtils';
 
 const EyeIcon = () => (
@@ -26,14 +28,14 @@ function Cadastro() {
   const [categorias, setCategorias] = useState([]);
 
   useEffect(() => {
-  fetch("http://localhost:8080/categorias")
+ api.get('/categorias')
     .then((res) => {
-      if (!res.ok) throw new Error("Erro ao buscar categorias");
-      return res.json();
+      setCategorias(res.data) // Axios já converte o JSON automaticamente
     })
-    .then((data) => setCategorias(data))
-    .catch((err) => console.error("Erro ao carregar categorias:", err));
-}, []);
+    .catch((err) => {
+      console.error('Erro ao carregar categorias:', err)
+    })
+}, [])
 
 
 
@@ -205,8 +207,8 @@ function Cadastro() {
     if (cepLimpo.length !== 8) return;
 
     try {
-      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
-      const data = await res.json();
+      const res = await axios.get(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+      const data = res.data
       if (data.erro) {
         alert("CEP não encontrado");
         return;
@@ -240,60 +242,55 @@ function Cadastro() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const cadastrarUsuario = async () => {
-    try {
-      const payload = {
-        nomeCompleto: formData.nomeCompleto,
-        cpf: formData.cpf,
-        telefone: formData.telefone,
-        dataNascimento: formData.dataNascimento,
-        etnia: formData.etnia,
-        nacionalidade: formData.nacionalidade,
-        genero: formData.genero,
-        email: formData.email,
-        senha: formData.senha,
-        cargo: 2,
-        endereco: {
-          idEndereco: 0,
-          cep: formData.cep,
-          logradouro: formData.logradouro,
-          numero: parseInt(formData.numero) || 0,
-          complemento: formData.complemento,
-          uf: formData.uf,  
-          estado: formData.estado,
-          bairro: formData.bairro
-        },
-        canalComunicacao: parseInt(formData.canalComunicacao) || 1,
-        idCategoriaPreferida: parseInt(formData.categoria)
-      };
+    const cadastrarUsuario = async () => {
+      try {
+        const payload = {
+          nomeCompleto: formData.nomeCompleto,
+          cpf: formData.cpf,
+          telefone: formData.telefone,
+          dataNascimento: formData.dataNascimento,
+          etnia: formData.etnia,
+          nacionalidade: formData.nacionalidade,
+          genero: formData.genero,
+          email: formData.email,
+          senha: formData.senha,
+          cargo: 2,
+          endereco: {
+            idEndereco: 0,
+            cep: formData.cep,
+            logradouro: formData.logradouro,
+            numero: parseInt(formData.numero) || 0,
+            complemento: formData.complemento,
+            uf: formData.uf,  
+            estado: formData.estado,
+            bairro: formData.bairro
+          },
+          canalComunicacao: parseInt(formData.canalComunicacao) || 1,
+          idCategoriaPreferida: parseInt(formData.categoria)
+        };
 
-      const res = await fetch("http://localhost:8080/usuarios/cadastrar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      const res = await api.post('/usuarios/cadastrar', payload)
+      console.log(res.data)
 
-      if (!res.ok) throw new Error("Erro ao cadastrar usuário");
-     Swal.fire({
-  icon: 'success',
-  title: 'Sucesso!',
-  text: 'Cadastro realizado com sucesso!',
-  confirmButtonText: 'OK'
-});
+   Swal.fire({
+      icon: 'success',
+      title: 'Sucesso!',
+      text: 'Cadastro realizado com sucesso!',
+      confirmButtonText: 'OK',
+    })
+   
+    navigate('/login');
+  } catch (err) {
+    console.error('Erro ao cadastrar usuário:', err)
 
-
-      navigate('/login');
-    } catch (err) {
-  console.error(err);
-  Swal.fire({
-    icon: 'error',
-    title: 'Erro!',
-    text: 'Erro ao cadastrar usuário.',
-    confirmButtonText: 'OK'
-  });
+    Swal.fire({
+      icon: 'error',
+      title: 'Erro!',
+      text: 'Não foi possível realizar o cadastro. Tente novamente.',
+      confirmButtonText: 'OK',
+    })
+  }
 }
-
-  };
 
   const handleSubmitStep2 = (e) => {
     e.preventDefault();

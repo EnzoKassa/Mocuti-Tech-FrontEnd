@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useResetPassword } from "../auth/ResetPasswordContext"; // import correto
 import '../styles/ForgotPassword.css';
+import api from '../api/api';
 
 export default function ForgotPassword() {
   const { setStep } = useResetPassword(); // pega o setStep do contexto
@@ -11,16 +12,10 @@ export default function ForgotPassword() {
 
 
   const handleSubmit = async (e) => {
-    
     e.preventDefault();
+    
     try {
-      const response = await fetch("http://localhost:8080/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-
-      if (!response.ok) throw new Error("Erro ao enviar e-mail");
+      const response = await api.post('/auth/forgot-password', { email })
 
       setMensagem("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
       // redireciona para tela de token se quiser
