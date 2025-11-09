@@ -260,23 +260,56 @@ export async function openEventoFormModal(
           return false;
         }
       }
+
       const descricao = document.getElementById("ev-desc")?.value?.trim() || "";
-      const categoriaId = document.getElementById("ev-categoria")?.value || null;
-      const statusEventoId = document.getElementById("ev-status")?.value || null;
-      const horaInicio = document.getElementById("ev-hora-inicio")?.value || null;
-      const horaFim = document.getElementById("ev-hora-fim")?.value || null;
-      const qtdVaga = Number(document.getElementById("ev-qtd")?.value || 0);
+      const categoriaSelectVal = document.getElementById("ev-categoria")?.value || "";
+      const statusSelectVal = document.getElementById("ev-status")?.value || "";
+      const horaInicio = document.getElementById("ev-hora-inicio")?.value || "";
+      const horaFim = document.getElementById("ev-hora-fim")?.value || "";
+      const qtdVagaRaw = document.getElementById("ev-qtd")?.value ?? "";
+      const qtdVaga = qtdVagaRaw === "" ? null : Number(qtdVagaRaw);
       const enderecoSelectVal = document.getElementById("ev-endereco-select")?.value || "";
+      const publicoSel = document.getElementById("ev-publico")?.value || "";
 
-      if (!nome || !dia) {
-        Swal.showValidationMessage("Nome e data são obrigatórios.");
+      // validar múltiplos campos e montar lista de faltantes
+      const missing = [];
+      if (!nome) missing.push("Nome");
+      if (!dia) missing.push("Data deve ser hoje ou futura");
+      if (!descricao || descricao.length < 2 || descricao.length > 1000) missing.push("Descrição (2-1000 caracteres)");
+      // considerar valor já presente em edição (values) como válido
+      if (!(categoriaSelectVal || values.categoriaId)) missing.push("Deve preencher categoria");
+      if (!(statusSelectVal || values.statusId || values.statusEventoId)) missing.push("Deve preencher status (inicial sempre em aberto)");
+      // quantidade de vagas
+      if (qtdVaga === null || !Number.isFinite(qtdVaga) || qtdVaga < 1) missing.push("Quantidade de vagas deve ser maior que zero e um número positivo.");
+      // horário: agora exige ambos preenchidos — se ambos vazios também será reportado
+      if (!horaInicio && !horaFim) {
+        missing.push("Horário (início e fim)");
+      } else if ((horaInicio && !horaFim) || (!horaInicio && horaFim)) {
+        missing.push("Horário: informe início e fim");
+      }
+      // público alvo novo: se selecionou "__novo", o input deve ser preenchido
+      if (publicoSel === "__novo") {
+        const novoPublico = (document.getElementById("ev-publico-novo-input")?.value || "").trim();
+        if (!novoPublico) missing.push("Público alvo (novo)");
+      }
+
+      // endereço
+      if (!enderecoSelectVal && !values.enderecoId) {
+        missing.push("Endereço");
+      } else if (enderecoSelectVal === "__novo") {
+        const cep = document.getElementById("ev-cep")?.value?.trim() || "";
+        const logradouro = document.getElementById("ev-logradouro")?.value?.trim() || "";
+        if (!cep) missing.push("CEP (endereço novo)");
+        if (!logradouro) missing.push("Logradouro (endereço novo)");
+      }
+
+      if (missing.length > 0) {
+        const listHtml = missing.map(m => `• ${m}`).join("<br/>");
+        Swal.showValidationMessage(`Preencha os campos obrigatórios:<br/>${listHtml}`);
         return false;
       }
-      if (!descricao || descricao.length < 2 || descricao.length > 1000) {
-        Swal.showValidationMessage("Descrição deve ter entre 2 e 1000 caracteres.");
-        return false;
-      }
 
+      // segue com as validações/fluxo existentes (endereço novo, salvar evento, etc.)
       let enderecoId = null;
       if (enderecoSelectVal === "__novo") {
         const cep = document.getElementById("ev-cep")?.value?.trim() || "";
@@ -400,8 +433,8 @@ export async function openEventoFormModal(
           }
           return document.getElementById("ev-publico")?.value?.trim() || values.publico || "";
         })(),
-         categoriaId: categoriaId ? Number(categoriaId) : null,
-         statusEventoId: statusEventoId ? Number(statusEventoId) : null,
+         categoriaId: categoriaSelectVal ? Number(categoriaSelectVal) : (values.categoriaId ? Number(values.categoriaId) : null),
+         statusEventoId: statusSelectVal ? Number(statusSelectVal) : (values.statusId ? Number(values.statusId) : null),
          dia,
          horaInicio,
          horaFim,

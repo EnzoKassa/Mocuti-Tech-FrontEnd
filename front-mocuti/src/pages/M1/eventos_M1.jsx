@@ -122,11 +122,7 @@ export default function EventosM1() {
       }
 
       const data = await safeFetchJson(url) || [];
-
-      if (!Array.isArray(data)) {
-        setEventos([]);
-        return;
-      }
+      if (!Array.isArray(data)) { setEventos([]); return; }
 
       const tryParseIfJson = (v) => {
         if (!v || typeof v !== "string") return v;
@@ -207,8 +203,7 @@ export default function EventosM1() {
         return { obj: enderecoObj, formatted: enderecoFormatado || "" };
       };
 
-      console.debug("raw eventos fetched (primeiro):", data && data.length ? data[0] : null);
-
+      // tenta enriquecer itens que não têm endereço formatado (mesma lógica)
       const dataComDadosPossivelmenteEnriquecidos = await Promise.all(
         data.map(async (evento) => {
           const { formatted: curto } = buildEndereco(evento);
@@ -236,33 +231,34 @@ export default function EventosM1() {
       );
 
       const dataComDadosCompletos = dataComDadosPossivelmenteEnriquecidos.map(evento => {
-           const categoriaNome = evento.categoria?.nome ||
-               categorias.find(c => c.idCategoria == evento.categoria?.idCategoria)?.nome || '';
-                
-           const statusSituacao = evento.statusEvento?.situacao ||
-               statusList.find(s => s.idStatusEvento == evento.statusEvento?.idStatusEvento)?.situacao || '';
- 
-          // construir endereço consistente (mesma abordagem que eventos_B)
-          const { obj: enderecoObj, formatted: enderecoFormatado } = buildEndereco(evento);
-          const fallbackLocal = evento.enderecoFormatado || evento.local || "";
-          const localFinal = enderecoFormatado || (typeof fallbackLocal === "string" ? fallbackLocal : "");
- 
-          // garantir quantidade de interessados (várias formas que o backend pode retornar)
-          const qtdInteressado = Number(evento.qtdInteressado ?? evento.qtd_interessado ?? evento.qtdInteressos ?? evento.qtd_interessos ?? evento.qtdInteresse ?? 0) ||
-            (Array.isArray(evento.interessados) ? evento.interessados.length : 0);
- 
-           return {
-               ...evento,
-               categoriaNome,
-               statusSituacao,
-               local: localFinal || "Local não informado",
-               enderecoFormatado: enderecoFormatado || (localFinal || ""),
-               // expõe o objeto endereço com campos usados em outros lugares
-               endereco: enderecoObj || evento.endereco || null,
-               qtdInteressado
-           };
-       });
+        const categoriaNome = evento.categoria?.nome ||
+            categorias.find(c => c.idCategoria == evento.categoria?.idCategoria)?.nome || '';
+                 
+        const statusSituacao = evento.statusEvento?.situacao ||
+            statusList.find(s => s.idStatusEvento == evento.statusEvento?.idStatusEvento)?.situacao || '';
 
+        // construir endereço consistente (mesma abordagem que eventos_B)
+        const { obj: enderecoObj, formatted: enderecoFormatado } = buildEndereco(evento);
+        const fallbackLocal = evento.enderecoFormatado || evento.local || "";
+        const localFinal = enderecoFormatado || (typeof fallbackLocal === "string" ? fallbackLocal : "");
+
+        // garantir quantidade de interessados (várias formas que o backend pode retornar)
+        const qtdInteressado = Number(evento.qtdInteressado ?? evento.qtd_interessado ?? evento.qtdInteressos ?? evento.qtd_interessos ?? evento.qtdInteresse ?? 0) ||
+          (Array.isArray(evento.interessados) ? evento.interessados.length : 0);
+
+        return {
+            ...evento,
+            categoriaNome,
+            statusSituacao,
+            local: localFinal || "Local não informado",
+            enderecoFormatado: enderecoFormatado || (localFinal || ""),
+            // expõe o objeto endereço com campos usados em outros lugares
+            endereco: enderecoObj || evento.endereco || null,
+            qtdInteressado
+        };
+      });
+
+      // busca imagens como antes
       const eventosComImg = await Promise.all(
         dataComDadosCompletos.map(async (evento) => {
           const eventoCompletado = { ...evento, imagemUrl: null };
@@ -281,7 +277,70 @@ export default function EventosM1() {
         })
       );
 
-      setEventos(eventosComImg);
+      // --- NOVO: calcular timestamp e status "efetivo" com base em data/hora, ordenar decrescente (mais recentes primeiro)
+      const parseEventTimestamp = (ev) => {
+        const dateStr = ev.dia || ev.data_evento || ev.day || "";
+        const startTime = ev.horaInicio || ev.hora_inicio || ev.hora || "";
+        if (!dateStr) return 0;
+        // normaliza data (assume YYYY-MM-DD) e tempo (HH:mm)
+        try {
+          const timePart = startTime ? startTime : "00:00";
+          const iso = `${dateStr}T${timePart}`;
+          const d = new Date(iso);
+          if (isNaN(d.getTime())) {
+            // tentativa alternativa: parse YYYY-MM-DD
+            const parts = dateStr.split("-");
+            if (parts.length === 3) return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])).getTime();
+            return 0;
+          }
+          return d.getTime();
+        } catch {
+          return 0;
+        }
+      };
+
+      const computeStatusFromDate = (ev) => {
+        const dateStr = ev.dia || ev.data_evento || ev.day || "";
+        if (!dateStr) return null;
+        const start = (() => {
+          const t = ev.horaInicio || ev.hora_inicio || ev.hora || "";
+          const iso = `${dateStr}T${(t || "00:00")}`;
+          const d = new Date(iso);
+          return isNaN(d.getTime()) ? null : d;
+        })();
+        const end = (() => {
+          const t = ev.horaFim || ev.hora_fim || ev.horaFim || "";
+          const iso = `${dateStr}T${(t || "23:59")}`;
+          const d = new Date(iso);
+          return isNaN(d.getTime()) ? null : d;
+        })();
+        const now = new Date();
+        if (start && end) {
+          if (now < start) return "Aberto";
+          if (now >= start && now <= end) return "Em andamento";
+          if (now > end) return "Encerrado";
+        } else if (start) {
+          if (now < start) return "Aberto";
+          if (now >= start) return "Em andamento";
+        }
+        return null;
+      };
+
+      const processed = eventosComImg.map(ev => {
+        const ts = parseEventTimestamp(ev);
+        const computed = computeStatusFromDate(ev);
+        const effectiveStatus = computed || (ev.statusSituacao || ev.statusEvento?.situacao || "").toString();
+        return { ...ev, _startTs: ts, statusEfetivo: effectiveStatus };
+      });
+
+      // ordenar do mais próximo/recente ao mais distante (decrescente por timestamp)
+      processed.sort((a, b) => (b._startTs || 0) - (a._startTs || 0));
+
+      setEventos(processed.map(p => {
+        const copy = { ...p };
+        delete copy._startTs;
+        return copy;
+      }));
       setFiltrosUI(INITIAL_FILTERS);
     } catch (error) {
       console.error("Erro ao buscar eventos:", error);

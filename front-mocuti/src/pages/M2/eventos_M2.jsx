@@ -134,7 +134,7 @@ export default function EventosM2() {
             if (val && typeof val === "object") {
               if (val.logradouro || val.rua || val.bairro || val.numero) return val;
             }
-          } catch {console.warn("Erro ao acessar propriedade do objeto"); }
+          } catch { /* ignore */ }
         }
         for (const key of Object.keys(node)) {
           const res = findAddressObject(node[key], seen);
@@ -239,7 +239,104 @@ export default function EventosM2() {
         })
       );
 
-      setEventos(eventosComImg);
+      // robusto parser de data/hora — inclui ISO completo com T
+      const tryParseDateTime = (dateStr, timeStr) => {
+        if (!dateStr) return null;
+        const ds = String(dateStr).trim();
+        const t = String(timeStr || "").trim();
+
+        // ISO full (ex: 2026-11-26T14:00:00 or 2026-11-26 14:00:00)
+        const isoFullMatch = ds.match(/^(\d{4}-\d{2}-\d{2})(?:[T\s](\d{2}:\d{2}(?::\d{2})?))?/);
+        if (isoFullMatch) {
+          const datePart = isoFullMatch[1];
+          const timePart = isoFullMatch[2] || t || "00:00";
+          const candidate = `${datePart}T${timePart}`;
+          const d = new Date(candidate);
+          if (!isNaN(d.getTime())) return d;
+        }
+
+        // YYYY-MM-DD without T
+        const isoMatch = ds.match(/^(\d{4})[-/](\d{2})[-/](\d{2})$/);
+        if (isoMatch) {
+          const [ , y, m, d ] = isoMatch;
+          const [hh = "0", mm = "0", ss = "0"] = (t || "00:00").split(":");
+          const dObj = new Date(Number(y), Number(m) - 1, Number(d), Number(hh), Number(mm), Number(ss));
+          if (!isNaN(dObj.getTime())) return dObj;
+        }
+
+        // BR DD/MM/YYYY or DD-MM-YYYY
+        const brMatch = ds.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
+        if (brMatch) {
+          const [ , day, month, year ] = brMatch;
+          const [hh = "0", mm = "0", ss = "0"] = (t || "00:00").split(":");
+          const dObj = new Date(Number(year), Number(month) - 1, Number(day), Number(hh), Number(mm), Number(ss));
+          if (!isNaN(dObj.getTime())) return dObj;
+        }
+
+        // fallback: try Date constructor with combined string
+        try {
+          const candidate = t ? `${ds} ${t}` : ds;
+          const dObj = new Date(candidate);
+          if (!isNaN(dObj.getTime())) return dObj;
+        } catch { /* ignore */ }
+        return null;
+      };
+
+      const computeStatusFromDate = (ev) => {
+        const dateStr = ev.dia || ev.data_evento || ev.day || "";
+        if (!dateStr) return null;
+        const start = tryParseDateTime(dateStr, ev.horaInicio || ev.hora_inicio || ev.hora || "");
+        const end = tryParseDateTime(dateStr, ev.horaFim || ev.hora_fim || ev.horaFim || "") || tryParseDateTime(dateStr, "23:59");
+        const now = new Date();
+        if (start && end) {
+          if (now < start) return "Aberto";
+          if (now >= start && now <= end) return "Em andamento";
+          if (now > end) return "Encerrado";
+        } else if (start) {
+          if (now < start) return "Aberto";
+          if (now >= start) return "Em andamento";
+        }
+        return null;
+      };
+
+      const parseEventTimestamp = (ev) => {
+        const dateStr = ev.dia || ev.data_evento || ev.day || "";
+        const dt = tryParseDateTime(dateStr, ev.horaInicio || ev.hora_inicio || ev.hora || "");
+        if (dt) return dt.getTime();
+        const fallback = tryParseDateTime(dateStr, "00:00");
+        return fallback ? fallback.getTime() : 0;
+      };
+
+      // ids que representam "Encerrado" no statusList (para backend id mapping)
+      const closedStatusIds = new Set((statusList || [])
+        .filter(s => (String(s.situacao || s.nome || "").toLowerCase().includes("encerr")))
+        .map(s => Number(s.idStatusEvento ?? s.id)).filter(Boolean)
+      );
+
+      const processed = eventosComImg.map(ev => {
+        const ts = parseEventTimestamp(ev);
+        const computed = computeStatusFromDate(ev);
+        const effectiveStatus = (computed || (ev.statusSituacao || ev.statusEvento?.situacao || "")).toString();
+        return { ...ev, _startTs: ts, statusEfetivo: effectiveStatus };
+      });
+
+      // ordenar ascendente (mais antigo primeiro)
+      processed.sort((a, b) => (a._startTs || 0) - (b._startTs || 0));
+
+      // manter todos exceto 'Encerrado' (usa statusEfetivo ou id do backend)
+      const filtered = processed.filter(ev => {
+        const sText = (ev.statusEfetivo || ev.statusSituacao || ev.statusEvento?.situacao || "").toString().toLowerCase();
+        if (sText.includes("encerr")) return false;
+        const backendId = Number(ev.statusEvento?.idStatusEvento ?? ev.statusEvento?.id ?? ev.statusId ?? 0);
+        if (backendId && closedStatusIds.has(backendId)) return false;
+        return true;
+      });
+
+      setEventos(filtered.map(p => {
+        const copy = { ...p };
+        delete copy._startTs;
+        return copy;
+      }));
       setFiltrosUI(INITIAL_FILTERS);
     } catch (error) {
       console.error("Erro ao buscar eventos:", error);

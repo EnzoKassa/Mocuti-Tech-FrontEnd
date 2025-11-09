@@ -65,7 +65,64 @@ export default function MeusEventosBeneficiario() {
       const inscritos = inscritosRes.ok ? await inscritosRes.json() : [];
 
       const normInscritos = await normalizeEventos(inscritos);
-      setParticipacoes(normInscritos);
+
+      // helper para parse de data/hora (suporta YYYY-MM-DD, ISO T, DD/MM/YYYY)
+      const tryParseDateTime = (dateStr, timeStr) => {
+        if (!dateStr) return null;
+        const ds = String(dateStr).trim();
+        const t = String(timeStr || "").trim();
+
+        // ISO full (2026-11-26T14:00:00 or "2026-11-26 14:00:00")
+        const isoFullMatch = ds.match(/^(\d{4}-\d{2}-\d{2})(?:[T\s](\d{2}:\d{2}(?::\d{2})?))?/);
+        if (isoFullMatch) {
+          const datePart = isoFullMatch[1];
+          const timePart = isoFullMatch[2] || t || "00:00";
+          const candidate = `${datePart}T${timePart}`;
+          const d = new Date(candidate);
+          if (!isNaN(d.getTime())) return d;
+        }
+
+        // YYYY-MM-DD
+        const isoMatch = ds.match(/^(\d{4})[-/](\d{2})[-/](\d{2})$/);
+        if (isoMatch) {
+          const [, y, m, d] = isoMatch;
+          const [hh = "0", mm = "0", ss = "0"] = (t || "00:00").split(":");
+          const dObj = new Date(Number(y), Number(m) - 1, Number(d), Number(hh), Number(mm), Number(ss));
+          if (!isNaN(dObj.getTime())) return dObj;
+        }
+
+        // DD/MM/YYYY or DD-MM-YYYY
+        const brMatch = ds.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
+        if (brMatch) {
+          const [, day, month, year] = brMatch;
+          const [hh = "0", mm = "0", ss = "0"] = (t || "00:00").split(":");
+          const dObj = new Date(Number(year), Number(month) - 1, Number(day), Number(hh), Number(mm), Number(ss));
+          if (!isNaN(dObj.getTime())) return dObj;
+        }
+
+        try {
+          const candidate = t ? `${ds} ${t}` : ds;
+          const dObj = new Date(candidate);
+          if (!isNaN(dObj.getTime())) return dObj;
+        } catch { /* ignore */ }
+        return null;
+      };
+
+      const getEventTimestamp = (p) => {
+        const dateStr = p.dia || p.data_evento || p.day || p.data || "";
+        const timeStr = p.horaInicio || p.hora_inicio || p.hora || p.horaInicioEvento || "";
+        const dt = tryParseDateTime(dateStr, timeStr) || tryParseDateTime(dateStr, "00:00");
+        return dt ? dt.getTime() : 0;
+      };
+
+      // ordenar do mais antigo para o mais novo (inverter se desejar o contrário)
+      const ordenados = [...normInscritos]
+        .map(p => ({ ...p, __evtTs: getEventTimestamp(p) }))
+        .sort((a, b) => (a.__evtTs || 0) - (b.__evtTs || 0))
+        // eslint-disable-next-line no-unused-vars
+        .map(({ __evtTs, ...rest }) => rest);
+
+      setParticipacoes(ordenados);
     } catch (err) {
       console.error("Erro ao buscar participações:", err);
       setParticipacoes([]);

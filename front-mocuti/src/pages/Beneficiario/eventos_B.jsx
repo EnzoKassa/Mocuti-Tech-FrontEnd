@@ -81,7 +81,7 @@ export default function EventosBeneficiario() {
                   ev.statusEvento?.idStatusEvento == filtrosAtuais.statusEventoId
               );
              }
-           
+
            const dataComDadosCompletos = data.map(evento => {
                const categoriaNome = evento.categoria?.nome || 
                    categorias.find(c => c.idCategoria == evento.categoria?.idCategoria)?.nome || '';
@@ -114,7 +114,6 @@ export default function EventosBeneficiario() {
                };
            });
 
-
              const eventosComImg = await Promise.all(
               dataComDadosCompletos.map(async (evento) => {
                   let eventoCompletado = { ...evento, imagemUrl: null }; 
@@ -132,7 +131,147 @@ export default function EventosBeneficiario() {
               })
              );
 
-             setEventos(eventosComImg);
+             // helpers robustos para parse de data/hora (suporta YYYY-MM-DD e DD/MM/YYYY)
+             const tryParseDateTime = (dateStr, timeStr) => {
+               if (!dateStr) return null;
+               const t = (timeStr || "").trim();
+               // normalize separators
+               const ds = String(dateStr).trim();
+               // ISO full or with T
+               const isoFullMatch = ds.match(/^(\d{4}-\d{2}-\d{2})(?:[T\s](\d{2}:\d{2}(?::\d{2})?))?/);
+               if (isoFullMatch) {
+                 const datePart = isoFullMatch[1];
+                 const timePart = isoFullMatch[2] || t || "00:00";
+                 const candidate = `${datePart}T${timePart}`;
+                 const d = new Date(candidate);
+                 if (!isNaN(d.getTime())) return d;
+               }
+               // ISO-like YYYY-MM-DD (or YYYY/MM/DD)
+               const isoMatch = ds.match(/^(\d{4})[-/](\d{2})[-/](\d{2})$/);
+               if (isoMatch) {
+                 const [ , y, m, d ] = isoMatch;
+                 const [hh = "0", mm = "0", ss = "0"] = (t || "00:00").split(":");
+                 const dObj = new Date(Number(y), Number(m) - 1, Number(d), Number(hh), Number(mm), Number(ss));
+                 if (!isNaN(dObj.getTime())) return dObj;
+               }
+               // DD/MM/YYYY or DD-MM-YYYY
+               const brMatch = ds.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
+               if (brMatch) {
+                 const [ , day, month, year ] = brMatch;
+                 const [hh = "0", mm = "0", ss = "0"] = (t || "00:00").split(":");
+                 const dObj = new Date(Number(year), Number(month) - 1, Number(day), Number(hh), Number(mm), Number(ss));
+                 if (!isNaN(dObj.getTime())) return dObj;
+               }
+               // try Date fallback (handles some other formats)
+               try {
+                 const candidate = t ? `${ds} ${t}` : ds;
+                 const dObj = new Date(candidate);
+                 if (!isNaN(dObj.getTime())) return dObj;
+               } catch { /* ignore */ }
+               return null;
+             };
+
+             const computeStatusFromDate = (ev) => {
+               const dateStr = ev.dia || ev.data_evento || ev.day || "";
+               if (!dateStr) return null;
+               const start = tryParseDateTime(dateStr, ev.horaInicio || ev.hora_inicio || ev.hora || "");
+               const end = tryParseDateTime(dateStr, ev.horaFim || ev.hora_fim || ev.horaFim || "") || tryParseDateTime(dateStr, "23:59");
+               const now = new Date();
+               if (start && end) {
+                 if (now < start) return "Aberto";
+                 if (now >= start && now <= end) return "Em andamento";
+                 if (now > end) return "Encerrado";
+               } else if (start) {
+                 if (now < start) return "Aberto";
+                 if (now >= start) return "Em andamento";
+               }
+               return null;
+             };
+
+             const parseEventTimestamp = (ev) => {
+               // timestamp usado para ordenação: usa início quando possível, senão tenta data sem hora
+               const dateStr = ev.dia || ev.data_evento || ev.day || "";
+               const dt = tryParseDateTime(dateStr, ev.horaInicio || ev.hora_inicio || ev.hora || "");
+               if (dt) return dt.getTime();
+               const fallback = tryParseDateTime(dateStr, "00:00");
+               return fallback ? fallback.getTime() : 0;
+             };
+
+             const processed = eventosComImg.map(ev => {
+               const ts = parseEventTimestamp(ev);
+               const computed = computeStatusFromDate(ev);
+               const effectiveStatus = (computed || (ev.statusSituacao || ev.statusEvento?.situacao || ev.situacao || "")).toString();
+               return { ...ev, _startTs: ts, statusEfetivo: effectiveStatus };
+             });
+
+             // ordenar do mais antigo (menor timestamp) para o mais novo — assim 2025 aparece acima de 2026
+             processed.sort((a, b) => (a._startTs || 0) - (b._startTs || 0));
+
+             // identificar ids de status "Encerrado" a partir do statusList
+             const closedStatusIds = new Set((statusList || [])
+               .filter(s => (String(s.situacao || s.nome || "").toLowerCase().includes("encerr")))
+               .map(s => Number(s.idStatusEvento ?? s.id)).filter(Boolean)
+             );
+
+             const containsEncerrado = (val) => {
+               if (!val) return false;
+               try {
+                 return String(val).toLowerCase().includes("encerr");
+               } catch { return false; }
+             };
+
+             // se usuário logado: buscar participações para excluir eventos já inscritos
+             let inscritosIds = new Set();
+             if (userId) {
+               try {
+                 const partRes = await fetch(`http://localhost:8080/participacoes/eventos-inscritos/${encodeURIComponent(userId)}`);
+                 if (partRes.ok) {
+                   const parts = await partRes.json();
+                   (parts || []).forEach(p => {
+                     // aceitar vários formatos: p.idEvento, p.evento?.idEvento, p.eventoId, p.id?.eventoId, p.id
+                     const id = p.idEvento ?? p.evento?.idEvento ?? p.eventoId ?? p.id?.eventoId ?? p.id;
+                     if (id || id === 0) inscritosIds.add(String(id));
+                   });
+                 }
+               } catch (err) {
+                 console.warn("Não foi possível buscar participações do usuário:", err);
+               }
+             }
+
+             // manter todos exceto 'Encerrado' e exceto eventos nos quais o usuário já está inscrito
+             const filtered = processed.filter(ev => {
+               // 1) status calc/ backend text
+               if (containsEncerrado(ev.statusEfetivo)) return false;
+               const backendTextCandidates = [
+                 ev.statusSituacao,
+                 ev.statusEvento?.situacao,
+                 ev.situacao,
+                 ev.status,
+                 ev.status_evento,
+                 ev.statusEventoNome,
+                 ev.statusName
+               ];
+               for (const t of backendTextCandidates) {
+                 if (containsEncerrado(t)) return false;
+               }
+               // 2) backend id mapping
+               const backendId = Number(ev.statusEvento?.idStatusEvento ?? ev.statusEvento?.id ?? ev.statusId ?? ev.statusEventoId ?? ev.status_evento_id ?? 0);
+               if (backendId && closedStatusIds.has(backendId)) return false;
+
+               // 3) excluir eventos onde usuário já está inscrito (se userId presente)
+               if (inscritosIds.size > 0) {
+                 const evId = ev.idEvento ?? ev.id ?? ev.id_evento ?? ev.eventoId;
+                 if (evId !== undefined && evId !== null && inscritosIds.has(String(evId))) return false;
+               }
+
+               return true;
+             });
+
+             setEventos(filtered.map(p => {
+               const copy = { ...p };
+               delete copy._startTs;
+               return copy;
+             }));
              
              setFiltrosUI(INITIAL_FILTERS); 
        } catch (error) {
