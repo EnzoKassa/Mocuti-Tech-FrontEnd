@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useResetPassword } from "../auth/ResetPasswordContext";
 import '../styles/ForgotPassword.css';
+import api from '../api/api';
 
 export default function ResetPassword() {
   const { setStep } = useResetPassword();
@@ -21,26 +22,19 @@ export default function ResetPassword() {
       setMensagem("As senhas não coincidem!");
       return;
     }
-    try {
-      const body = { token: token.trim(), novaSenha };
-      const response = await fetch("http://localhost:8080/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+   try {
+  const body = { token: token.trim(), novaSenha }
+  const res = await api.post('/auth/reset-password', body)
+  console.log('Senha redefinida com sucesso:', res.data)
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || "Erro ao redefinir senha");
-      }
+  setMensagem("Senha redefinida com sucesso!")
+  setStep(2)
+  navigate("/reset-success")
 
-      setMensagem("Senha redefinida com sucesso!");
-      setStep(2);
-      navigate("/reset-success");
-    } catch (error) {
-      setMensagem("Token inválido ou expirado.");
-      console.error(error);
-    }
+} catch (error) {
+  setMensagem("Token inválido ou expirado.")
+  console.error('Erro ao redefinir senha:', error)
+}
   };
 
   const EyeIcon = () => (
