@@ -18,6 +18,7 @@ export default function EspacoEventosBeneficiario({
   onOpenModal,
   showFeedbackButton = false, // NOVO: controla se o botão aparece
   onFeedbackClick, // opcional: callback ao clicar
+  feedbackButtonText = "Enviar Feedback"
 }) {
   const exibirParticipar =
     hideParticipar === true
@@ -272,7 +273,7 @@ export default function EspacoEventosBeneficiario({
                           }
                         }}
                       >
-                        Enviar Feedback
+                      {feedbackButtonText || "Enviar Feedback"}
                       </button>
                     )}
                   </div>

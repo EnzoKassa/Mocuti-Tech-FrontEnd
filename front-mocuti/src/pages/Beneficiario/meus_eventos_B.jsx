@@ -5,37 +5,51 @@ import HeaderBeneficiario from "../../components/HeaderBeneficiario";
 import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
 import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
 import Swal from "sweetalert2";
+import api from "../../api/api"; //importa sua instância Axios
 import "../../styles/meusEventos.css";
 
 export default function MeusEventosBeneficiario() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const idUsuario = user?.id || localStorage.getItem("idUsuario") || sessionStorage.getItem("idUsuario");
+  const idUsuario =
+    user?.id ||
+    localStorage.getItem("idUsuario") ||
+    sessionStorage.getItem("idUsuario");
 
   const botoesNav = [
     { onClick: () => navigate("/usuario/eventos"), label: "Eventos", className: "btn-inicio" },
     { onClick: () => navigate("/usuario/perfil"), label: "Meu Perfil", className: "btn-sobre" },
     { onClick: () => navigate("/usuario/meus-eventos"), label: "Meus Eventos", className: "btn-linha" },
-    { onClick: () => navigate("/usuario/feedback"), label: "Feedback", className: "btn-comentarios" }
+    { onClick: () => navigate("/usuario/feedback"), label: "Feedback", className: "btn-comentarios" },
   ];
 
   const [participacoes, setParticipacoes] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // 🔹 Normaliza e busca detalhes + imagem
   const normalizeEventos = async (arr) =>
     Promise.all(
       (arr || []).map(async (p) => {
         let imagemUrl = null;
         let eventoDetalhes = null;
+
         try {
-          const eventoId = p.idEvento || p.id?.eventoId || p.id?.evento_id || (p.id && (p.id.eventoId || p.id));
+          const eventoId =
+            p.idEvento ||
+            p.id?.eventoId ||
+            p.id?.evento_id ||
+            (p.id && (p.id.eventoId || p.id));
+
           if (eventoId) {
-            const res = await fetch(`http://localhost:8080/eventos/${eventoId}`);
-            if (res.ok) eventoDetalhes = await res.json();
-            const imgRes = await fetch(`http://localhost:8080/eventos/foto/${eventoId}`);
-            if (imgRes.ok) {
-              const blob = await imgRes.blob();
-              imagemUrl = URL.createObjectURL(blob);
+            const res = await api.get(`/eventos/${eventoId}`);
+            eventoDetalhes = res.data;
+
+            // 🔹 Baixa a imagem como blob
+            const imgRes = await api.get(`/eventos/foto/${eventoId}`, {
+              responseType: "blob",
+            });
+            if (imgRes.status === 200 && imgRes.data) {
+              imagemUrl = URL.createObjectURL(imgRes.data);
             }
           }
         } catch (err) {
@@ -46,25 +60,31 @@ export default function MeusEventosBeneficiario() {
           ...p,
           ...(eventoDetalhes || {}),
           imagemUrl,
-          idEvento: p.idEvento || p.id?.eventoId || (eventoDetalhes && eventoDetalhes.idEvento) || p.id,
+          idEvento:
+            p.idEvento ||
+            p.id?.eventoId ||
+            (eventoDetalhes && eventoDetalhes.idEvento) ||
+            p.id,
         };
       })
     );
 
+  // 🔹 Busca eventos do usuário
   const fetchEventos = async () => {
     if (!idUsuario) {
       setParticipacoes([]);
       setLoading(false);
       return;
     }
+
     try {
       setLoading(true);
 
-      const urlInscritos = `http://localhost:8080/participacoes/eventos-inscritos/${encodeURIComponent(idUsuario)}`;
-      const inscritosRes = await fetch(urlInscritos);
-      const inscritos = inscritosRes.ok ? await inscritosRes.json() : [];
+      const { data } = await api.get(
+        `/participacoes/eventos-inscritos/${encodeURIComponent(idUsuario)}`
+      );
 
-      const normInscritos = await normalizeEventos(inscritos);
+      const normInscritos = await normalizeEventos(data);
       setParticipacoes(normInscritos);
     } catch (err) {
       console.error("Erro ao buscar participações:", err);
@@ -78,11 +98,17 @@ export default function MeusEventosBeneficiario() {
     fetchEventos();
   }, [idUsuario]);
 
+  // 🔹 Cancela inscrição
   const cancelarInscricao = async (idEvento) => {
     if (!idUsuario) {
-      Swal.fire("Atenção", "Você precisa estar logado para cancelar a inscrição.", "warning");
+      Swal.fire(
+        "Atenção",
+        "Você precisa estar logado para cancelar a inscrição.",
+        "warning"
+      );
       return;
     }
+
     const choice = await Swal.fire({
       title: "Confirmação",
       text: "Tem certeza que deseja cancelar sua inscrição neste evento?",
@@ -96,20 +122,35 @@ export default function MeusEventosBeneficiario() {
     if (!choice.isConfirmed) return;
 
     try {
-      const url = `http://localhost:8080/participacoes/${encodeURIComponent(idEvento)}/cancelar-inscricao?idUsuario=${encodeURIComponent(idUsuario)}`;
-      const res = await fetch(url, { method: "DELETE" });
-      if (res.ok || res.status === 204) {
-        setParticipacoes((prev) => prev.filter((ev) => String(ev.idEvento) !== String(idEvento)));
-        Swal.fire("Inscrição cancelada", "Sua inscrição foi cancelada.", "success");
-      } else {
-        Swal.fire("Erro", "Não foi possível cancelar a inscrição de um evento que já está em andamento ou encerrado.", "error");
-      }
+      await api.delete(
+        `/participacoes/${encodeURIComponent(
+          idEvento
+        )}/cancelar-inscricao`,
+        {
+          params: { idUsuario: encodeURIComponent(idUsuario) },
+        }
+      );
+
+      setParticipacoes((prev) =>
+        prev.filter((ev) => String(ev.idEvento) !== String(idEvento))
+      );
+
+      Swal.fire(
+        "Inscrição cancelada",
+        "Sua inscrição foi cancelada.",
+        "success"
+      );
     } catch (err) {
       console.error("Erro ao cancelar inscrição:", err);
-      Swal.fire("Erro", "Falha ao conectar com o servidor.", "error");
+
+      const msg =
+        err.response?.data?.message ||
+        "Não foi possível cancelar a inscrição de um evento que já está em andamento ou encerrado.";
+      Swal.fire("Erro", msg, "error");
     }
   };
 
+  // 🔹 Exibe modal de detalhes
   const mostrarDetalhes = (evento) => {
     const titulo = evento.nomeEvento || evento.nome || "Evento";
     const descricao = evento.descricao || evento.descricaoEvento || "Sem descrição.";
@@ -118,10 +159,17 @@ export default function MeusEventosBeneficiario() {
     const horaFim = evento.horaFim || evento.hora_fim || "-";
 
     let local = "Local não informado";
-    const e = evento.endereco || evento.enderecoEvento || evento.enderecoFormatado || evento.local || null;
+    const e =
+      evento.endereco ||
+      evento.enderecoEvento ||
+      evento.enderecoFormatado ||
+      evento.local ||
+      null;
+
     if (e && typeof e === "object") {
       const rua = e.logradouro || e.rua || "";
-      const numero = (e.numero !== undefined && e.numero !== null) ? String(e.numero) : "";
+      const numero =
+        e.numero !== undefined && e.numero !== null ? String(e.numero) : "";
       const bairro = e.bairro || "";
       const parts = [];
       if (rua) parts.push(rua + (numero ? `, ${numero}` : ""));
@@ -132,7 +180,9 @@ export default function MeusEventosBeneficiario() {
     }
 
     const categoria = evento.categoria?.nome || evento.categoriaNome || "-";
-    const imgHtml = evento.imagemUrl ? `<img src="${evento.imagemUrl}" alt="${titulo}" class="sw-img" />` : `<div class="sw-img sw-noimg">Sem imagem</div>`;
+    const imgHtml = evento.imagemUrl
+      ? `<img src="${evento.imagemUrl}" alt="${titulo}" class="sw-img" />`
+      : `<div class="sw-img sw-noimg">Sem imagem</div>`;
 
     const html = `
       <div class="sw-modal-compact" style="display:flex; gap:18px;">
@@ -166,7 +216,7 @@ export default function MeusEventosBeneficiario() {
         content: "swal2-content my-swal-content",
         confirmButton: "sw-btn sw-btn-confirm",
         cancelButton: "sw-btn sw-btn-cancel",
-        closeButton: "swal2-close my-swal-close"
+        closeButton: "swal2-close my-swal-close",
       },
       buttonsStyling: false,
     }).then((result) => {
@@ -186,8 +236,17 @@ export default function MeusEventosBeneficiario() {
           <p>Carregando eventos...</p>
         ) : (
           <div className="feedback-container">
-            <div className="eventos-unificado" style={{ background: "#F5F5F5", padding: 0 , boxShadow: "0 2px 4px rgba(0,0,0,0.06)" }}>
-              <h1 style={{ marginTop: 0, padding: "0 0 0 100px" }}>Meus Eventos</h1>
+            <div
+              className="eventos-unificado"
+              style={{
+                background: "#F5F5F5",
+                padding: 0,
+                boxShadow: "0 2px 4px rgba(0,0,0,0.06)",
+              }}
+            >
+              <h1 style={{ marginTop: 0, padding: "0 0 0 100px" }}>
+                Meus Eventos
+              </h1>
               <div style={{ marginTop: 8 }}>
                 <EspacoEventosBeneficiario
                   eventos={participacoes}
@@ -195,7 +254,6 @@ export default function MeusEventosBeneficiario() {
                   hideParticipar={true}
                   onOpenModal={mostrarDetalhes}
                   onCancelarInscricao={cancelarInscricao}
-                  s
                 />
               </div>
             </div>
@@ -205,5 +263,3 @@ export default function MeusEventosBeneficiario() {
     </div>
   );
 }
-
-

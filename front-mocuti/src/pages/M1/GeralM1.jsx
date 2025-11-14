@@ -7,7 +7,7 @@ import Visao from "../../assets/images/visaoGeral.svg";
 import Lista from "../../assets/images/Listausuario.svg";
 import { Doughnut, Line} from 'react-chartjs-2';
 import { Bar as ChartBar } from 'react-chartjs-2';
-
+import api from '../../api/api';
 
 
 import {
@@ -100,10 +100,9 @@ const GeralM1 = () => {
 // Faixa  etaria aqui, nao deu certo deixei um de plano B
 
  async function FaixaEtaria() {
-  const resposta = await fetch("http://localhost:8080/usuarios/view/faixa-etaria-usuarios-ativos");
-  const faixaEtaria = await resposta.json();
-  console.log("FaixaEtaria:", faixaEtaria);
-
+    const resposta = await api.get("/usuarios/view/faixa-etaria-usuarios-ativos");
+    const faixaEtaria = resposta.data;
+    console.log("FaixaEtaria:", faixaEtaria);
 
   if (faixaEtaria.length > 0) {
     const obj = faixaEtaria[0];
@@ -174,8 +173,8 @@ return faixaEtariaDistribuicao.length > 0 ? <ChartBar data={data} options={optio
     // Grafico de genero  Aqui, nao deu certo deixei um de plano B
 
     async function GeneroAlvo() {
-        const resposta = await fetch("http://localhost:8080/usuarios/view/publico-alvo-genero");
-        const genero = await resposta.json();
+        const resposta = await api.get("/usuarios/view/publico-alvo-genero");
+        const genero = resposta.data;
         console.log("Genero:", genero);
         setGeneroDistribuicao(genero);
     }
@@ -229,8 +228,8 @@ return faixaEtariaDistribuicao.length > 0 ? <ChartBar data={data} options={optio
 
 
     async function FeedbackPorCategoria() {
-        const resposta = await fetch("http://localhost:8080/feedback/view/feedbacks-por-categoria");
-        const feedbackCategoria = await resposta.json();
+        const resposta = await api.get("/feedback/view/feedbacks-por-categoria");
+        const feedbackCategoria = resposta.data;
         console.log("Feedback por categoria:", feedbackCategoria);
 
         const data = feedbackCategoria.map((item) => ({
@@ -245,8 +244,8 @@ return faixaEtariaDistribuicao.length > 0 ? <ChartBar data={data} options={optio
     }
 
     async function FeedbackPorCategoriaMensal() {
-        const resposta = await fetch("http://localhost:8080/feedback/view/feedback-categoria-mes-atual");
-        const feedbackCategoriaMensal = await resposta.json();
+        const resposta = await api.get("/feedback/view/feedback-categoria-mes-atual");
+        const feedbackCategoriaMensal = resposta.data;
         console.log("Feedback por categoria Mensal:", feedbackCategoriaMensal);
 
         const data = feedbackCategoriaMensal.map((item) => ({
@@ -263,8 +262,8 @@ return faixaEtariaDistribuicao.length > 0 ? <ChartBar data={data} options={optio
 
 
     async function InscricaoMensal() {
-        const resposta = await fetch("http://localhost:8080/usuarios/view/inscricoes-mes-durante-ano");
-        const inscricaoUsuarioMes = await resposta.json();
+        const resposta = await api.get("/usuarios/view/inscricoes-mes-durante-ano");
+        const inscricaoUsuarioMes = resposta.data;
         console.log("Inscricao usuario Mes", inscricaoUsuarioMes);
 
 
@@ -321,8 +320,8 @@ return faixaEtariaDistribuicao.length > 0 ? <ChartBar data={data} options={optio
 
     async function ranking() {
         try {
-            const resposta = await fetch("http://localhost:8080/categorias/view/ranking");
-            const dados = await resposta.json();
+            const resposta = await api.get("/categorias/view/ranking");
+            const dados = resposta.data;
             console.log("Ranking de Categoria", dados);
             setRankingCategoria(dados);
         } catch (erro) {
@@ -331,8 +330,8 @@ return faixaEtariaDistribuicao.length > 0 ? <ChartBar data={data} options={optio
     }
 
     async function visaoUser() {
-        const resposta = await fetch("http://localhost:8080/usuarios/view/visao-geral");
-        const visaoUser = await resposta.json();
+        const resposta = await api.get("/usuarios/view/visao-geral");
+        const visaoUser = resposta.data;
         setBenefAtivos(visaoUser.total_beneficiarios_ativos);
         setM1Ativos(visaoUser.total_m1_ativos);
         setM2Ativos(visaoUser.total_m2_ativos);
