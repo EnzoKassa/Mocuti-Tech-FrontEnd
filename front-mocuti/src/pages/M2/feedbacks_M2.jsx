@@ -6,6 +6,7 @@ import EventosTable from "../../components/table_Feedbacks_M2";
 import ModalFeedback from "../../components/modal/Modal_Feedback_M2";
 import ModalVisualizacao from "../../components/modal/Modal_FeedbackVisul_M2";
 import "../../styles/FeedbacksM2.css";
+import { FiInfo } from "react-icons/fi";
 
 // Imagens usadas no menu
 import Calendario from "../../assets/images/calendario.svg";
@@ -28,13 +29,12 @@ const FeedbacksM2 = () => {
   const [error, setError] = useState(null);
   const [modalData, setModalData] = useState(null);
 
-   const rotasPersonalizadas = [
-     { texto: "Eventos", img: Calendario, rota: "/moderador/eventos" },
-     { texto: "Convites", img: convite, rota: "/moderador/convites" },
-      { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
-     { texto: "Meu Perfil", img: MeuPerfil, rota: "/moderador/perfil" },
-    
-   ];
+  const rotasPersonalizadas = [
+    { texto: "Eventos", img: Calendario, rota: "/moderador/eventos" },
+    { texto: "Convites", img: convite, rota: "/moderador/convites" },
+    { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
+    { texto: "Meu Perfil", img: MeuPerfil, rota: "/moderador/perfil" },
+  ];
 
   useEffect(() => {
     if (!idUsuario) return;
@@ -108,10 +108,9 @@ const FeedbacksM2 = () => {
 
   return (
     <>
+      <div className="MainFeedbackM2">
+        <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
 
-    <div className="MainFeedbackM2">
-      <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
-     
         <div className="scroll-page">
           <div className="feedback">
             <div className="m2-feedback-container">
@@ -124,7 +123,23 @@ const FeedbacksM2 = () => {
                 editable={true}
               />
 
-              <h1>Eventos passados</h1>
+              <h1
+                style={{
+                  marginTop: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                Eventos passados
+                <span className="info-icon">
+                  <FiInfo />
+                  <span className="tooltip-text">
+                    Para os eventos passados, você pode apenas visualizar os
+                    feedbacks já enviados.
+                  </span>
+                </span>
+              </h1>
               <EventosTable
                 eventos={eventosPassados}
                 onDetalhes={(p) => setModalData({ ...p, isPassado: true })}
@@ -149,11 +164,8 @@ const FeedbacksM2 = () => {
           </div>
         </div>
       </div>
-
     </>
   );
 };
 
 export default FeedbacksM2;
-
-

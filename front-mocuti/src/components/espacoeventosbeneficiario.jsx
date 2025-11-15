@@ -18,6 +18,7 @@ export default function EspacoEventosBeneficiario({
   onOpenModal,
   showFeedbackButton = false, // NOVO: controla se o botão aparece
   onFeedbackClick, // opcional: callback ao clicar
+  feedbackLabel = "Enviar Feedback", // << NOVO
 }) {
   const exibirParticipar =
     hideParticipar === true
@@ -102,7 +103,7 @@ export default function EspacoEventosBeneficiario({
         title: "swal2-title my-swal-title",
         content: "swal2-content my-swal-content",
         closeButton: "swal2-close my-swal-close",
-        confirmButton: "sw-btn sw-btn-confirm"
+        confirmButton: "sw-btn sw-btn-confirm",
       },
       buttonsStyling: false,
     });
@@ -272,7 +273,7 @@ export default function EspacoEventosBeneficiario({
                           }
                         }}
                       >
-                        Enviar Feedback
+                        {feedbackLabel}
                       </button>
                     )}
                   </div>
@@ -285,5 +286,3 @@ export default function EspacoEventosBeneficiario({
     </div>
   );
 }
-
-

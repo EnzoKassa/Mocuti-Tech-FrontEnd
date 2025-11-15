@@ -287,7 +287,7 @@ export default function FeedbackBeneficiario() {
               boxShadow: "0 2px 4px rgba(0,0,0,0.06)",
             }}
           >
-            <h1 style={{ marginTop: 0, padding: "0 0 0 100px" }}>
+            <h1 style={{ marginTop: 0, padding: "0 0 0 100px", marginBottom: "10px" }}>
               Eventos para comentar
             </h1>
             <div style={{ marginTop: 8 }}>
@@ -301,7 +301,7 @@ export default function FeedbackBeneficiario() {
               />
             </div>
 
-            <h1 style={{ marginTop: 32, paddingLeft: "100px" }}>
+            <h1 style={{ marginTop: 32, paddingLeft: "100px", marginBottom: "10px" }}>
               Eventos passados
             </h1>
             <div style={{ marginTop: 8 }}>
@@ -312,6 +312,7 @@ export default function FeedbackBeneficiario() {
                 onOpenModal={mostrarDetalhes}
                 showFeedbackButton={true} // Botão aparece só aqui
                 onFeedbackClick={abrirFeedbackView} // Abre modal M2
+                feedbackLabel="Ver comentário" // ou "Avaliar", "Responder", etc
               />
             </div>
           </div>

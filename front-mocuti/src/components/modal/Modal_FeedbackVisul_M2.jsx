@@ -12,17 +12,17 @@ const ModalVisualizacao = ({ modalData, onClose }) => (
 
       <label>Comentário</label>
       <div className="feedback-modal-content">
-        <textarea value={modalData.comentario || ""} readOnly />
+              <textarea value={modalData.comentario || ""} readOnly  style={{ cursor: "not-allowed" }}/>
       </div>
 
       <div className="feedback-modal-botoes">
         <p>Nota do Evento</p>
         <div className="feedback-modal-acao">
-          <button className="nota-botao" disabled>
+          <button className="nota-botao" disabled style={{ cursor: "not-allowed" }}>
             {modalData.nota === "like" ? <BiSolidLike /> : <BiLike />}
             <span>Gostei</span>
           </button>
-          <button className="nota-botao" disabled>
+          <button className="nota-botao" disabled style={{ cursor: "not-allowed" }}>
             {modalData.nota === "dislike" ? <BiSolidDislike /> : <BiDislike />}
             <span>Não Gostei</span>
           </button>

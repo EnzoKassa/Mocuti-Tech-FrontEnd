@@ -48,3 +48,56 @@
   color: #1e293b;
   margin-bottom: 1.5rem;
 }
+
+/* ICON DE INFO */
+
+.info-icon {
+  position: relative; /* necessário para o tooltip */
+  margin-left: 8px;
+  color: #888;
+  cursor: pointer;
+  font-size: 18px; 
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+}
+
+
+.info-icon:hover {
+  color: #555; /* muda cor ao passar o mouse */
+}
+
+.tooltip-text {
+  visibility: hidden;
+  width: 240px;
+  background-color: #333;
+  color: #fff;
+  text-align: left;
+  padding: 8px;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 10;
+  bottom: 125%; /* acima do ícone */
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%; /* seta na parte inferior do balão */
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+.info-icon:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
