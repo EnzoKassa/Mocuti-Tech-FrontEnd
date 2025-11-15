@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
-import axios from "axios";
 import { NavLateral } from "../../components/NavLateral";
 import EventosTable from "../../components/table_Feedbacks_M2";
 import ModalFeedback from "../../components/modal/Modal_Feedback_M2";
 import ModalVisualizacao from "../../components/modal/Modal_FeedbackVisul_M2";
 import "../../styles/FeedbacksM2.css";
+import api from "../../api/api";
 
-// Imagens usadas no menu
+// Imagens
 import Calendario from "../../assets/images/calendario.svg";
 import MeuPerfil from "../../assets/images/meuPerfil.svg";
 import feedback from "../../assets/images/feedbackLogo.svg";
@@ -28,27 +28,28 @@ const FeedbacksM2 = () => {
   const [error, setError] = useState(null);
   const [modalData, setModalData] = useState(null);
 
-   const rotasPersonalizadas = [
-     { texto: "Eventos", img: Calendario, rota: "/moderador/eventos" },
-     { texto: "Convites", img: convite, rota: "/moderador/convites" },
-      { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
-     { texto: "Meu Perfil", img: MeuPerfil, rota: "/moderador/perfil" },
-    
-   ];
+  const rotasPersonalizadas = [
+    { texto: "Eventos", img: Calendario, rota: "/moderador/eventos" },
+    { texto: "Convites", img: convite, rota: "/moderador/convites" },
+    { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
+    { texto: "Meu Perfil", img: MeuPerfil, rota: "/moderador/perfil" },
+  ];
 
   useEffect(() => {
     if (!idUsuario) return;
 
     const fetchEventos = async () => {
       try {
-        const { data: paraComentar } = await axios.get(
-          `http://localhost:8080/participacoes/participacao-comentar/${idUsuario}`
+        const { data: paraComentar } = await api.get(
+          `/participacoes/participacao-comentar/${idUsuario}`
         );
-        const { data: passados } = await axios.get(
-          `http://localhost:8080/participacoes/participacao-passados/${idUsuario}`
+        const { data: passados } = await api.get(
+          `/participacoes/participacao-passados/${idUsuario}`
         );
+
         const normalize = (arr) =>
           arr.map((p) => ({ ...p, nota: p.nota?.tipoNota || null }));
+
         setParticipacoes(normalize(paraComentar));
         setEventosPassados(normalize(passados));
       } catch (err) {
@@ -72,11 +73,7 @@ const FeedbacksM2 = () => {
         idNota: notaString ? NOTAS_MAP[notaString] : null,
       };
 
-      const { data: updated } = await axios.post(
-        "http://localhost:8080/feedback",
-        body,
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const { data: updated } = await api.post(`/feedback`, body);
 
       setParticipacoes((prev) =>
         prev.map((ev) =>
@@ -107,53 +104,48 @@ const FeedbacksM2 = () => {
   if (error) return <p>{error}</p>;
 
   return (
-    <>
-
     <div className="MainFeedbackM2">
       <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
-     
-        <div className="scroll-page">
-          <div className="feedback">
-            <div className="m2-feedback-container">
-              <div className="feedback-title">Feedbacks</div>
-              <h1>Eventos para comentar</h1>
-              <EventosTable
-                eventos={participacoes}
-                onFeedback={handleFeedback}
-                onDetalhes={(p) => setModalData(p)}
-                editable={true}
+
+      <div className="scroll-page">
+        <div className="feedback">
+          <div className="m2-feedback-container">
+            <div className="feedback-title">Feedbacks</div>
+
+            <h1>Eventos para comentar</h1>
+            <EventosTable
+              eventos={participacoes}
+              onFeedback={handleFeedback}
+              onDetalhes={(p) => setModalData(p)}
+              editable={true}
+            />
+
+            <h1>Eventos passados</h1>
+            <EventosTable
+              eventos={eventosPassados}
+              onDetalhes={(p) => setModalData({ ...p, isPassado: true })}
+              editable={false}
+            />
+
+            {modalData && modalData.isPassado && (
+              <ModalVisualizacao
+                modalData={modalData}
+                onClose={() => setModalData(null)}
               />
+            )}
 
-              <h1>Eventos passados</h1>
-              <EventosTable
-                eventos={eventosPassados}
-                onDetalhes={(p) => setModalData({ ...p, isPassado: true })}
-                editable={false}
+            {modalData && !modalData.isPassado && (
+              <ModalFeedback
+                modalData={modalData}
+                onClose={() => setModalData(null)}
+                onSave={handleFeedback}
               />
-
-              {modalData && modalData.isPassado && (
-                <ModalVisualizacao
-                  modalData={modalData}
-                  onClose={() => setModalData(null)}
-                />
-              )}
-
-              {modalData && !modalData.isPassado && (
-                <ModalFeedback
-                  modalData={modalData}
-                  onClose={() => setModalData(null)}
-                  onSave={handleFeedback}
-                />
-              )}
-            </div>
+            )}
           </div>
         </div>
       </div>
-
-    </>
+    </div>
   );
 };
 
 export default FeedbacksM2;
-
-

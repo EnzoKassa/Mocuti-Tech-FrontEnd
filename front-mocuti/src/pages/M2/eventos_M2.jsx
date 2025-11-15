@@ -8,6 +8,7 @@ import "../../styles/EventosBeneficiario.css";
 import "../../styles/NavLateral.css";
 import "../../styles/TelaComNavLateral.css";
 import "../../styles/FeedbacksM2.css";
+import api from "../../api/api";
 
 import Calendario from "../../assets/images/calendario.svg";
 import MeuPerfil from "../../assets/images/meuPerfil.svg";
@@ -19,7 +20,7 @@ const INITIAL_FILTERS = {
   dataInicio: "",
   dataFim: "",
   categoriaId: "",
-  statusEventoId: ""
+  statusEventoId: "",
 };
 
 export default function EventosM2() {
@@ -28,9 +29,8 @@ export default function EventosM2() {
   const rotasPersonalizadas = [
     { texto: "Eventos", img: Calendario, rota: "/moderador/eventos" },
     { texto: "Convites", img: convite, rota: "/moderador/convites" },
-     { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
+    { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
     { texto: "Meu Perfil", img: MeuPerfil, rota: "/moderador/perfil" },
-   
   ];
 
   const [eventos, setEventos] = useState([]);
@@ -40,7 +40,9 @@ export default function EventosM2() {
   const [loading, setLoading] = useState(false);
 
   const getAuthToken = () => {
-    return localStorage.getItem("token") || localStorage.getItem("authToken") || null;
+    return (
+      localStorage.getItem("token") || localStorage.getItem("authToken") || null
+    );
   };
 
   const getAuthHeaders = () => {
@@ -49,30 +51,51 @@ export default function EventosM2() {
   };
 
   const safeFetchJson = async (url, opts = {}) => {
-    const options = { ...opts };
-    options.headers = { ...(options.headers || {}), ...getAuthHeaders(), Accept: "application/json" };
-    const res = await fetch(url, options);
-    if (res.status === 401) throw new Error("Unauthorized");
-    if (res.status === 204) return null;
-    if (!res.ok) {
-      const txt = await res.text().catch(() => `Erro ${res.status}`);
-      throw new Error(txt || `Erro HTTP: ${res.status}`);
+    try {
+      const response = await api({
+        url,
+        method: opts.method || "GET",
+        data: opts.body || undefined,
+        headers: {
+          ...getAuthHeaders(),
+          Accept: "application/json",
+          ...(opts.headers || {}),
+        },
+        params: opts.params || undefined,
+      });
+
+      // Axios retorna dados diretamente em response.data
+      return response.data || null;
+    } catch (error) {
+      // Erro de autenticação
+      if (error.response?.status === 401) throw new Error("Unauthorized");
+      // Sem conteúdo
+      if (error.response?.status === 204) return null;
+      // Outros erros HTTP
+      const txt = error.response?.data
+        ? typeof error.response.data === "string"
+          ? error.response.data
+          : JSON.stringify(error.response.data)
+        : error.message;
+      throw new Error(txt || `Erro HTTP: ${error.response?.status}`);
     }
-    const txt = await res.text().catch(() => "");
-    if (!txt) return null;
-    try { return JSON.parse(txt); } catch { return null; }
   };
 
   useEffect(() => {
     (async () => {
       try {
-        const cats = await safeFetchJson("http://localhost:8080/categorias");
+        const cats = await safeFetchJson("/categorias"); // usando a baseURL do axios
         if (Array.isArray(cats)) setCategorias(cats);
-      } catch (err) { console.error("Erro ao buscar categorias:", err); }
+      } catch (err) {
+        console.error("Erro ao buscar categorias:", err);
+      }
+
       try {
-        const sts = await safeFetchJson("http://localhost:8080/status-eventos");
+        const sts = await safeFetchJson("/status-eventos"); // usando a baseURL do axios
         if (Array.isArray(sts)) setStatusList(sts);
-      } catch (err) { console.error("Erro ao buscar status:", err); }
+      } catch (err) {
+        console.error("Erro ao buscar status:", err);
+      }
     })();
   }, []);
 
@@ -80,37 +103,53 @@ export default function EventosM2() {
     try {
       setLoading(true);
       const filtrosAtuais = filtrosUI;
-      let url = "http://localhost:8080/eventos/por-eventos";
+      let url = "/eventos/por-eventos";
       const params = new URLSearchParams();
       if (filtrosAtuais.nome) params.append("nome", filtrosAtuais.nome);
-      if (filtrosAtuais.dataInicio) params.append("dataInicio", filtrosAtuais.dataInicio);
-      if (filtrosAtuais.dataFim) params.append("dataFim", filtrosAtuais.dataFim);
+      if (filtrosAtuais.dataInicio)
+        params.append("dataInicio", filtrosAtuais.dataInicio);
+      if (filtrosAtuais.dataFim)
+        params.append("dataFim", filtrosAtuais.dataFim);
       const filtrosAdicionais = params.toString();
 
       if (filtrosAtuais.categoriaId && filtrosAtuais.statusEventoId === "") {
-        url = `http://localhost:8080/eventos/por-categoria?categoriaId=${filtrosAtuais.categoriaId}`;
+        url = `/eventos/por-categoria?categoriaId=${filtrosAtuais.categoriaId}`;
         if (filtrosAdicionais) url += "&" + filtrosAdicionais;
-      } else if (filtrosAtuais.statusEventoId && filtrosAtuais.categoriaId === "") {
-        url = `http://localhost:8080/eventos/status?statusEventoId=${filtrosAtuais.statusEventoId}`;
+      } else if (
+        filtrosAtuais.statusEventoId &&
+        filtrosAtuais.categoriaId === ""
+      ) {
+        url = `/eventos/status?statusEventoId=${filtrosAtuais.statusEventoId}`;
         if (filtrosAdicionais) url += "&" + filtrosAdicionais;
       } else if (filtrosAdicionais) {
         url += "?" + filtrosAdicionais;
       }
 
       const data = (await safeFetchJson(url)) || [];
-      if (!Array.isArray(data)) { setEventos([]); return; }
+      if (!Array.isArray(data)) {
+        setEventos([]);
+        return;
+      }
 
       const tryParseIfJson = (v) => {
         if (!v || typeof v !== "string") return v;
         const s = v.trim();
-        if ((s.startsWith("{") && s.endsWith("}")) || (s.startsWith("[") && s.endsWith("]"))) {
-          try { return JSON.parse(s); } catch { return v; }
+        if (
+          (s.startsWith("{") && s.endsWith("}")) ||
+          (s.startsWith("[") && s.endsWith("]"))
+        ) {
+          try {
+            return JSON.parse(s);
+          } catch {
+            return v;
+          }
         }
         return v;
       };
 
       const findAddressObject = (node, seen = new Set()) => {
-        if (!node || typeof node === "number" || typeof node === "boolean") return null;
+        if (!node || typeof node === "number" || typeof node === "boolean")
+          return null;
         if (typeof node === "string") {
           const parsed = tryParseIfJson(node);
           if (parsed && parsed !== node) return findAddressObject(parsed, seen);
@@ -118,7 +157,15 @@ export default function EventosM2() {
         }
         if (seen.has(node)) return null;
         seen.add(node);
-        const candidateKeys = ["endereco", "enderecoEvento", "address", "local", "enderecoFormatado", "localizacao", "endereco_obj"];
+        const candidateKeys = [
+          "endereco",
+          "enderecoEvento",
+          "address",
+          "local",
+          "enderecoFormatado",
+          "localizacao",
+          "endereco_obj",
+        ];
         for (const k of candidateKeys) {
           if (node[k]) {
             const v = node[k];
@@ -132,9 +179,12 @@ export default function EventosM2() {
           try {
             const val = node[key];
             if (val && typeof val === "object") {
-              if (val.logradouro || val.rua || val.bairro || val.numero) return val;
+              if (val.logradouro || val.rua || val.bairro || val.numero)
+                return val;
             }
-          } catch {console.warn("Erro ao acessar propriedade do objeto"); }
+          } catch {
+            console.warn("Erro ao acessar propriedade do objeto");
+          }
         }
         for (const key of Object.keys(node)) {
           const res = findAddressObject(node[key], seen);
@@ -144,8 +194,14 @@ export default function EventosM2() {
       };
 
       const buildEndereco = (evento) => {
-        let candidate = evento.endereco ?? evento.enderecoEvento ?? evento.local ?? evento.enderecoFormatado ?? null;
-        candidate = (typeof candidate === "string") ? tryParseIfJson(candidate) : candidate;
+        let candidate =
+          evento.endereco ??
+          evento.enderecoEvento ??
+          evento.local ??
+          evento.enderecoFormatado ??
+          null;
+        candidate =
+          typeof candidate === "string" ? tryParseIfJson(candidate) : candidate;
         if (!candidate || typeof candidate !== "object") {
           const found = findAddressObject(evento);
           if (found) candidate = found;
@@ -154,11 +210,18 @@ export default function EventosM2() {
         let enderecoObj = null;
         if (candidate && typeof candidate === "object") {
           const e = candidate;
-          const logradouro = e.logradouro || e.rua || e.endereco || e.logradoro || "";
-          const numero = (e.numero !== undefined && e.numero !== null) ? String(e.numero) : (e.enderecoNumero ? String(e.enderecoNumero) : "");
+          const logradouro =
+            e.logradouro || e.rua || e.endereco || e.logradoro || "";
+          const numero =
+            e.numero !== undefined && e.numero !== null
+              ? String(e.numero)
+              : e.enderecoNumero
+              ? String(e.enderecoNumero)
+              : "";
           const bairro = e.bairro ? String(e.bairro) : "";
           const partes = [];
-          if (logradouro) partes.push(logradouro + (numero ? `, ${numero}` : ""));
+          if (logradouro)
+            partes.push(logradouro + (numero ? `, ${numero}` : ""));
           if (bairro) partes.push(bairro);
           if (partes.length) enderecoFormatado = partes.join(" - ");
           enderecoObj = {
@@ -169,7 +232,7 @@ export default function EventosM2() {
             complemento: e.complemento || "",
             uf: e.uf || "",
             estado: e.estado || e.localidade || "",
-            bairro
+            bairro,
           };
         } else if (typeof candidate === "string" && candidate.trim()) {
           enderecoFormatado = candidate.trim();
@@ -184,42 +247,81 @@ export default function EventosM2() {
           try {
             const id = evento.idEvento || evento.id || evento.id_evento;
             if (!id) return evento;
-            const detalhe = await safeFetchJson(`http://localhost:8080/eventos/${encodeURIComponent(id)}`);
+            const detalhe = await safeFetchJson(
+              `/eventos/${encodeURIComponent(id)}`
+            );
             if (!detalhe) return evento;
-            const { obj: enderecoObj2, formatted: enderecoFormatado2 } = buildEndereco(detalhe);
-            const fallbackLocal2 = detalhe.enderecoFormatado || detalhe.local || "";
-            const localFinal2 = enderecoFormatado2 || (typeof fallbackLocal2 === "string" ? fallbackLocal2 : "");
+            const { obj: enderecoObj2, formatted: enderecoFormatado2 } =
+              buildEndereco(detalhe);
+            const fallbackLocal2 =
+              detalhe.enderecoFormatado || detalhe.local || "";
+            const localFinal2 =
+              enderecoFormatado2 ||
+              (typeof fallbackLocal2 === "string" ? fallbackLocal2 : "");
             return {
               ...evento,
               local: localFinal2 || evento.local || "Local não informado",
-              enderecoFormatado: enderecoFormatado2 || evento.enderecoFormatado || (localFinal2 || ""),
-              endereco: enderecoObj2 || evento.endereco || null
+              enderecoFormatado:
+                enderecoFormatado2 ||
+                evento.enderecoFormatado ||
+                localFinal2 ||
+                "",
+              endereco: enderecoObj2 || evento.endereco || null,
             };
           } catch (err) {
-            console.warn("Não foi possível buscar detalhe do evento para endereço:", evento.idEvento || evento.id, err);
+            console.warn(
+              "Não foi possível buscar detalhe do evento para endereço:",
+              evento.idEvento || evento.id,
+              err
+            );
             return evento;
           }
         })
       );
 
-      const dataComDadosCompletos = dataComDadosPossivelmenteEnriquecidos.map(evento => {
-        const categoriaNome = evento.categoria?.nome || categorias.find(c => c.idCategoria == evento.categoria?.idCategoria)?.nome || '';
-        const statusSituacao = evento.statusEvento?.situacao || statusList.find(s => s.idStatusEvento == evento.statusEvento?.idStatusEvento)?.situacao || '';
-        const { obj: enderecoObj, formatted: enderecoFormatado } = buildEndereco(evento);
-        const fallbackLocal = evento.enderecoFormatado || evento.local || "";
-        const localFinal = enderecoFormatado || (typeof fallbackLocal === "string" ? fallbackLocal : "");
-        const qtdInteressado = Number(evento.qtdInteressado ?? evento.qtd_interessado ?? evento.qtdInteressos ?? evento.qtd_interessos ?? evento.qtdInteresse ?? 0) ||
-          (Array.isArray(evento.interessados) ? evento.interessados.length : 0);
-        return {
-          ...evento,
-          categoriaNome,
-          statusSituacao,
-          local: localFinal || "Local não informado",
-          enderecoFormatado: enderecoFormatado || (localFinal || ""),
-          endereco: enderecoObj || evento.endereco || null,
-          qtdInteressado
-        };
-      });
+      const dataComDadosCompletos = dataComDadosPossivelmenteEnriquecidos.map(
+        (evento) => {
+          const categoriaNome =
+            evento.categoria?.nome ||
+            categorias.find(
+              (c) => c.idCategoria == evento.categoria?.idCategoria
+            )?.nome ||
+            "";
+          const statusSituacao =
+            evento.statusEvento?.situacao ||
+            statusList.find(
+              (s) => s.idStatusEvento == evento.statusEvento?.idStatusEvento
+            )?.situacao ||
+            "";
+          const { obj: enderecoObj, formatted: enderecoFormatado } =
+            buildEndereco(evento);
+          const fallbackLocal = evento.enderecoFormatado || evento.local || "";
+          const localFinal =
+            enderecoFormatado ||
+            (typeof fallbackLocal === "string" ? fallbackLocal : "");
+          const qtdInteressado =
+            Number(
+              evento.qtdInteressado ??
+                evento.qtd_interessado ??
+                evento.qtdInteressos ??
+                evento.qtd_interessos ??
+                evento.qtdInteresse ??
+                0
+            ) ||
+            (Array.isArray(evento.interessados)
+              ? evento.interessados.length
+              : 0);
+          return {
+            ...evento,
+            categoriaNome,
+            statusSituacao,
+            local: localFinal || "Local não informado",
+            enderecoFormatado: enderecoFormatado || localFinal || "",
+            endereco: enderecoObj || evento.endereco || null,
+            qtdInteressado,
+          };
+        }
+      );
 
       const eventosComImg = await Promise.all(
         dataComDadosCompletos.map(async (evento) => {
@@ -227,13 +329,20 @@ export default function EventosM2() {
           try {
             const id = evento.idEvento || evento.id || evento.id_evento;
             if (!id) return eventoCompletado;
-            const imgResponse = await fetch(`http://localhost:8080/eventos/foto/${id}`, { headers: getAuthHeaders(), mode: "cors" });
+            const imgResponse = await api.get(`/eventos/foto/${id}`, {
+              responseType: "blob",
+              headers: getAuthHeaders(),
+            });
+            eventoCompletado.imagemUrl = URL.createObjectURL(imgResponse.data);
             if (imgResponse.ok) {
               const blob = await imgResponse.blob();
               eventoCompletado.imagemUrl = URL.createObjectURL(blob);
             }
           } catch (errorImg) {
-            console.warn(`Erro ao buscar foto para evento ${evento.idEvento}:`, errorImg);
+            console.warn(
+              `Erro ao buscar foto para evento ${evento.idEvento}:`,
+              errorImg
+            );
           }
           return eventoCompletado;
         })
@@ -249,33 +358,70 @@ export default function EventosM2() {
     }
   };
 
-  useEffect(() => { buscarEventos(); }, []);
+  useEffect(() => {
+    buscarEventos();
+  }, []);
 
-  const handleFiltroChange = (field, value) => { setFiltrosUI(prev => ({ ...prev, [field]: value })); };
-  const handlePesquisar = () => { buscarEventos(); };
+  const handleFiltroChange = (field, value) => {
+    setFiltrosUI((prev) => ({ ...prev, [field]: value }));
+  };
+  const handlePesquisar = () => {
+    buscarEventos();
+  };
 
   // versão do modal de detalhes (copiado de eventos_B.jsx) sem ações
   const mostrarDetalhes = async (evento) => {
-    const titulo = evento.nomeEvento || evento.nome || evento.nome_evento || "Evento";
-    let descricao = evento.descricao || evento.descricaoEvento || evento.descricao_evento || "Sem descrição.";
+    const titulo =
+      evento.nomeEvento || evento.nome || evento.nome_evento || "Evento";
+    let descricao =
+      evento.descricao ||
+      evento.descricaoEvento ||
+      evento.descricao_evento ||
+      "Sem descrição.";
     let dataFormat = evento.data_evento || evento.dia || evento.day || "";
-    let horaInicio = evento.hora_inicio || evento.horaInicio || evento.horaInicio || "-";
+    let horaInicio =
+      evento.hora_inicio || evento.horaInicio || evento.horaInicio || "-";
     let horaFim = evento.hora_fim || evento.horaFim || evento.horaFim || "-";
     let imgUrl = evento.imagemUrl || null;
-    let localStr = evento.local || evento.enderecoFormatado || "Local não informado";
-    let vagas = evento.qtdVaga ?? evento.qtd_vaga ?? evento.qtdVagas ?? "Evento aberto ao público";
+    let localStr =
+      evento.local || evento.enderecoFormatado || "Local não informado";
+    let vagas =
+      evento.qtdVaga ??
+      evento.qtd_vaga ??
+      evento.qtdVagas ??
+      "Evento aberto ao público";
     let categoria = evento.categoriaNome || evento.categoria?.nome || "-";
-    let status = evento.statusSituacao || evento.statusEvento?.situacao || evento.status_evento || "-";
-    let publico = evento.publico || evento.publicoAlvo || evento.publico_alvo || "Público";
+    let status =
+      evento.statusSituacao ||
+      evento.statusEvento?.situacao ||
+      evento.status_evento ||
+      "-";
+    let publico =
+      evento.publico || evento.publicoAlvo || evento.publico_alvo || "Público";
 
     // tentar buscar endereço completo se faltar
-    const hasEnderecoObject = !!(evento.endereco && typeof evento.endereco === "object");
-    if ((!evento.endereco && !evento.enderecoFormatado && (!evento.local || evento.local === "Local não informado")) || !hasEnderecoObject) {
+    const hasEnderecoObject = !!(
+      evento.endereco && typeof evento.endereco === "object"
+    );
+    if (
+      (!evento.endereco &&
+        !evento.enderecoFormatado &&
+        (!evento.local || evento.local === "Local não informado")) ||
+      !hasEnderecoObject
+    ) {
       const id = evento.idEvento || evento.id || evento.id_evento;
       if (id) {
         try {
-          Swal.fire({ title: "Carregando...", html: "Buscando informações completas do evento...", allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }, showConfirmButton: false });
-          const resp = await fetch(`http://localhost:8080/eventos/${encodeURIComponent(id)}`);
+          Swal.fire({
+            title: "Carregando...",
+            html: "Buscando informações completas do evento...",
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            },
+            showConfirmButton: false,
+          });
+          const resp = await fetch(`/eventos/${encodeURIComponent(id)}`);
           if (resp.ok) {
             const full = await resp.json();
             descricao = full.descricao || descricao;
@@ -287,16 +433,24 @@ export default function EventosM2() {
             categoria = full.categoria?.nome || categoria;
             status = full.statusEvento?.situacao || status;
             publico = full.publicoAlvo || full.publico || publico;
-            const e = full.endereco || full.enderecoEvento || full.address || null;
+            const e =
+              full.endereco || full.enderecoEvento || full.address || null;
             if (e && typeof e === "object") {
               const rua = e.logradouro || e.rua || "";
-              const numero = (e.numero !== undefined && e.numero !== null) ? String(e.numero) : "";
+              const numero =
+                e.numero !== undefined && e.numero !== null
+                  ? String(e.numero)
+                  : "";
               const bairro = e.bairro || "";
               const parts = [];
               if (rua) parts.push(rua + (numero ? `, ${numero}` : ""));
               if (bairro) parts.push(bairro);
               if (parts.length) localStr = parts.join(" - ");
-            } else if (full.enderecoFormatado && typeof full.enderecoFormatado === "string" && full.enderecoFormatado.trim()) {
+            } else if (
+              full.enderecoFormatado &&
+              typeof full.enderecoFormatado === "string" &&
+              full.enderecoFormatado.trim()
+            ) {
               localStr = full.enderecoFormatado;
             }
           } else {
@@ -310,7 +464,9 @@ export default function EventosM2() {
       }
     }
 
-    const imgHtml = imgUrl ? `<img src="${imgUrl}" alt="${titulo}" class="sw-img" />` : `<div class="sw-img sw-noimg">Sem imagem</div>`;
+    const imgHtml = imgUrl
+      ? `<img src="${imgUrl}" alt="${titulo}" class="sw-img" />`
+      : `<div class="sw-img sw-noimg">Sem imagem</div>`;
 
     const html = `
       <div class="sw-modal-compact" style="display:flex; gap:18px;">
@@ -344,9 +500,9 @@ export default function EventosM2() {
         popup: "my-swal compact-swal",
         title: "swal2-title my-swal-title",
         content: "swal2-content my-swal-content",
-        closeButton: "swal2-close my-swal-close"
+        closeButton: "swal2-close my-swal-close",
       },
-      buttonsStyling: false
+      buttonsStyling: false,
     });
   };
 
@@ -385,5 +541,3 @@ export default function EventosM2() {
     </div>
   );
 }
-
-

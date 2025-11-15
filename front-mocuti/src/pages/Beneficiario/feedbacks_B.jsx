@@ -39,7 +39,7 @@ export default function FeedbackBeneficiario() {
       try {
         setLoading(true);
 
-        // ✅ substituído fetch() por api.get()
+        // ✅substituído por api.get()
         const [resParaComentar, resPassados] = await Promise.all([
           api.get(`/participacoes/participacao-comentar/${idUsuario}`),
           api.get(`/participacoes/participacao-passados/${idUsuario}`)

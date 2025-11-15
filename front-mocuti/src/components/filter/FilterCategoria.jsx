@@ -1,80 +1,60 @@
 import { useEffect, useState } from "react";
+import api from "../../api/api";
 
 const EventosPorCategoria = () => {
-    const [categorias, setCategorias] = useState([]);
-    const [categoriaId, setCategoriaId] = useState("");
-    const [eventos, setEventos] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [erro, setErro] = useState(null);
+  const [categorias, setCategorias] = useState([]);
+  const [categoriaId, setCategoriaId] = useState("");
+  const [eventos, setEventos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState(null);
 
-    // Buscar categorias no backend
-    useEffect(() => {
-        const fetchCategorias = async () => {
-            try {
-                const response = await fetch("http://localhost:8080/categorias");
-                if (!response.ok) throw new Error("Erro ao buscar categorias");
-                const data = await response.json();
-                setCategorias(data);
-            } catch (err) {
-                setErro(err.message);
-            }
-        };
+  // Buscar categorias
+  useEffect(() => {
+    api.get("/categorias")
+      .then(res => setCategorias(res.data))
+      .catch(() => setErro("Erro ao carregar categorias 😕"));
+  }, []);
 
-        fetchCategorias();
-    }, []);
+  // Buscar eventos por categoria
+  useEffect(() => {
+    if (!categoriaId) return;
 
-    // Buscar eventos por categoria
-    useEffect(() => {
-        if (!categoriaId) return;
+    setLoading(true);
+    setErro(null);
 
-        const fetchEventos = async () => {
-            try {
-                setLoading(true);
-                setErro(null);
+    api.get(`/eventos/por-categoria?categoriaId=${categoriaId}`)
+      .then(res => setEventos(res.data))
+      .catch(() => setErro("Erro ao carregar eventos 😕"))
+      .finally(() => setLoading(false));
 
-                const response = await fetch(
-                    `http://localhost:8080/eventos/por-categoria?categoriaId=${categoriaId}`
-                );
-                if (!response.ok) throw new Error("Erro ao buscar eventos");
+  }, [categoriaId]);
 
-                const data = await response.json();
-                setEventos(data);
-            } catch (err) {
-                setErro(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
+  return (
+    <div>
+      <h2>Filtrar eventos por categoria</h2>
 
-        fetchEventos();
-    }, [categoriaId]);
+      {erro && <p style={{ color: "red" }}>{erro}</p>}
 
-    return (
-        <div>
-            <h2>Filtrar eventos por categoria</h2>
-            {erro && <p style={{ color: "red" }}>{erro}</p>}
+      <select value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)}>
+        <option value="">Selecione uma categoria</option>
+        {categorias.map((c) => (
+          <option key={c.idCategoria} value={c.idCategoria}>
+            {c.nome}
+          </option>
+        ))}
+      </select>
 
-            <select value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)}>
-                <option value="">Selecione uma categoria</option>
-                {categorias.map((c) => (
-                    <option key={c.idCategoria} value={c.idCategoria}>
-                        {c.nome}
-                    </option>
-                ))}
-            </select>
+      {loading && <p>Carregando eventos...</p>}
 
-            {loading && <p>Carregando eventos...</p>}
-
-            <ul>
-                {eventos.map((e, idx) => (
-                    <li key={idx}>
-                        {e.nome} - {e.dia}
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
+      <ul>
+        {eventos.map((e) => (
+          <li key={e.idEvento || e.id}>
+            {e.nome} — {e.dia}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 };
 
 export default EventosPorCategoria;
-
