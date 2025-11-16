@@ -8,7 +8,7 @@ import FiltroBeneficiario from "../../components/FiltroBeneficiario";
 import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
 import "../../styles/EventosBeneficiario.css";
 import { useNavigate } from "react-router-dom";
-
+import { fetchInscritosCargo2Count, BASE_URL, apiRefresh, triggerApiRefresh } from "../../api/api";
 
 
 const INITIAL_FILTERS = {
@@ -26,7 +26,11 @@ export default function EventosBeneficiario() {
      const [filtrosUI, setFiltrosUI] = useState(INITIAL_FILTERS);
      const { user } = useContext(AuthContext);
      const userId = user?.idUsuario || user?.id || null;
-
+     // helper local para headers de autenticação (pega token do local/session storage)
+     const getAuthHeaders = () => {
+       const token = localStorage.getItem("token") || sessionStorage.getItem("token") || null;
+       return token ? { Authorization: `Bearer ${token}` } : {};
+     };
 
   const navigate = useNavigate();
   
@@ -38,21 +42,32 @@ export default function EventosBeneficiario() {
   ];
 
      useEffect(() => {
-       fetch("http://localhost:8080/categorias")
-             .then(res => res.json())
-             .then(setCategorias)
-             .catch(err => console.error("Erro ao buscar categorias:", err));
-
-       fetch("http://localhost:8080/status-eventos")
-             .then(res => res.json())
-             .then(setStatusList)
-             .catch(err => console.error("Erro ao buscar status:", err));
+       (async () => {
+         try {
+           const r1 = await fetch(`${BASE_URL}/categorias`, { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
+           if (r1.ok) {
+             const cats = await r1.json().catch(() => []);
+             if (Array.isArray(cats)) setCategorias(cats);
+           }
+         } catch (err) {
+           console.error("Erro ao buscar categorias:", err);
+         }
+         try {
+           const r2 = await fetch(`${BASE_URL}/status-eventos`, { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
+           if (r2.ok) {
+             const sts = await r2.json().catch(() => []);
+             if (Array.isArray(sts)) setStatusList(sts);
+           }
+         } catch (err) {
+           console.error("Erro ao buscar status:", err);
+         }
+       })();
      }, []);
 
      const buscarEventos = async () => {
        try {
              const filtrosAtuais = filtrosUI;
-             let url = "http://localhost:8080/eventos/por-eventos";
+             let endpoint = "/eventos/por-eventos";
              const params = new URLSearchParams();
 
              if (filtrosAtuais.nome) params.append("nome", filtrosAtuais.nome);
@@ -62,32 +77,32 @@ export default function EventosBeneficiario() {
              const filtrosAdicionais = params.toString();
 
              if (filtrosAtuais.categoriaId && filtrosAtuais.statusEventoId === "") {
-              url = `http://localhost:8080/eventos/por-categoria?categoriaId=${filtrosAtuais.categoriaId}`;
-              if (filtrosAdicionais) url += "&" + filtrosAdicionais;
+               endpoint = `/eventos/por-categoria?categoriaId=${encodeURIComponent(filtrosAtuais.categoriaId)}`;
+               if (filtrosAdicionais) endpoint += "&" + filtrosAdicionais;
              } else if (filtrosAtuais.statusEventoId && filtrosAtuais.categoriaId === "") {
-              url = `http://localhost:8080/eventos/status?statusEventoId=${filtrosAtuais.statusEventoId}`;
-              if (filtrosAdicionais) url += "&" + filtrosAdicionais;
+               endpoint = `/eventos/status?statusEventoId=${encodeURIComponent(filtrosAtuais.statusEventoId)}`;
+               if (filtrosAdicionais) endpoint += "&" + filtrosAdicionais;
              } else if (filtrosAdicionais) {
-              url += "?" + filtrosAdicionais;
+               endpoint += "?" + filtrosAdicionais;
              }
 
-             const response = await fetch(url);
-             if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-             let data = await response.json();
+             const resp = await fetch(`${BASE_URL}${endpoint}`, { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
+             if (!resp.ok) throw new Error(`Erro HTTP: ${resp.status}`);
+             let data = await resp.json();
 
              if (filtrosAtuais.categoriaId && filtrosAtuais.statusEventoId) {
-              data = data.filter(ev =>
-                  ev.categoria?.idCategoria == filtrosAtuais.categoriaId &&
-                  ev.statusEvento?.idStatusEvento == filtrosAtuais.statusEventoId
-              );
+               data = (Array.isArray(data) ? data : []).filter(ev =>
+                 (ev.categoria?.idCategoria ?? ev.categoriaId ?? ev.categoria?.id) == filtrosAtuais.categoriaId &&
+                 (ev.statusEvento?.idStatusEvento ?? ev.statusEventoId ?? ev.statusEvento?.id) == filtrosAtuais.statusEventoId
+               );
              }
 
-           const dataComDadosCompletos = data.map(evento => {
-               const categoriaNome = evento.categoria?.nome || 
-                   categorias.find(c => c.idCategoria == evento.categoria?.idCategoria)?.nome || '';
-                   
+             const dataComDadosCompletos = (Array.isArray(data) ? data : []).map(evento => {
+               const categoriaNome = evento.categoria?.nome ||
+                 categorias.find(c => c.idCategoria == (evento.categoria?.idCategoria ?? evento.categoriaId ?? evento.categoria?.id))?.nome || '';
+
                const statusSituacao = evento.statusEvento?.situacao ||
-                   statusList.find(s => s.idStatusEvento == evento.statusEvento?.idStatusEvento)?.situacao || '';
+                 statusList.find(s => s.idStatusEvento == (evento.statusEvento?.idStatusEvento ?? evento.statusEventoId ?? evento.statusEvento?.id))?.situacao || '';
 
                // formatar endereço: rua, numero - bairro
                const enderecoObj = evento.endereco || evento.enderecoEvento || evento.local || null;
@@ -105,28 +120,42 @@ export default function EventosBeneficiario() {
                }
 
                return {
-                   ...evento,
-                   categoriaNome: categoriaNome,
-                   statusSituacao: statusSituacao,
-                   // garante que o componente use uma string legível
-                   local: enderecoFormatado,
-                   enderecoFormatado
+                 ...evento,
+                 categoriaNome: categoriaNome,
+                 statusSituacao: statusSituacao,
+                 // garante que o componente use uma string legível
+                 local: enderecoFormatado,
+                 enderecoFormatado
                };
-           });
+             });
 
              const eventosComImg = await Promise.all(
               dataComDadosCompletos.map(async (evento) => {
-                  let eventoCompletado = { ...evento, imagemUrl: null }; 
+                  let eventoCompletado = { ...evento, imagemUrl: null };
                   try {
-                       if (!evento.idEvento) return eventoCompletado;
-                       const imgResponse = await fetch(`http://localhost:8080/eventos/foto/${evento.idEvento}`);
+                       if (!evento.idEvento && !evento.id && !evento.id_evento) return eventoCompletado;
+                       const id = evento.idEvento || evento.id || evento.id_evento;
+                       const imgResponse = await fetch(`${BASE_URL}/eventos/foto/${encodeURIComponent(id)}`);
                        if (imgResponse.ok) {
                         const blob = await imgResponse.blob();
                         eventoCompletado.imagemUrl = URL.createObjectURL(blob);
                        }
                   } catch (errorImg) {
-                        console.warn(`Erro ao buscar foto para evento ${evento.idEvento}:`, errorImg);
+                        console.warn(`Erro ao buscar foto para evento ${evento.idEvento || evento.id}:`, errorImg);
                   }
+
+                  try {
+                    const idForCount = evento.idEvento || evento.id || evento.id_evento;
+                    if (idForCount) {
+                      const count = await fetchInscritosCargo2Count(idForCount);
+                      eventoCompletado.qtdInscritosCargo2 = count;
+                      eventoCompletado.qtdInscritos = count;
+                      if (!eventoCompletado.qtdInteressado) eventoCompletado.qtdInteressado = count;
+                    }
+                  } catch (errCount) {
+                    console.debug("Erro ao buscar contagem de inscritos:", errCount);
+                  }
+
                   return eventoCompletado;
               })
              );
@@ -224,11 +253,10 @@ export default function EventosBeneficiario() {
              let inscritosIds = new Set();
              if (userId) {
                try {
-                 const partRes = await fetch(`http://localhost:8080/participacoes/eventos-inscritos/${encodeURIComponent(userId)}`);
-                 if (partRes.ok) {
-                   const parts = await partRes.json();
+                 const pr = await fetch(`${BASE_URL}/participacoes/eventos-inscritos/${encodeURIComponent(userId)}`, { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
+                 if (pr.ok) {
+                   const parts = await pr.json().catch(() => []);
                    (parts || []).forEach(p => {
-                     // aceitar vários formatos: p.idEvento, p.evento?.idEvento, p.eventoId, p.id?.eventoId, p.id
                      const id = p.idEvento ?? p.evento?.idEvento ?? p.eventoId ?? p.id?.eventoId ?? p.id;
                      if (id || id === 0) inscritosIds.add(String(id));
                    });
@@ -282,6 +310,9 @@ export default function EventosBeneficiario() {
 
      useEffect(() => {
        buscarEventos();
+       const onRefresh = () => buscarEventos();
+       apiRefresh.addEventListener("refresh", onRefresh);
+       return () => apiRefresh.removeEventListener("refresh", onRefresh);
      }, []);
 
      const handleFiltroChange = (field, value) => {
@@ -315,19 +346,20 @@ export default function EventosBeneficiario() {
         return;
       }
   
-      const url = `http://localhost:8080/participacoes/${encodeURIComponent(id)}/inscrever?idUsuario=${encodeURIComponent(userId)}&idStatusInscricao=${encodeURIComponent(idStatusInscricao)}`;
+      const url = `${BASE_URL}/participacoes/${encodeURIComponent(id)}/inscrever?idUsuario=${encodeURIComponent(userId)}&idStatusInscricao=${encodeURIComponent(idStatusInscricao)}`;
   
       try {
-        const res = await fetch(url, { method: "POST" });
-  
-        // tenta ler resposta (json ou texto) para extrair mensagem amigável
-        const contentType = res.headers.get("content-type") || "";
-        let body = null;
-        if (contentType.includes("application/json")) {
-          body = await res.json().catch(() => null);
-        } else {
-          body = await res.text().catch(() => null);
-        }
+        const res = await fetch(url, { method: "POST", headers: { Accept: "application/json", "Content-Type": "application/json", ...getAuthHeaders() } });
+        if (res.ok) triggerApiRefresh();
+ 
+         // tenta ler resposta (json ou texto) para extrair mensagem amigável
+         const contentType = res.headers.get("content-type") || "";
+         let body = null;
+         if (contentType.includes("application/json")) {
+           body = await res.json().catch(() => null);
+         } else {
+           body = await res.text().catch(() => null);
+         }
   
         if (res.ok) {
           Swal.fire("Inscrição enviada", "Você foi inscrito no evento.", "success");
@@ -386,34 +418,40 @@ export default function EventosBeneficiario() {
           showConfirmButton: false
         });
 
-        const resp = await fetch(`http://localhost:8080/eventos/${encodeURIComponent(id)}`);
-        if (resp.ok) {
-          const full = await resp.json();
-          // sobrescrever campos com os dados completos quando presentes
-          descricao = full.descricao || descricao;
-          dataFormat = full.data_evento || full.dia || dataFormat;
-          horaInicio = full.hora_inicio || full.horaInicio || horaInicio;
-          horaFim = full.hora_fim || full.horaFim || horaFim;
-          imgUrl = imgUrl || full.imagemUrl || null;
-          vagas = full.qtdVaga ?? full.qtd_vaga ?? vagas;
-          categoria = full.categoria?.nome || categoria;
-          status = full.statusEvento?.situacao || status;
-          publico = full.publicoAlvo || full.publico || publico;
+        try {
+          const resp = await fetch(`${BASE_URL}/eventos/${encodeURIComponent(id)}`, { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
+          if (resp.ok) {
+            const full = await resp.json();
+            // sobrescrever campos com os dados completos quando presentes
+            descricao = full.descricao || descricao;
+            dataFormat = full.data_evento || full.dia || dataFormat;
+            horaInicio = full.hora_inicio || full.horaInicio || horaInicio;
+            horaFim = full.hora_fim || full.horaFim || horaFim;
+            imgUrl = imgUrl || full.imagemUrl || null;
+            vagas = full.qtdVaga ?? full.qtd_vaga ?? vagas;
+            categoria = full.categoria?.nome || categoria;
+            status = full.statusEvento?.situacao || status;
+            publico = full.publicoAlvo || full.publico || publico;
 
-          const e = full.endereco || full.enderecoEvento || full.address || null;
-          if (e && typeof e === "object") {
-            const rua = e.logradouro || e.rua || "";
-            const numero = (e.numero !== undefined && e.numero !== null) ? String(e.numero) : "";
-            const bairro = e.bairro || "";
-            const parts = [];
-            if (rua) parts.push(rua + (numero ? `, ${numero}` : ""));
-            if (bairro) parts.push(bairro);
-            if (parts.length) localStr = parts.join(" - ");
-          } else if (full.enderecoFormatado && typeof full.enderecoFormatado === "string" && full.enderecoFormatado.trim()) {
-            localStr = full.enderecoFormatado;
+            const e = full.endereco || full.enderecoEvento || full.address || null;
+            if (e && typeof e === "object") {
+              const rua = e.logradouro || e.rua || "";
+              const numero = (e.numero !== undefined && e.numero !== null) ? String(e.numero) : "";
+              const bairro = e.bairro || "";
+              const parts = [];
+              if (rua) parts.push(rua + (numero ? `, ${numero}` : ""));
+              if (bairro) parts.push(bairro);
+              if (parts.length) localStr = parts.join(" - ");
+            } else if (full.enderecoFormatado && typeof full.enderecoFormatado === "string" && full.enderecoFormatado.trim()) {
+              localStr = full.enderecoFormatado;
+            }
+          } else {
+            console.warn("Detalhe do evento não disponível:", resp.status);
           }
-        } else {
-          console.warn("Detalhe do evento não disponível:", resp.status);
+        } catch (err) {
+          console.error("Erro ao buscar detalhe do evento:", err);
+        } finally {
+          Swal.close();
         }
       } catch (err) {
         console.error("Erro ao buscar detalhe do evento:", err);

@@ -5,6 +5,7 @@ import { buildPublicoOptions } from "./parts/PublicoSelect";
 import { buildEnderecosOptions } from "./parts/EnderecoFields";
 import { escapeHtml, formatCep } from "./parts/UtilsModal";
 import { attachModalBehavior } from "./parts/ModalBehavior";
+import { listarUsuariosPorCargo, inscreverUsuarioEvento, listarConvidadosPorEvento, BASE_URL, triggerApiRefresh } from "../../api/api";
 
 export async function openEventoFormModal(
   evento = null,
@@ -25,11 +26,16 @@ export async function openEventoFormModal(
     enderecoId: evento?.endereco?.idEndereco ?? evento?.enderecoId ?? evento?.endereco?.id ?? ""
   };
 
+  let usuariosCargo3 = [];
+  let convidadosEvento = [];
+  const selecionados = new Set(); // ids selecionados no modal
+  const convidadosExistentesSet = new Set();
+
   try {
     if ((!categorias || categorias.length === 0)) {
       if (typeof safeFetchJson === "function") {
         try {
-          const c = await safeFetchJson("http://localhost:8080/categorias");
+          const c = await safeFetchJson("/categorias");
           if (Array.isArray(c)) categorias = c;
         } catch (err) {
           console.debug("eventoFormModal: safeFetchJson categorias (abs) falhou:", err);
@@ -38,7 +44,7 @@ export async function openEventoFormModal(
 
       if ((!categorias || categorias.length === 0)) {
         try {
-          const r = await fetch("http://localhost:8080/categorias", { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
+          const r = await fetch(`${BASE_URL}/categorias`, { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
           if (r.ok) {
             const data = await r.json().catch(() => null);
             if (Array.isArray(data)) categorias = data;
@@ -57,7 +63,7 @@ export async function openEventoFormModal(
     if ((!statusList || statusList.length === 0)) {
       if (typeof safeFetchJson === "function") {
         try {
-          const s = await safeFetchJson("http://localhost:8080/status-eventos");
+          const s = await safeFetchJson("/status-eventos");
           if (Array.isArray(s)) statusList = s;
         } catch (err) {
           console.debug("eventoFormModal: safeFetchJson status-eventos (abs) falhou:", err);
@@ -65,7 +71,7 @@ export async function openEventoFormModal(
       }
       if ((!statusList || statusList.length === 0)) {
         try {
-          const r = await fetch("http://localhost:8080/status-eventos", { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
+          const r = await fetch(`${BASE_URL}/status-eventos`, { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
           if (r.ok) {
             const data = await r.json().catch(() => null);
             if (Array.isArray(data)) statusList = data;
@@ -81,21 +87,19 @@ export async function openEventoFormModal(
     console.debug("eventoFormModal: fetch status-eventos ignorado:", err);
   }
   try {
-    // tenta usar safeFetchJson (se fornecido) e, se não der certo, faz fetch direto ao backend
     if (typeof safeFetchJson === "function") {
       try {
-        const es = await safeFetchJson("http://localhost:8080/endereco/enderecos-eventos");
+        const es = await safeFetchJson("/endereco/enderecos-eventos");
         if (Array.isArray(es)) enderecos = es;
       } catch (err) {
         console.debug("eventoFormModal: safeFetchJson enderecos (abs) falhou:", err);
       }
     }
 
-    // fallback: fetch direto ao backend (evita roteamento pelo dev server)
     if ((!Array.isArray(enderecos) || enderecos.length === 0)) {
       try {
         const headers = { Accept: "application/json", ...getAuthHeaders() };
-        const r = await fetch("http://localhost:8080/endereco/enderecos-eventos", { method: "GET", headers, mode: "cors" });
+        const r = await fetch(`${BASE_URL}/endereco/enderecos-eventos`, { method: "GET", headers, mode: "cors" });
         if (r.ok) {
           const data = await r.json().catch(() => null);
           if (Array.isArray(data)) enderecos = data;
@@ -114,7 +118,7 @@ export async function openEventoFormModal(
   try {
     if (typeof safeFetchJson === "function") {
       try {
-        const p = await safeFetchJson("http://localhost:8080/eventos/publico-alvo");
+        const p = await safeFetchJson("/eventos/publico-alvo");
         if (Array.isArray(p)) publicos = p;
       } catch (err) {
         console.debug("eventoFormModal: safeFetchJson publico-alvo (abs) falhou:", err);
@@ -122,7 +126,7 @@ export async function openEventoFormModal(
     }
     if ((!Array.isArray(publicos) || publicos.length === 0)) {
       try {
-        const r = await fetch("http://localhost:8080/eventos/publico-alvo", { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
+        const r = await fetch(`${BASE_URL}/eventos/publico-alvo`, { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
         if (r.ok) {
           const data = await r.json().catch(() => null);
           if (Array.isArray(data)) publicos = data;
@@ -130,7 +134,7 @@ export async function openEventoFormModal(
           console.debug("eventoFormModal: fetch direto publico-alvo respondeu:", r.status, r.statusText);
         }
       } catch (err) {
-        console.debug("eventoFormModal: fetch direto publico-alvo falhou:", err);
+        console.debug("eventoFormModal: fetch publico-alvo falhou:", err);
       }
     }
   } catch (err) {
@@ -150,7 +154,7 @@ export async function openEventoFormModal(
     <div class="pagina-evento-modal">
       <div class="pagina-evento-conteudo" style="font-family:inherit; text-align:left; font-size:13px; color:#333;">
         <div style="max-height:520px; overflow:auto; padding:8px;">
-          <div style="display:grid; grid-template-columns: 1fr 260px; gap:12px;">
+          <div style="display:grid; grid-template-columns: 1fr 320px; gap:12px;">
             <div>
               <div style="margin-bottom:8px;">
                 <label style="font-weight:700; display:block; margin-bottom:6px;">Nome</label>
@@ -166,7 +170,6 @@ export async function openEventoFormModal(
                 </select>
                 <div id="ev-publico-novo" style="display:none; margin-top:6px;">
                   <input id="ev-publico-novo-input" placeholder="Novo público (ex: Jovens)" class="campo-entrada" style="width:100%; margin-top:6px;" />
-                  <!-- removed immediate 'Salvar Público' button: new público será usado ao salvar o evento -->
                 </div>
               </div>
 
@@ -226,7 +229,17 @@ export async function openEventoFormModal(
                 <input id="ev-bairro" placeholder="Bairro" class="campo-entrada" style="margin-bottom:6px;" />
                 <input id="ev-uf" placeholder="UF" class="campo-entrada" style="margin-bottom:6px;" />
                 <input id="ev-cidade" placeholder="Cidade" class="campo-entrada" style="margin-bottom:6px;" />
-                <!-- botão de salvar endereço removido: endereço novo será persistido automaticamente ao salvar o evento -->
+              </div>
+
+              <div style="margin-top:12px;">
+                <label style="font-weight:700; display:block; margin-bottom:6px;">Convidar Mantenedores</label>
+                <div id="ev-usuarios-cargo3" style="max-height:140px; overflow:auto; border:1px solid #eee; padding:8px; background:#fff;"></div>
+                <button id="ev-enviar-convites-btn" type="button" style="margin-top:8px; display:block;">Enviar convites selecionados</button>
+              </div>
+
+              <div style="margin-top:12px;">
+                <label style="font-weight:700; display:block; margin-bottom:6px;">Convidados do evento</label>
+                <div id="ev-convidados-list" style="max-height:140px; overflow:auto; border:1px solid #eee; padding:8px; background:#fff;"></div>
               </div>
             </div>
           </div>
@@ -245,6 +258,187 @@ export async function openEventoFormModal(
     focusConfirm: false,
     didOpen: () => {
       try { attachModalBehavior({ values, enderecos, getAuthHeaders }); } catch (err) { console.debug("eventoFormModal: attachModalBehavior falhou:", err); }
+
+      // carregar usuários cargo=3 e convidados (após abrir modal)
+      (async () => {
+        try {
+          // carregar usuarios cargo 3
+          try {
+            usuariosCargo3 = await listarUsuariosPorCargo(3);
+            if (!Array.isArray(usuariosCargo3)) usuariosCargo3 = [];
+          } catch (e) {
+            console.debug("eventoFormModal: listarUsuariosPorCargo falhou:", e);
+            usuariosCargo3 = [];
+          }
+
+          const idEventoExistente = evento?.idEvento ?? evento?.id ?? evento?.id_evento;
+          if (idEventoExistente) {
+            try {
+              convidadosEvento = await listarConvidadosPorEvento(idEventoExistente);
+              if (!Array.isArray(convidadosEvento)) convidadosEvento = [];
+            } catch (e) {
+              console.debug("eventoFormModal: listarConvidadosPorEvento falhou:", e);
+              convidadosEvento = [];
+            }
+          } else {
+            convidadosEvento = [];
+          }
+
+          // construir set de convidados existentes para filtro/marcação
+          convidadosExistentesSet.clear();
+          (convidadosEvento || []).forEach(c => {
+            const uid = String(c.idUsuario ?? c.usuarioId ?? c.id ?? "");
+            if (uid) convidadosExistentesSet.add(uid);
+          });
+
+          // filtrar usuariosCargo3 removendo os já convidados
+          usuariosCargo3 = (usuariosCargo3 || []).filter(u => {
+            const uid = String(u.idUsuario ?? u.id ?? u.usuarioId ?? "");
+            return uid && !convidadosExistentesSet.has(uid);
+          });
+
+          // popular container de usuarios para convidar
+          const usuariosContainer = document.getElementById("ev-usuarios-cargo3");
+          if (usuariosContainer) {
+            usuariosContainer.innerHTML = usuariosCargo3.map(u => {
+              const uid = u.idUsuario ?? u.id ?? u.usuarioId ?? "";
+              const rawName = u.nome || u.nomeUsuario || u.nome_completo || u.email || "";
+              const rawEmail = u.email || "";
+              // sempre mostrar nome (fallback para email) e email abaixo
+              const nameToShow = escapeHtml(rawName || rawEmail);
+              const emailToShow = escapeHtml(rawEmail);
+              return `<div style="display:flex; gap:8px; align-items:center; padding:6px 0;">
+                        <input data-uid="${uid}" class="ev-usr-chk" type="checkbox" style="width:16px; height:16px;" />
+                        <div style="font-size:13px;"><strong>${nameToShow}</strong><div style="font-size:11px;color:#666;">${emailToShow}</div></div>
+                      </div>`;
+            }).join("");
+            usuariosContainer.querySelectorAll(".ev-usr-chk").forEach(chk => {
+              chk.addEventListener("change", (ev) => {
+                const id = ev.target.getAttribute("data-uid");
+                if (!id) return;
+                if (ev.target.checked) selecionados.add(String(id)); else selecionados.delete(String(id));
+              });
+            });
+          }
+
+          // popular container de convidados (mostra pendente/confirmado/cancelado)
+          const convidadosContainer = document.getElementById("ev-convidados-list");
+          if (convidadosContainer) {
+            if ((convidadosEvento || []).length === 0) {
+              convidadosContainer.innerHTML = `<div style="padding:8px;color:#666;">Nenhum convidado</div>`;
+            } else {
+              convidadosContainer.innerHTML = convidadosEvento.map(c => {
+                const uid = c.idUsuario ?? c.usuarioId ?? c.id ?? "";
+                // preferir os campos do DTO: nomeConvidado / statusConvite
+                const nome = escapeHtml(c.nomeConvidado ?? c.nomeUsuario ?? c.nome ?? c.email ?? "");
+                const status = escapeHtml(c.statusConvite ?? c.statusDescricao ?? c.situacao ?? c.status ?? String(c.idStatusInscricao ?? "Pendente"));
+                return `<div data-uid="${uid}" style="display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid #f6f6f6;">
+                          <div><strong>${nome}</strong><div style="font-size:11px;color:#666;">${escapeHtml(c.email||"")}</div></div>
+                          <div style="min-width:110px; text-align:right;"><span style="padding:4px 8px; border-radius:6px; background:#f2f2f2;">${status}</span></div>
+                        </div>`;
+              }).join("");
+            }
+          }
+        } catch (err) {
+          console.debug("eventoFormModal: erro ao inicializar lista de convidados/usuarios:", err);
+        }
+      })();
+
+      // enviar convites botão
+      const btnEnviar = document.getElementById("ev-enviar-convites-btn");
+      if (btnEnviar) {
+        btnEnviar.addEventListener("click", async () => {
+          try {
+            const idEventoExistente = evento?.idEvento ?? evento?.id ?? evento?.id_evento;
+            if (!idEventoExistente) {
+              return Swal.fire("Atenção", "O evento precisa ser salvo primeiro para enviar convites. Ao salvar você poderá enviar automaticamente os selecionados.", "info");
+            }
+            const ids = Array.from(selecionados).map(x => Number(x)).filter(Boolean);
+            if (ids.length === 0) return Swal.fire("Atenção", "Nenhum usuário selecionado.", "warning");
+            const confirm = await Swal.fire({ title: "Enviar convites", text: `Enviar convite para ${ids.length} usuários?`, icon: "question", showCancelButton: true, confirmButtonText: "Enviar" });
+            if (!confirm.isConfirmed) return;
+
+            // chamar API para cada id
+            await Promise.all(ids.map(id => inscreverUsuarioEvento(idEventoExistente, Number(id), 1)));
+            Swal.fire("Sucesso", "Convites enviados.", "success");
+            triggerApiRefresh();
+
+            // remover convidados enviados da lista de usuários e adicioná-los localmente aos convidados exibidos
+            const sentSet = new Set(ids.map(String));
+            // pegar info dos usuários enviados (nome/email) a partir do usuariosCargo3 ou, se não existir, manter id apenas
+            const sentUsers = (usuariosCargo3 || []).filter(u => sentSet.has(String(u.idUsuario ?? u.id ?? u.usuarioId ?? "")));
+
+            // atualizar usuariosCargo3 (remover enviados)
+            usuariosCargo3 = (usuariosCargo3 || []).filter(u => {
+              const uid = String(u.idUsuario ?? u.id ?? u.usuarioId ?? "");
+              return !sentSet.has(uid);
+            });
+
+            // atualizar selecionados (remover os enviados)
+            ids.forEach(id => selecionados.delete(String(id)));
+
+            // atualizar UI - usuarios para convidar
+            const usuariosContainer = document.getElementById("ev-usuarios-cargo3");
+            if (usuariosContainer) {
+              usuariosContainer.innerHTML = usuariosCargo3.map(u => {
+                const uid = u.idUsuario ?? u.id ?? u.usuarioId ?? "";
+                const rawName = u.nome || u.nomeUsuario || u.nome_completo || u.email || "";
+                const rawEmail = u.email || "";
+                // sempre mostrar nome (fallback para email) e email abaixo
+                const nameToShow = escapeHtml(rawName || rawEmail);
+                const emailToShow = escapeHtml(rawEmail);
+                return `<div style="display:flex; gap:8px; align-items:center; padding:6px 0;">
+                          <input data-uid="${uid}" class="ev-usr-chk" type="checkbox" style="width:16px; height:16px;" />
+                          <div style="font-size:13px;"><strong>${nameToShow}</strong><div style="font-size:11px;color:#666;">${emailToShow}</div></div>
+                        </div>`;
+              }).join("");
+              usuariosContainer.querySelectorAll(".ev-usr-chk").forEach(chk => {
+                chk.addEventListener("change", (ev) => {
+                  const id = ev.target.getAttribute("data-uid");
+                  if (!id) return;
+                  if (ev.target.checked) selecionados.add(String(id)); else selecionados.delete(String(id));
+                });
+              });
+            }
+
+            // atualizar convidadosEvento localmente: se endpoint não retornar entries, criar objetos PENDENTES com info conhecida
+            const convidadosAtualizados = await listarConvidadosPorEvento(idEventoExistente);
+            if (Array.isArray(convidadosAtualizados) && convidadosAtualizados.length > 0) {
+              convidadosEvento = convidadosAtualizados;
+            } else {
+              // backend não retornou a lista atualizada: acrescentar localmente
+              const novos = (ids.map(id => {
+                const u = sentUsers.find(x => String(x.idUsuario ?? x.id ?? x.usuarioId) === String(id));
+                return {
+                  idUsuario: id,
+                  nomeConvidado: u?.nome || u?.nomeUsuario || u?.nome_completo || u?.email || `Usuário ${id}`,
+                  email: u?.email || "",
+                  idStatusInscricao: 1,
+                  statusConvite: "Pendente"
+                };
+              }));
+              convidadosEvento = (convidadosEvento || []).concat(novos);
+            }
+
+            // atualizar UI - convidados list
+            const convidadosContainer = document.getElementById("ev-convidados-list");
+            if (convidadosContainer) {
+              convidadosContainer.innerHTML = (convidadosEvento || []).map(c => {
+                const uid = c.idUsuario ?? c.usuarioId ?? c.id ?? "";
+                const nome = escapeHtml(c.nomeUsuario || c.nome || c.email || "");
+                const status = escapeHtml(c.statusDescricao ?? c.situacao ?? c.status ?? String(c.idStatusInscricao ?? "Pendente"));
+                return `<div data-uid="${uid}" style="display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid #f6f6f6;">
+                          <div><strong>${nome}</strong><div style="font-size:11px;color:#666;">${escapeHtml(c.email||"")}</div></div>
+                          <div style="min-width:110px; text-align:right;"><span style="padding:4px 8px; border-radius:6px; background:#f2f2f2;">${status}</span></div>
+                        </div>`;
+              }).join("") || `<div style="padding:8px;color:#666;">Nenhum convidado</div>`;
+            }
+          } catch (err) {
+            console.error("eventoFormModal: erro ao enviar convites manual:", err);
+            Swal.fire("Erro", "Falha ao enviar convites.", "error");
+          }
+        });
+      }
     },
     preConfirm: async () => {
       const nome = document.getElementById("ev-nome")?.value?.trim();
@@ -271,29 +465,22 @@ export async function openEventoFormModal(
       const enderecoSelectVal = document.getElementById("ev-endereco-select")?.value || "";
       const publicoSel = document.getElementById("ev-publico")?.value || "";
 
-      // validar múltiplos campos e montar lista de faltantes
       const missing = [];
       if (!nome) missing.push("Nome");
       if (!dia) missing.push("Data deve ser hoje ou futura");
       if (!descricao || descricao.length < 2 || descricao.length > 1000) missing.push("Descrição (2-1000 caracteres)");
-      // considerar valor já presente em edição (values) como válido
       if (!(categoriaSelectVal || values.categoriaId)) missing.push("Deve preencher categoria");
       if (!(statusSelectVal || values.statusId || values.statusEventoId)) missing.push("Deve preencher status (inicial sempre em aberto)");
-      // quantidade de vagas
       if (qtdVaga === null || !Number.isFinite(qtdVaga) || qtdVaga < 1) missing.push("Quantidade de vagas deve ser maior que zero e um número positivo.");
-      // horário: agora exige ambos preenchidos — se ambos vazios também será reportado
       if (!horaInicio && !horaFim) {
         missing.push("Horário (início e fim)");
       } else if ((horaInicio && !horaFim) || (!horaInicio && horaFim)) {
         missing.push("Horário: informe início e fim");
       }
-      // público alvo novo: se selecionou "__novo", o input deve ser preenchido
       if (publicoSel === "__novo") {
         const novoPublico = (document.getElementById("ev-publico-novo-input")?.value || "").trim();
         if (!novoPublico) missing.push("Público alvo (novo)");
       }
-
-      // endereço
       if (!enderecoSelectVal && !values.enderecoId) {
         missing.push("Endereço");
       } else if (enderecoSelectVal === "__novo") {
@@ -309,7 +496,6 @@ export async function openEventoFormModal(
         return false;
       }
 
-      // segue com as validações/fluxo existentes (endereço novo, salvar evento, etc.)
       let enderecoId = null;
       if (enderecoSelectVal === "__novo") {
         const cep = document.getElementById("ev-cep")?.value?.trim() || "";
@@ -358,7 +544,7 @@ export async function openEventoFormModal(
             estado: estadoNome || null
           };
 
-          const rEnd = await fetch("http://localhost:8080/endereco", { method: "POST", headers, body: JSON.stringify(payloadEndereco) });
+          const rEnd = await fetch(`${BASE_URL}/endereco`, { method: "POST", headers, body: JSON.stringify(payloadEndereco) });
           if (!rEnd.ok) {
             let bodyText = await rEnd.text().catch(() => "");
             let parsed = bodyText;
@@ -424,7 +610,6 @@ export async function openEventoFormModal(
       const payloadEvento = {
         nomeEvento: nome,
         descricao,
-        // if user selected "Cadastrar novo público...", use the input value on save
         publicoAlvo: (function() {
           const sel = document.getElementById("ev-publico")?.value;
           if (sel === "__novo") {
@@ -460,7 +645,7 @@ export async function openEventoFormModal(
           fd.append("dados", new Blob([JSON.stringify(payloadEvento)], { type: "application/json" }));
           if (file) fd.append("foto", file);
 
-          const res = await fetch("http://localhost:8080/eventos/cadastrar", {
+          const res = await fetch(`${BASE_URL}/eventos/cadastrar`, {
             method: "POST",
             headers: { ...authHeaders },
             body: fd,
@@ -477,6 +662,18 @@ export async function openEventoFormModal(
 
           if (typeof onSaved === "function") {
             try { await onSaved(resultJson); } catch (err) { console.debug("eventoFormModal: onSaved falhou:", err); }
+          }
+
+          // após criar, enviar convites selecionados (se houver)
+          try {
+            const createdId = resultJson?.idEvento ?? resultJson?.id ?? resultJson?.id_evento ?? null;
+            if (createdId && selecionados.size > 0) {
+              const ids = Array.from(selecionados).map((x) => Number(x));
+              await Promise.all(ids.map((id) => inscreverUsuarioEvento(createdId, id, 1)));
+               triggerApiRefresh();
+            }
+          } catch (errInvite) {
+            console.warn("eventoFormModal: convites pós-criação falharam:", errInvite);
           }
 
           return resultJson ?? true;
@@ -500,7 +697,7 @@ export async function openEventoFormModal(
 
          console.debug("eventoFormModal: PUT payloadEvento:", payloadForPut);
  
-         const resDados = await fetch(`http://localhost:8080/eventos/${encodeURIComponent(idEvento)}`, {
+         const resDados = await fetch(`${BASE_URL}/eventos/${encodeURIComponent(idEvento)}`, {
            method: "PUT",
            headers: { ...authHeaders, "Content-Type": "application/json", Accept: "application/json" },
            body: JSON.stringify(payloadForPut),
@@ -520,7 +717,7 @@ export async function openEventoFormModal(
         if (file) {
           const fd = new FormData();
           fd.append("foto", file);
-          const resFoto = await fetch(`http://localhost:8080/eventos/foto/${encodeURIComponent(idEvento)}`, {
+          const resFoto = await fetch(`${BASE_URL}/eventos/foto/${encodeURIComponent(idEvento)}`, {
             method: "PATCH",
             headers: { ...authHeaders },
             body: fd,
@@ -544,6 +741,18 @@ export async function openEventoFormModal(
           } catch (err) {
             console.debug("eventoFormModal: parse fotoJson falhou:", err);
           }
+        }
+
+        // após editar, enviar convites selecionados (somente novos)
+        try {
+          const ids = Array.from(selecionados).map(x => Number(x)).filter(Boolean);
+          const newIds = ids.filter(id => !convidadosExistentesSet.has(String(id)));
+          if (idEvento && newIds.length > 0) {
+            await Promise.all(newIds.map(id => inscreverUsuarioEvento(idEvento, id, 1)));
+            triggerApiRefresh();
+          }
+        } catch (errInvite) {
+          console.warn("eventoFormModal: convites pós-edicao falharam:", errInvite);
         }
 
         if (typeof onSaved === "function") {

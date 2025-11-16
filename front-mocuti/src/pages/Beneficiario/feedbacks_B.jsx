@@ -7,6 +7,7 @@ import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiari
 import ModalFeedback from "../../components/modal/Modal_Feedback_M2";
 import ModalVisualizacao from "../../components/modal/Modal_FeedbackVisul_M2";
 import axios from "axios";
+import { BASE_URL, fetchInscritosCargo2Count } from "../../api/api";
 import "../../styles/meusEventos.css";
 import Swal from "sweetalert2";
 
@@ -67,28 +68,50 @@ export default function FeedbackBeneficiario() {
           : [];
         const dataPassados = resPassados.ok ? await resPassados.json() : [];
 
-        // Função para buscar detalhes + foto
+        // Função para buscar detalhes + foto + contagem de inscritos
         const enrichEvento = async (p) => {
           const eventoId = p.idEvento || p.id?.eventoId;
           if (!eventoId) return p;
 
-          const res = await fetch(`http://localhost:8080/eventos/${eventoId}`);
-          const eventoDetalhes = res.ok ? await res.json() : {};
+          // detalhes do evento
+          let eventoDetalhes = {};
+          try {
+            const res = await fetch(`${BASE_URL}/eventos/${encodeURIComponent(eventoId)}`);
+            if (res.ok) eventoDetalhes = await res.json();
+          } catch (err) {
+            console.debug("enrichEvento: falha ao buscar detalhes:", err);
+          }
 
+          // imagem
           let imagemUrl = null;
-          const imgRes = await fetch(
-            `http://localhost:8080/eventos/foto/${eventoId}`
-          );
-          if (imgRes.ok) {
-            const blob = await imgRes.blob();
-            imagemUrl = URL.createObjectURL(blob);
+          try {
+            const imgRes = await fetch(`${BASE_URL}/eventos/foto/${encodeURIComponent(eventoId)}`);
+            if (imgRes.ok) {
+              const blob = await imgRes.blob();
+              imagemUrl = URL.createObjectURL(blob);
+            }
+          } catch (err) {
+            console.debug("enrichEvento: falha ao buscar imagem:", err);
+          }
+
+          // contagem de inscritos (cargo2)
+          let inscritosCount = 0;
+          try {
+            inscritosCount = await fetchInscritosCargo2Count(eventoId);
+            inscritosCount = Number(inscritosCount || 0);
+          } catch (err) {
+            console.debug("enrichEvento: fetchInscritosCargo2Count falhou:", err);
           }
 
           return {
             ...p,
-            ...eventoDetalhes,
+            ...(eventoDetalhes || {}),
             imagemUrl,
             nota: p.nota?.tipoNota || null,
+            idEvento: eventoId,
+            qtdInscritosCargo2: inscritosCount,
+            qtdInscritos: inscritosCount,
+            qtdInteressado: p.qtdInteressado ?? inscritosCount
           };
         };
 

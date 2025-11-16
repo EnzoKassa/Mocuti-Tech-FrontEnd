@@ -13,6 +13,7 @@ import Calendario from "../../assets/images/calendario.svg";
 import MeuPerfil from "../../assets/images/meuPerfil.svg";
 import feedback from "../../assets/images/feedbackLogo.svg";
 import convite from "../../assets/images/convitesLogo.svg";
+import { fetchInscritosCargo2Count, BASE_URL, apiRefresh } from "../../api/api";
 
 const INITIAL_FILTERS = {
   nome: "",
@@ -235,6 +236,19 @@ export default function EventosM2() {
           } catch (errorImg) {
             console.warn(`Erro ao buscar foto para evento ${evento.idEvento}:`, errorImg);
           }
+
+          try {
+            const idForCount = evento.idEvento || evento.id || evento.id_evento;
+            if (idForCount) {
+              const count = await fetchInscritosCargo2Count(idForCount);
+              eventoCompletado.qtdInscritosCargo2 = count;
+              eventoCompletado.qtdInscritos = count;
+              if (!eventoCompletado.qtdInteressado) eventoCompletado.qtdInteressado = count;
+            }
+          } catch (errCount) {
+            console.debug("Erro ao buscar contagem de inscritos:", errCount);
+          }
+
           return eventoCompletado;
         })
       );
@@ -346,7 +360,11 @@ export default function EventosM2() {
     }
   };
 
-  useEffect(() => { buscarEventos(); }, []);
+  useEffect(() => { buscarEventos(); 
+   const onRefresh = () => buscarEventos();
+   apiRefresh.addEventListener("refresh", onRefresh);
+   return () => apiRefresh.removeEventListener("refresh", onRefresh);
+  }, []);
 
   const handleFiltroChange = (field, value) => { setFiltrosUI(prev => ({ ...prev, [field]: value })); };
   const handlePesquisar = () => { buscarEventos(); };

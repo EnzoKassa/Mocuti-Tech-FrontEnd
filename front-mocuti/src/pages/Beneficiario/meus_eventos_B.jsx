@@ -5,6 +5,7 @@ import HeaderBeneficiario from "../../components/HeaderBeneficiario";
 import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
 import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
 import Swal from "sweetalert2";
+import { fetchInscritosCargo2Count, BASE_URL, apiRefresh, triggerApiRefresh } from "../../api/api";
 import "../../styles/meusEventos.css";
 
 export default function MeusEventosBeneficiario() {
@@ -27,12 +28,26 @@ export default function MeusEventosBeneficiario() {
       (arr || []).map(async (p) => {
         let imagemUrl = null;
         let eventoDetalhes = null;
+
+        const extractEventId = (obj) => {
+          if (!obj) return null;
+          return obj.idEvento ??
+                 obj.evento?.idEvento ??
+                 obj.eventoId ??
+                 obj.id ??
+                 obj.evento?.id ??
+                 obj.id_evento ??
+                 obj.evento_id ??
+                 null;
+        };
+
+        const eventoId = extractEventId(p);
+
         try {
-          const eventoId = p.idEvento || p.id?.eventoId || p.id?.evento_id || (p.id && (p.id.eventoId || p.id));
           if (eventoId) {
-            const res = await fetch(`http://localhost:8080/eventos/${eventoId}`);
+            const res = await fetch(`${BASE_URL}/eventos/${eventoId}`);
             if (res.ok) eventoDetalhes = await res.json();
-            const imgRes = await fetch(`http://localhost:8080/eventos/foto/${eventoId}`);
+            const imgRes = await fetch(`${BASE_URL}/eventos/foto/${eventoId}`);
             if (imgRes.ok) {
               const blob = await imgRes.blob();
               imagemUrl = URL.createObjectURL(blob);
@@ -42,11 +57,38 @@ export default function MeusEventosBeneficiario() {
           console.warn("Erro ao buscar detalhes/imagem:", err);
         }
 
+        let inscritosCount = 0;
+        try {
+          const idForCount = eventoId ?? extractEventId(p);
+          if (idForCount) {
+            // debug: log do id consultado e resultado
+            console.debug("fetchInscritosCargo2Count -> idForCount:", idForCount);
+            inscritosCount = await fetchInscritosCargo2Count(idForCount);
+            console.debug("fetchInscritosCargo2Count -> result:", inscritosCount);
+            inscritosCount = Number(inscritosCount || 0);
+          }
+        } catch (errCount) {
+          console.debug("Erro ao buscar contagem de inscritos (meus_eventos):", errCount);
+        }
+
         return {
           ...p,
           ...(eventoDetalhes || {}),
           imagemUrl,
-          idEvento: p.idEvento || p.id?.eventoId || (eventoDetalhes && eventoDetalhes.idEvento) || p.id,
+          idEvento: eventoId ?? p.idEvento ?? p.id,
+          qtdInscritosCargo2: inscritosCount,
+          qtdInscritos: inscritosCount,
+          qtdInteressado: p.qtdInteressado ?? inscritosCount,
+          inscritosCount,
+          participantesCount: inscritosCount,
+          inscritos: inscritosCount,
+          qtdParticipantes: inscritosCount,
+          participantes: inscritosCount,
+          interessadosCount: inscritosCount,
+          // cria/garante um array 'interessados' caso o componente verifique .length
+          interessados: (eventoDetalhes && Array.isArray(eventoDetalhes.interessados) && eventoDetalhes.interessados.length)
+                        ? eventoDetalhes.interessados
+                        : (Array.isArray(p.interessados) ? p.interessados : new Array(Number(inscritosCount || 0)).fill(null))
         };
       })
     );
@@ -60,12 +102,18 @@ export default function MeusEventosBeneficiario() {
     try {
       setLoading(true);
 
-      const urlInscritos = `http://localhost:8080/participacoes/eventos-inscritos/${encodeURIComponent(idUsuario)}`;
-      const inscritosRes = await fetch(urlInscritos);
+      const urlInscritos = `${BASE_URL}/participacoes/eventos-inscritos/${encodeURIComponent(idUsuario)}`;
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token") || localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken") || null;
+      const inscritosRes = await fetch(urlInscritos, { headers: token ? { Authorization: `Bearer ${token}`, Accept: "application/json" } : { Accept: "application/json" } });
+
       const inscritos = inscritosRes.ok ? await inscritosRes.json() : [];
 
+      console.debug("meus_eventos_B -> inscritos raw:", { urlInscritos, status: inscritosRes.status, inscritosSample: (inscritos && inscritos.slice ? inscritos.slice(0,5) : inscritos) });
+      
       const normInscritos = await normalizeEventos(inscritos);
 
+      console.debug("meus_eventos_B -> normInscritos sample:", normInscritos && normInscritos.slice ? normInscritos.slice(0,5) : normInscritos);
+      
       // helper para parse de data/hora (suporta YYYY-MM-DD, ISO T, DD/MM/YYYY)
       const tryParseDateTime = (dateStr, timeStr) => {
         if (!dateStr) return null;
@@ -133,8 +181,11 @@ export default function MeusEventosBeneficiario() {
 
   useEffect(() => {
     fetchEventos();
+   const onRefresh = () => fetchEventos();
+   apiRefresh.addEventListener("refresh", onRefresh);
+   return () => apiRefresh.removeEventListener("refresh", onRefresh);
   }, [idUsuario]);
-
+  
   const cancelarInscricao = async (idEvento) => {
     if (!idUsuario) {
       Swal.fire("Atenção", "Você precisa estar logado para cancelar a inscrição.", "warning");
@@ -153,14 +204,15 @@ export default function MeusEventosBeneficiario() {
     if (!choice.isConfirmed) return;
 
     try {
-      const url = `http://localhost:8080/participacoes/${encodeURIComponent(idEvento)}/cancelar-inscricao?idUsuario=${encodeURIComponent(idUsuario)}`;
+      const url = `${BASE_URL}/participacoes/${encodeURIComponent(idEvento)}/cancelar-inscricao?idUsuario=${encodeURIComponent(idUsuario)}`;
       const res = await fetch(url, { method: "DELETE" });
       if (res.ok || res.status === 204) {
         setParticipacoes((prev) => prev.filter((ev) => String(ev.idEvento) !== String(idEvento)));
         Swal.fire("Inscrição cancelada", "Sua inscrição foi cancelada.", "success");
-      } else {
-        Swal.fire("Erro", "Não foi possível cancelar a inscrição de um evento que já está em andamento ou encerrado.", "error");
-      }
+        triggerApiRefresh();
+       } else {
+         Swal.fire("Erro", "Não foi possível cancelar a inscrição de um evento que já está em andamento ou encerrado.", "error");
+       }
     } catch (err) {
       console.error("Erro ao cancelar inscrição:", err);
       Swal.fire("Erro", "Falha ao conectar com o servidor.", "error");
@@ -232,6 +284,16 @@ export default function MeusEventosBeneficiario() {
       }
     });
   };
+
+  useEffect(() => {
+    return () => {
+      participacoes.forEach(p => {
+        if (p && p.imagemUrl) {
+          try { URL.revokeObjectURL(p.imagemUrl); } catch (e) { /* ignore */ }
+        }
+      });
+    };
+  }, [participacoes]);
 
   return (
     <div className="scroll-page-usuario">
