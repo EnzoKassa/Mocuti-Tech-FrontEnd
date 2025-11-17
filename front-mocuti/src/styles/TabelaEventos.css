@@ -1,0 +1,181 @@
+.tabela-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tabela-eventos {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Inter", sans-serif;
+  background: #fff;
+}
+
+.tabela-eventos th {
+  text-align: left;
+  padding: 14px;
+  font-size: 14px;
+  color: #475569;
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+.tabela-eventos td {
+  padding: 16px;
+  font-size: 15px;
+  color: #1E293B;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.evento-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+td {
+  padding: 12px 8px; /* define um padrão */
+  vertical-align: middle;
+}
+
+.evento-icon {
+  font-size: 20px;
+  color: #94a3b8;
+}
+
+/* Botão */
+.btn-mais-info {
+  background-color: #1e78ff;
+  border: none;
+  padding: 10px 18px;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.btn-mais-info:hover {
+  background-color: #0f5cd3;
+}
+
+/* SWITCH-3 (3 estados) */
+.switch-3 {
+  width: 68px;
+  height: 30px;
+  border-radius: 20px;
+  cursor: pointer;
+  position: relative;
+  transition: .25s;
+  display: inline-block;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+}
+
+/* STATUS VISUAL */
+.switch-3.pendente { background: #f1c40f; }   /* amarelo - meio */
+.switch-3.confirmada { background: #2ecc71; } /* verde - direita */
+.switch-3.cancelada { background: #e74c3c; }  /* vermelho - esquerda */
+
+
+.switch-3 {
+  width: 68px;
+  height: 30px;
+  border-radius: 20px;
+  cursor: pointer;
+  position: relative;
+  transition: .25s;
+  display: inline-block;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+}
+
+/* Status visual */
+.switch-3.pendente { background: #f1c40f; }   /* amarelo */
+.switch-3.confirmada { background: #2ecc71; } /* verde */
+.switch-3.cancelada { background: #e74c3c; }  /* vermelho */
+
+/* Bola */
+.switch-3 .ball {
+  width: 26px;
+  height: 26px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  transition: .25s;
+  box-shadow: 0 2px 6px rgba(16,24,40,0.12);
+  pointer-events: none; /* garante clique no switch */
+}
+
+/* Posicionamento da bola */
+.switch-3.cancelada .ball { left: 4px; }    /* vermelho - esquerda */
+.switch-3.pendente .ball { left: calc(50% - 13px); } /* centro */
+.switch-3.confirmada .ball { right: 4px; }  /* verde - direita */
+
+
+/* aaaaaaaaaaaaaaaaaaaaaaaaa */
+/* 
+.eventos-tiposbotoes-beneficiario {
+    display: flex;
+    margin: 2px;
+    height: 90%;
+    width: 21%;
+    background-color: white;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.eventos-tiposbotoes-beneficiario button {
+    height: 35%;
+    width: 80%;
+    border-radius: 0px;
+    color: white;
+    border: none;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    transition: all 0.2s ease; 
+    cursor: pointer;
+}
+
+.eventos-tiposbotoes-beneficiario button:hover {
+    background-color: #2b8ed9; 
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4); 
+    transform: translateY(-2px);
+}
+
+.eventos-tiposbotoes-beneficiario button:active {
+    background-color: #1a6fa3; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4); 
+    transform: translateY(2px); 
+}
+
+/* responsivo */
+@media (max-width: 760px) {
+  .my-swal { width: 100% !important; border-radius: 8px !important; }
+  .sw-modal { flex-direction: column; }
+  .sw-img { height: 160px; }
+}
+
+@media (max-width: 740px) {
+  .compact-swal { width: 100% !important; border-radius: 8px !important; }
+  .sw-modal-compact { flex-direction: column; }
+  .sw-img { height: 160px; }
+}
+
+/* Botões quadrados (sem border-radius) */
+.eventos-tiposbotoes-beneficiario button,
+.sw-btn,
+.sw-btn-confirm,
+.sw-btn-cancel,
+.my-swal .swal2-confirm,
+.my-swal .swal2-cancel,
+.compact-swal .swal2-confirm,
+.compact-swal .swal2-cancel {
+  border-radius: 0 !important;
+}
+
+/* garantir aparência quadrada também removendo sombras arredondadas se necessário */
+.eventos-tiposbotoes-beneficiario button,
+.sw-btn {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35); /* ajuste se quiser menos sombra */
+} */
