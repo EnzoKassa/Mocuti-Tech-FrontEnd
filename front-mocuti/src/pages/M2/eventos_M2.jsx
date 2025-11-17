@@ -421,9 +421,9 @@ export default function EventosM2() {
             },
             showConfirmButton: false,
           });
-          const resp = await fetch(`/eventos/${encodeURIComponent(id)}`);
+          const resp = await api.get(`/eventos/${encodeURIComponent(id)}`);
           if (resp.ok) {
-            const full = await resp.json();
+            const full = await resp.data;
             descricao = full.descricao || descricao;
             dataFormat = full.data_evento || full.dia || dataFormat;
             horaInicio = full.hora_inicio || full.horaInicio || horaInicio;
