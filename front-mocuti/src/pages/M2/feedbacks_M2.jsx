@@ -35,12 +35,6 @@ const FeedbacksM2 = () => {
     { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
     { texto: "Meu Perfil", img: MeuPerfil, rota: "/moderador/perfil" },
   ];
-  const rotasPersonalizadas = [
-    { texto: "Eventos", img: Calendario, rota: "/moderador/eventos" },
-    { texto: "Convites", img: convite, rota: "/moderador/convites" },
-    { texto: "Feedbacks", img: feedback, rota: "/moderador/feedbacks" },
-    { texto: "Meu Perfil", img: MeuPerfil, rota: "/moderador/perfil" },
-  ];
 
   useEffect(() => {
     if (!idUsuario) return;
@@ -60,7 +54,7 @@ const FeedbacksM2 = () => {
         setParticipacoes(normalize(paraComentar));
         setEventosPassados(normalize(passados));
       } catch (err) {
-        setError("Erro ao buscar participações: " + err.message);
+        setError("Erro ao buscar participações: " + (err.message || err));
       } finally {
         setLoading(false);
       }
@@ -74,7 +68,7 @@ const FeedbacksM2 = () => {
       const notaString = typeof p.nota === "string" ? p.nota : null;
 
       const body = {
-        idUsuario: parseInt(idUsuario),
+        idUsuario: parseInt(idUsuario, 10),
         idEvento: p.id.eventoId,
         comentario: p.comentario || null,
         idNota: notaString ? NOTAS_MAP[notaString] : null,
@@ -126,50 +120,30 @@ const FeedbacksM2 = () => {
               onDetalhes={(p) => setModalData(p)}
               editable={true}
             />
-    <>
-      <div className="MainFeedbackM2">
-        <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
 
-        <div className="scroll-page">
-          <div className="feedback">
-            <div className="m2-feedback-container">
-              <div className="feedback-title">Feedbacks</div>
-              <h1>Eventos para comentar</h1>
-              <EventosTable
-                eventos={participacoes}
-                onFeedback={handleFeedback}
-                onDetalhes={(p) => setModalData(p)}
-                editable={true}
-              />
+            <h1
+              style={{
+                marginTop: "40px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              Eventos passados
+              <span className="info-icon">
+                <FiInfo />
+                <span className="tooltip-text">
+                  Para os eventos passados, você pode apenas visualizar os
+                  feedbacks já enviados.
+                </span>
+              </span>
+            </h1>
 
-            <h1>Eventos passados</h1>
             <EventosTable
               eventos={eventosPassados}
               onDetalhes={(p) => setModalData({ ...p, isPassado: true })}
               editable={false}
             />
-              <h1
-                style={{
-                  marginTop: "40px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-              >
-                Eventos passados
-                <span className="info-icon">
-                  <FiInfo />
-                  <span className="tooltip-text">
-                    Para os eventos passados, você pode apenas visualizar os
-                    feedbacks já enviados.
-                  </span>
-                </span>
-              </h1>
-              <EventosTable
-                eventos={eventosPassados}
-                onDetalhes={(p) => setModalData({ ...p, isPassado: true })}
-                editable={false}
-              />
 
             {modalData && modalData.isPassado && (
               <ModalVisualizacao
@@ -189,18 +163,6 @@ const FeedbacksM2 = () => {
         </div>
       </div>
     </div>
-              {modalData && !modalData.isPassado && (
-                <ModalFeedback
-                  modalData={modalData}
-                  onClose={() => setModalData(null)}
-                  onSave={handleFeedback}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
   );
 };
 

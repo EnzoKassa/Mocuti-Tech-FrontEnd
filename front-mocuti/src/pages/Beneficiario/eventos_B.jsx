@@ -27,12 +27,7 @@ export default function EventosBeneficiario() {
   const [filtrosUI, setFiltrosUI] = useState(INITIAL_FILTERS);
   const { user } = useContext(AuthContext);
   const userId = user?.idUsuario || user?.id || null;
-     const [eventos, setEventos] = useState([]);
-     const [categorias, setCategorias] = useState([]);
-     const [statusList, setStatusList] = useState([]);
-     const [filtrosUI, setFiltrosUI] = useState(INITIAL_FILTERS);
-     const { user } = useContext(AuthContext);
-     const userId = user?.idUsuario || user?.id || null;
+  
      // helper local para headers de autenticação (pega token do local/session storage)
      const getAuthHeaders = () => {
        const token = localStorage.getItem("token") || sessionStorage.getItem("token") || null;
@@ -127,9 +122,9 @@ export default function EventosBeneficiario() {
 
       const res = await api.get(url);
       let data = res.data;
-             const resp = await fetch(`${BASE_URL}${endpoint}`, { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
-             if (!resp.ok) throw new Error(`Erro HTTP: ${resp.status}`);
-             let data = await resp.json();
+            //  const resp = await fetch(`${BASE_URL}${endpoint}`, { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
+            //  if (!resp.ok) throw new Error(`Erro HTTP: ${resp.status}`);
+            //  let data = await resp.json();
 
       if (filtrosAtuais.categoriaId && filtrosAtuais.statusEventoId) {
         data = data.filter(
@@ -210,36 +205,6 @@ export default function EventosBeneficiario() {
                };
              });
 
-             const eventosComImg = await Promise.all(
-              dataComDadosCompletos.map(async (evento) => {
-                  let eventoCompletado = { ...evento, imagemUrl: null };
-                  try {
-                       if (!evento.idEvento && !evento.id && !evento.id_evento) return eventoCompletado;
-                       const id = evento.idEvento || evento.id || evento.id_evento;
-                       const imgResponse = await fetch(`${BASE_URL}/eventos/foto/${encodeURIComponent(id)}`);
-                       if (imgResponse.ok) {
-                        const blob = await imgResponse.blob();
-                        eventoCompletado.imagemUrl = URL.createObjectURL(blob);
-                       }
-                  } catch (errorImg) {
-                        console.warn(`Erro ao buscar foto para evento ${evento.idEvento || evento.id}:`, errorImg);
-                  }
-
-                  try {
-                    const idForCount = evento.idEvento || evento.id || evento.id_evento;
-                    if (idForCount) {
-                      const count = await fetchInscritosCargo2Count(idForCount);
-                      eventoCompletado.qtdInscritosCargo2 = count;
-                      eventoCompletado.qtdInscritos = count;
-                      if (!eventoCompletado.qtdInteressado) eventoCompletado.qtdInteressado = count;
-                    }
-                  } catch (errCount) {
-                    console.debug("Erro ao buscar contagem de inscritos:", errCount);
-                  }
-
-                  return eventoCompletado;
-              })
-             );
       const eventosComImg = await Promise.all(
         dataComDadosCompletos.map(async (evento) => {
           let eventoCompletado = { ...evento, imagemUrl: null };
@@ -459,24 +424,37 @@ export default function EventosBeneficiario() {
   
       const url = `${BASE_URL}/participacoes/${encodeURIComponent(id)}/inscrever?idUsuario=${encodeURIComponent(userId)}&idStatusInscricao=${encodeURIComponent(idStatusInscricao)}`;
   
-      try {
-        const res = await fetch(url, { method: "POST", headers: { Accept: "application/json", "Content-Type": "application/json", ...getAuthHeaders() } });
-        if (res.ok) triggerApiRefresh();
- 
-         // tenta ler resposta (json ou texto) para extrair mensagem amigável
-         const contentType = res.headers.get("content-type") || "";
-         let body = null;
-         if (contentType.includes("application/json")) {
-           body = await res.json().catch(() => null);
-         } else {
-           body = await res.text().catch(() => null);
-         }
-  
-        if (res.ok) {
-          Swal.fire("Inscrição enviada", "Você foi inscrito no evento.", "success");
-          return;
-        }
-  
+    try {
+  const res = await api.post(url, null, {
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    validateStatus: () => true // permite tratar como fetch, sem lançar erro automático
+  });
+
+  if (res.status >= 200 && res.status < 300) triggerApiRefresh();
+
+  // tentativa de ler resposta
+  const contentType = res.headers["content-type"] || "";
+  let body = null;
+
+  if (contentType.includes("application/json")) {
+    body = res.data ?? null;
+  } else {
+    // axios não retorna text() quando não é json → acessar raw data
+    body = typeof res.data === "string" ? res.data : JSON.stringify(res.data);
+  }
+
+  if (res.status >= 200 && res.status < 300) {
+    Swal.fire("Inscrição enviada", "Você foi inscrito no evento.", "success");
+    return;
+  }
+
+  } catch (err) {
+    console.debug("axios participacao inscrever falhou:", err);
+  } 
 
         let errMsg = "Não foi possível inscrever.";
         if (body) {
@@ -563,6 +541,8 @@ export default function EventosBeneficiario() {
           categoria = full.categoria?.nome || categoria;
           status = full.statusEvento?.situacao || status;
           publico = full.publicoAlvo || full.publico || publico;
+
+
         try {
           const resp = await fetch(`${BASE_URL}/eventos/${encodeURIComponent(id)}`, { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
           if (resp.ok) {
@@ -577,6 +557,7 @@ export default function EventosBeneficiario() {
             categoria = full.categoria?.nome || categoria;
             status = full.statusEvento?.situacao || status;
             publico = full.publicoAlvo || full.publico || publico;
+          }
 
           const e = full.endereco || full.enderecoEvento || full.address || null;
           if (e && typeof e === "object") {
@@ -590,13 +571,7 @@ export default function EventosBeneficiario() {
           } else if (typeof full.enderecoFormatado === "string" && full.enderecoFormatado.trim()) {
             localStr = full.enderecoFormatado;
           }
-        } catch (err) {
-          console.error("Erro ao buscar detalhe do evento:", err);
-        } finally {
-          Swal.close();
-        }
-      }
-    }
+    
             const e = full.endereco || full.enderecoEvento || full.address || null;
             if (e && typeof e === "object") {
               const rua = e.logradouro || e.rua || "";
@@ -609,7 +584,7 @@ export default function EventosBeneficiario() {
             } else if (full.enderecoFormatado && typeof full.enderecoFormatado === "string" && full.enderecoFormatado.trim()) {
               localStr = full.enderecoFormatado;
             }
-          } else {
+           else {
             console.warn("Detalhe do evento não disponível:", resp.status);
           }
         } catch (err) {
@@ -617,13 +592,8 @@ export default function EventosBeneficiario() {
         } finally {
           Swal.close();
         }
-      } catch (err) {
-        console.error("Erro ao buscar detalhe do evento:", err);
-      } finally {
-        Swal.close();
-      }
-    }
-  }
+    
+  
 
     const imgHtml = imgUrl
       ? `<img src="${imgUrl}" alt="${titulo}" class="sw-img" />`
@@ -726,4 +696,4 @@ export default function EventosBeneficiario() {
       />
     </>
   );
-}
+}   
