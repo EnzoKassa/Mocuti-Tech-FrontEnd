@@ -5,49 +5,38 @@ import HeaderBeneficiario from "../../components/HeaderBeneficiario";
 import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
 import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
 import Swal from "sweetalert2";
-import { fetchInscritosCargo2Count, BASE_URL, apiRefresh, triggerApiRefresh } from "../../api/api";
 import "../../styles/meusEventos.css";
 
 export default function MeusEventosBeneficiario() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const idUsuario = user?.id || localStorage.getItem("idUsuario") || sessionStorage.getItem("idUsuario");
+  const idUsuario =
+    user?.id ||
+    localStorage.getItem("idUsuario") ||
+    sessionStorage.getItem("idUsuario");
 
   const botoesNav = [
     { onClick: () => navigate("/usuario/eventos"), label: "Eventos", className: "btn-inicio" },
     { onClick: () => navigate("/usuario/perfil"), label: "Meu Perfil", className: "btn-sobre" },
     { onClick: () => navigate("/usuario/meus-eventos"), label: "Meus Eventos", className: "btn-linha" },
-    { onClick: () => navigate("/usuario/feedback"), label: "Feedback", className: "btn-comentarios" }
+    { onClick: () => navigate("/usuario/feedback"), label: "Feedback", className: "btn-comentarios" },
   ];
 
   const [participacoes, setParticipacoes] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // 🔹 Normaliza e busca detalhes + imagem
   const normalizeEventos = async (arr) =>
     Promise.all(
       (arr || []).map(async (p) => {
         let imagemUrl = null;
         let eventoDetalhes = null;
-
-        const extractEventId = (obj) => {
-          if (!obj) return null;
-          return obj.idEvento ??
-                 obj.evento?.idEvento ??
-                 obj.eventoId ??
-                 obj.id ??
-                 obj.evento?.id ??
-                 obj.id_evento ??
-                 obj.evento_id ??
-                 null;
-        };
-
-        const eventoId = extractEventId(p);
-
         try {
+          const eventoId = p.idEvento || p.id?.eventoId || p.id?.evento_id || (p.id && (p.id.eventoId || p.id));
           if (eventoId) {
-            const res = await fetch(`${BASE_URL}/eventos/${eventoId}`);
+            const res = await fetch(`http://localhost:8080/eventos/${eventoId}`);
             if (res.ok) eventoDetalhes = await res.json();
-            const imgRes = await fetch(`${BASE_URL}/eventos/foto/${eventoId}`);
+            const imgRes = await fetch(`http://localhost:8080/eventos/foto/${eventoId}`);
             if (imgRes.ok) {
               const blob = await imgRes.blob();
               imagemUrl = URL.createObjectURL(blob);
@@ -75,102 +64,28 @@ export default function MeusEventosBeneficiario() {
           ...p,
           ...(eventoDetalhes || {}),
           imagemUrl,
-          idEvento: eventoId ?? p.idEvento ?? p.id,
-          qtdInscritosCargo2: inscritosCount,
-          qtdInscritos: inscritosCount,
-          qtdInteressado: p.qtdInteressado ?? inscritosCount,
-          inscritosCount,
-          participantesCount: inscritosCount,
-          inscritos: inscritosCount,
-          qtdParticipantes: inscritosCount,
-          participantes: inscritosCount,
-          interessadosCount: inscritosCount,
-          // cria/garante um array 'interessados' caso o componente verifique .length
-          interessados: (eventoDetalhes && Array.isArray(eventoDetalhes.interessados) && eventoDetalhes.interessados.length)
-                        ? eventoDetalhes.interessados
-                        : (Array.isArray(p.interessados) ? p.interessados : new Array(Number(inscritosCount || 0)).fill(null))
+          idEvento: p.idEvento || p.id?.eventoId || (eventoDetalhes && eventoDetalhes.idEvento) || p.id,
         };
       })
     );
 
+  // 🔹 Busca eventos do usuário
   const fetchEventos = async () => {
     if (!idUsuario) {
       setParticipacoes([]);
       setLoading(false);
       return;
     }
+
     try {
       setLoading(true);
 
-      const urlInscritos = `${BASE_URL}/participacoes/eventos-inscritos/${encodeURIComponent(idUsuario)}`;
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token") || localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken") || null;
-      const inscritosRes = await fetch(urlInscritos, { headers: token ? { Authorization: `Bearer ${token}`, Accept: "application/json" } : { Accept: "application/json" } });
-
+      const urlInscritos = `http://localhost:8080/participacoes/eventos-inscritos/${encodeURIComponent(idUsuario)}`;
+      const inscritosRes = await fetch(urlInscritos);
       const inscritos = inscritosRes.ok ? await inscritosRes.json() : [];
 
-      console.debug("meus_eventos_B -> inscritos raw:", { urlInscritos, status: inscritosRes.status, inscritosSample: (inscritos && inscritos.slice ? inscritos.slice(0,5) : inscritos) });
-      
       const normInscritos = await normalizeEventos(inscritos);
-
-      console.debug("meus_eventos_B -> normInscritos sample:", normInscritos && normInscritos.slice ? normInscritos.slice(0,5) : normInscritos);
-      
-      // helper para parse de data/hora (suporta YYYY-MM-DD, ISO T, DD/MM/YYYY)
-      const tryParseDateTime = (dateStr, timeStr) => {
-        if (!dateStr) return null;
-        const ds = String(dateStr).trim();
-        const t = String(timeStr || "").trim();
-
-        // ISO full (2026-11-26T14:00:00 or "2026-11-26 14:00:00")
-        const isoFullMatch = ds.match(/^(\d{4}-\d{2}-\d{2})(?:[T\s](\d{2}:\d{2}(?::\d{2})?))?/);
-        if (isoFullMatch) {
-          const datePart = isoFullMatch[1];
-          const timePart = isoFullMatch[2] || t || "00:00";
-          const candidate = `${datePart}T${timePart}`;
-          const d = new Date(candidate);
-          if (!isNaN(d.getTime())) return d;
-        }
-
-        // YYYY-MM-DD
-        const isoMatch = ds.match(/^(\d{4})[-/](\d{2})[-/](\d{2})$/);
-        if (isoMatch) {
-          const [, y, m, d] = isoMatch;
-          const [hh = "0", mm = "0", ss = "0"] = (t || "00:00").split(":");
-          const dObj = new Date(Number(y), Number(m) - 1, Number(d), Number(hh), Number(mm), Number(ss));
-          if (!isNaN(dObj.getTime())) return dObj;
-        }
-
-        // DD/MM/YYYY or DD-MM-YYYY
-        const brMatch = ds.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
-        if (brMatch) {
-          const [, day, month, year] = brMatch;
-          const [hh = "0", mm = "0", ss = "0"] = (t || "00:00").split(":");
-          const dObj = new Date(Number(year), Number(month) - 1, Number(day), Number(hh), Number(mm), Number(ss));
-          if (!isNaN(dObj.getTime())) return dObj;
-        }
-
-        try {
-          const candidate = t ? `${ds} ${t}` : ds;
-          const dObj = new Date(candidate);
-          if (!isNaN(dObj.getTime())) return dObj;
-        } catch { /* ignore */ }
-        return null;
-      };
-
-      const getEventTimestamp = (p) => {
-        const dateStr = p.dia || p.data_evento || p.day || p.data || "";
-        const timeStr = p.horaInicio || p.hora_inicio || p.hora || p.horaInicioEvento || "";
-        const dt = tryParseDateTime(dateStr, timeStr) || tryParseDateTime(dateStr, "00:00");
-        return dt ? dt.getTime() : 0;
-      };
-
-      // ordenar do mais antigo para o mais novo (inverter se desejar o contrário)
-      const ordenados = [...normInscritos]
-        .map(p => ({ ...p, __evtTs: getEventTimestamp(p) }))
-        .sort((a, b) => (a.__evtTs || 0) - (b.__evtTs || 0))
-        // eslint-disable-next-line no-unused-vars
-        .map(({ __evtTs, ...rest }) => rest);
-
-      setParticipacoes(ordenados);
+      setParticipacoes(normInscritos);
     } catch (err) {
       console.error("Erro ao buscar participações:", err);
       setParticipacoes([]);
@@ -185,12 +100,17 @@ export default function MeusEventosBeneficiario() {
    apiRefresh.addEventListener("refresh", onRefresh);
    return () => apiRefresh.removeEventListener("refresh", onRefresh);
   }, [idUsuario]);
-  
+
   const cancelarInscricao = async (idEvento) => {
     if (!idUsuario) {
-      Swal.fire("Atenção", "Você precisa estar logado para cancelar a inscrição.", "warning");
+      Swal.fire(
+        "Atenção",
+        "Você precisa estar logado para cancelar a inscrição.",
+        "warning"
+      );
       return;
     }
+
     const choice = await Swal.fire({
       title: "Confirmação",
       text: "Tem certeza que deseja cancelar sua inscrição neste evento?",
@@ -204,21 +124,25 @@ export default function MeusEventosBeneficiario() {
     if (!choice.isConfirmed) return;
 
     try {
-      const url = `${BASE_URL}/participacoes/${encodeURIComponent(idEvento)}/cancelar-inscricao?idUsuario=${encodeURIComponent(idUsuario)}`;
+      const url = `http://localhost:8080/participacoes/${encodeURIComponent(idEvento)}/cancelar-inscricao?idUsuario=${encodeURIComponent(idUsuario)}`;
       const res = await fetch(url, { method: "DELETE" });
       if (res.ok || res.status === 204) {
         setParticipacoes((prev) => prev.filter((ev) => String(ev.idEvento) !== String(idEvento)));
         Swal.fire("Inscrição cancelada", "Sua inscrição foi cancelada.", "success");
-        triggerApiRefresh();
-       } else {
-         Swal.fire("Erro", "Não foi possível cancelar a inscrição de um evento que já está em andamento ou encerrado.", "error");
-       }
+      } else {
+        Swal.fire("Erro", "Não foi possível cancelar a inscrição de um evento que já está em andamento ou encerrado.", "error");
+      }
     } catch (err) {
       console.error("Erro ao cancelar inscrição:", err);
-      Swal.fire("Erro", "Falha ao conectar com o servidor.", "error");
+
+      const msg =
+        err.response?.data?.message ||
+        "Não foi possível cancelar a inscrição de um evento que já está em andamento ou encerrado.";
+      Swal.fire("Erro", msg, "error");
     }
   };
 
+  // 🔹 Exibe modal de detalhes
   const mostrarDetalhes = (evento) => {
     const titulo = evento.nomeEvento || evento.nome || "Evento";
     const descricao = evento.descricao || evento.descricaoEvento || "Sem descrição.";
@@ -227,10 +151,17 @@ export default function MeusEventosBeneficiario() {
     const horaFim = evento.horaFim || evento.hora_fim || "-";
 
     let local = "Local não informado";
-    const e = evento.endereco || evento.enderecoEvento || evento.enderecoFormatado || evento.local || null;
+    const e =
+      evento.endereco ||
+      evento.enderecoEvento ||
+      evento.enderecoFormatado ||
+      evento.local ||
+      null;
+
     if (e && typeof e === "object") {
       const rua = e.logradouro || e.rua || "";
-      const numero = (e.numero !== undefined && e.numero !== null) ? String(e.numero) : "";
+      const numero =
+        e.numero !== undefined && e.numero !== null ? String(e.numero) : "";
       const bairro = e.bairro || "";
       const parts = [];
       if (rua) parts.push(rua + (numero ? `, ${numero}` : ""));
@@ -241,7 +172,9 @@ export default function MeusEventosBeneficiario() {
     }
 
     const categoria = evento.categoria?.nome || evento.categoriaNome || "-";
-    const imgHtml = evento.imagemUrl ? `<img src="${evento.imagemUrl}" alt="${titulo}" class="sw-img" />` : `<div class="sw-img sw-noimg">Sem imagem</div>`;
+    const imgHtml = evento.imagemUrl
+      ? `<img src="${evento.imagemUrl}" alt="${titulo}" class="sw-img" />`
+      : `<div class="sw-img sw-noimg">Sem imagem</div>`;
 
     const html = `
       <div class="sw-modal-compact" style="display:flex; gap:18px;">
@@ -275,7 +208,7 @@ export default function MeusEventosBeneficiario() {
         content: "swal2-content my-swal-content",
         confirmButton: "sw-btn sw-btn-confirm",
         cancelButton: "sw-btn sw-btn-cancel",
-        closeButton: "swal2-close my-swal-close"
+        closeButton: "swal2-close my-swal-close",
       },
       buttonsStyling: false,
     }).then((result) => {
@@ -305,8 +238,17 @@ export default function MeusEventosBeneficiario() {
           <p>Carregando eventos...</p>
         ) : (
           <div className="feedback-container">
-            <div className="eventos-unificado" style={{ background: "#F5F5F5", padding: 0 , boxShadow: "0 2px 4px rgba(0,0,0,0.06)" }}>
-              <h1 style={{ marginTop: 0, padding: "0 0 0 100px" }}>Meus Eventos</h1>
+            <div
+              className="eventos-unificado"
+              style={{
+                background: "#F5F5F5",
+                padding: 0,
+                boxShadow: "0 2px 4px rgba(0,0,0,0.06)",
+              }}
+            >
+              <h1 style={{ marginTop: 0, padding: "0 0 0 100px" }}>
+                Meus Eventos
+              </h1>
               <div style={{ marginTop: 8 }}>
                 <EspacoEventosBeneficiario
                   eventos={participacoes}
@@ -314,7 +256,6 @@ export default function MeusEventosBeneficiario() {
                   hideParticipar={true}
                   onOpenModal={mostrarDetalhes}
                   onCancelarInscricao={cancelarInscricao}
-                  s
                 />
               </div>
             </div>
@@ -324,5 +265,3 @@ export default function MeusEventosBeneficiario() {
     </div>
   );
 }
-
-

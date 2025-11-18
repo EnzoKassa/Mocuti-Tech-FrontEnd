@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import api from "../api/api";
 
-export const AuthContext = createContext(); // <-- export const
-export const useAuth = () => useContext(AuthContext); // <-- hook
+export const AuthContext = createContext();
+export const useAuth = () => useContext(AuthContext);
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -20,36 +21,11 @@ const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      const res = await fetch("http://localhost:8080/usuarios/login", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, senha }),
-      });
+      const res = await api.patch("/usuarios/login", { email, senha });
+      const data = res.data;
 
-      if (!res.ok) {
-        // tenta extrair mensagem do servidor (json ou texto)
-        let msg = "Credenciais inválidas";
-        try {
-          const text = await res.text();
-          if (text) {
-            try {
-              const json = JSON.parse(text);
-              msg = json.message || json.error || text;
-            } catch {
-              msg = text;
-            }
-          }
-        } catch {
-          /* fallback */
-        }
-        throw new Error(msg);
-      }
-      const data = await res.json();
+      console.log("Login bem-sucedido:", data);
 
-      // setUser({ id: data.idUsuario, tipoCargo: data.cargo.tipoCargo });
-      // localStorage.setItem("user", JSON.stringify({ id: data.idUsuario, tipoCargo: data.cargo.tipoCargo }));
-
-      // const userData = { id: data.idUsuario, tipoCargo: data.cargo.tipoCargo };
       const userData = {
         id: data.idUsuario,
         nomeCompleto: data.nomeCompleto,
@@ -57,7 +33,6 @@ const AuthProvider = ({ children }) => {
         email: data.email,
       };
 
-      // atualiza estado uma vez
       setUser(userData);
 
       if (rememberMe) {
@@ -71,11 +46,10 @@ const AuthProvider = ({ children }) => {
         sessionStorage.setItem("nomeCompleto", userData.nomeCompleto);
         localStorage.removeItem("user");
       }
-      // retorna dados para o chamador confirmar sucesso
+
       return userData;
     } catch (err) {
       setError(err?.message || "Erro no login");
-      // relança para o caller (ex.: página de login) poder tratar
       throw err;
     } finally {
       setLoading(false);
@@ -95,6 +69,4 @@ const AuthProvider = ({ children }) => {
   );
 };
 
-export default AuthProvider; // <-- export default
-
-
+export default AuthProvider;

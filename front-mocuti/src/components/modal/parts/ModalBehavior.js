@@ -1,5 +1,6 @@
 import { attachPublicoBehavior } from "./PublicoSelect";
 import { attachEnderecoBehavior } from "./EnderecoFields";
+import axios from 'axios'
 
 /**
  * attachModalBehavior(options)
@@ -94,9 +95,9 @@ export function attachModalBehavior({ values = {}, enderecos = [], getAuthHeader
             const v = (cepInput.value || "").replace(/\D/g, "");
             if (!v) return;
             try {
-              const r = await fetch(`https://viacep.com.br/ws/${v}/json/`);
+              const r = await axios.get(`https://viacep.com.br/ws/${v}/json/`);
               if (!r.ok) return;
-              const data = await r.json();
+              const data = await r.data;
               if (data && !data.erro) {
                 const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ""; };
                 set("ev-logradouro", data.logradouro || "");

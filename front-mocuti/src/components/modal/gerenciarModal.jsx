@@ -1,4 +1,5 @@
 import Swal from "sweetalert2";
+import api from '../../api/api'
 
 const escapeHtml = (str) => (str ? String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : "");
 // helper: monta uma string legível a partir do objeto endereco
@@ -114,35 +115,58 @@ export async function openGerenciarModal(evento, { onEdit, onDelete, onLista, na
 
   let localComputed = buildLocalString(evento);
 
-  if (!localComputed || !localComputed.trim()) {
-    const maybeId = evento.endereco?.idEndereco ?? evento.endereco?.id ?? evento.fk_endereco_evento ?? evento.fkEndereco ?? evento.fk_endereco ?? evento.id_endereco ?? evento.enderecoId ?? evento.idEndereco ?? null;
-    if (maybeId) {
+ if (!localComputed || !localComputed.trim()) {
+  const maybeId =
+    evento.endereco?.idEndereco ??
+    evento.endereco?.id ??
+    evento.fk_endereco_evento ??
+    evento.fkEndereco ??
+    evento.fk_endereco ??
+    evento.id_endereco ??
+    evento.enderecoId ??
+    evento.idEndereco ??
+    null;
+
+  if (maybeId) {
+    try {
+      const headers =
+        typeof getAuthHeaders === "function" ? getAuthHeaders() || {} : {};
+
+      const tryAxios = async (url) => {
+        const response = await api.get(url, { headers });
+        return response.data || null;
+      };
+
+      let fetched = null;
       try {
-        const headers = (typeof getAuthHeaders === "function") ? (getAuthHeaders() || {}) : {};
-        const tryFetch = async (url) => {
-          const r = await fetch(url, { headers });
-          if (!r.ok) throw new Error(`http ${r.status}`);
-          return await r.json().catch(() => null);
-        };
-        let fetched = null;
+        fetched = await tryAxios(`/api/endereco/${encodeURIComponent(maybeId)}`);
+      } catch {
         try {
-          fetched = await tryFetch(`/api/endereco/${encodeURIComponent(maybeId)}`);
-        } catch {
-          try {
-            fetched = await tryFetch(`http://localhost:8080/endereco/${encodeURIComponent(maybeId)}`);
-          } catch (err) {
-            console.warn("gerenciarModal: não foi possível buscar endereco por id", maybeId, err);
-          }
+          fetched = await tryAxios(
+            `http://localhost:8080/endereco/${encodeURIComponent(maybeId)}`
+          );
+        } catch (err) {
+          console.warn(
+            "gerenciarModal: não foi possível buscar endereco por id",
+            maybeId,
+            err
+          );
         }
-        if (fetched) {
-          // monta string a partir do objeto retornado
-          localComputed = buildLocalString({ endereco: fetched }) || buildLocalString(fetched) || "";
-        }
-      } catch (err) {
-        console.warn("gerenciarModal: erro ao buscar endereco:", err);
       }
+
+      if (fetched) {
+        // monta string a partir do objeto retornado
+        localComputed =
+          buildLocalString({ endereco: fetched }) ||
+          buildLocalString(fetched) ||
+          "";
+      }
+    } catch (err) {
+      console.warn("gerenciarModal: erro ao buscar endereco:", err);
     }
   }
+}
+
   // preferir enderecoFormatado > local (string) > evento.endereco (obj) > fallback
   const localFromObj = (evento.endereco && typeof evento.endereco === "object") ? formatEnderecoObj(evento.endereco) : "";
   const localStr = evento.enderecoFormatado || (typeof evento.local === "string" && evento.local.trim() ? evento.local.trim() : (localFromObj || "Local não informado"));

@@ -10,6 +10,8 @@ import feedback from "../../assets/images/feedbackLogo.svg";
 import Visao from "../../assets/images/visaoGeral.svg";
 import Lista from "../../assets/images/listausuariom1.svg";
 
+import api from '../../api/api';
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -33,62 +35,67 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, ChartTitle, Tooltip, Le
 // ===================
 // CONFIG / ENDPOINTS
 // ===================
-const API_BASE = "http://localhost:8080";
-
 // ------------- Utils fetch -------------
-async function fetchJson(url, opts) {
-  const res = await fetch(url, opts);
-  if (!res.ok) {
-    const t = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status} ${url} → ${t}`);
-  }
-  return res.json();
-}
+// async function fetchJson(url, opts) {
+//   const res = await fetch(url, opts);
+//   if (!res.ok) {
+//     const t = await res.text().catch(() => "");
+//     throw new Error(`HTTP ${res.status} ${url} → ${t}`);
+//   }
+//   return res.json();
+// }
 
 // ------------- APIs -------------
 async function buscarTodosEventos(signal) {
-  const data = await fetchJson(`${API_BASE}/eventos`, { signal }).catch(() => []);
-  if (!Array.isArray(data)) return [];
-  return data
-    .map((e) => ({
-      id: e?.idEvento ?? e?.id_evento ?? e?.id ?? e?.eventoId ?? e?.evento_id ?? null,
-      nome:
-        e?.nomeEvento ??
-        e?.nome_evento ??
-        e?.nome ??
-        (e?.titulo || `Evento ${e?.idEvento ?? e?.id ?? "—"}`),
-      raw: e,
-    }))
-    .filter((ev) => ev.id != null);
+  try {
+    const res = await api.get("/eventos", { signal });
+    const data = Array.isArray(res.data) ? res.data : [];
+
+    return data
+      .map((e) => ({
+        id: e?.idEvento ?? e?.id_evento ?? e?.id ?? null,
+        nome:
+          e?.nomeEvento ??
+          e?.nome_evento ??
+          e?.nome ??
+          `Evento ${e?.idEvento ?? e?.id ?? "—"}`,
+        raw: e,
+      }))
+      .filter((ev) => ev.id != null);
+
+  } catch {
+    return [];
+  }
 }
 
 async function buscarEventoPorId(id, signal) {
-  return fetchJson(`${API_BASE}/eventos/${id}`, { signal });
+  const res = await api.get(`/eventos/${id}`, { signal });
+  return res.data;
 }
 
-// aceita array (participantes) OU objeto-Resumo (view) OU {mensagem:"..."} -> null
 async function buscarListaPresencaEvento(idEvento, signal) {
-  const data = await fetchJson(
-    `${API_BASE}/usuarios/${idEvento}/lista-presenca`,
-    { signal }
-  );
-  if (data && typeof data === "object" && !Array.isArray(data) && "mensagem" in data) {
+  const res = await api.get(`/usuarios/${idEvento}/lista-presenca`, { signal });
+
+  if (res.data && typeof res.data === "object" && !Array.isArray(res.data) && "mensagem" in res.data) {
     return null;
   }
-  return data ?? null;
+
+  return res.data ?? null;
 }
 
 async function buscarFeedbacksDoEvento(idEvento, signal) {
   try {
-    const byQuery = await fetchJson(
-      `${API_BASE}/feedback?eventoId=${idEvento}`,
-      { signal }
-    );
-    if (Array.isArray(byQuery)) return byQuery;
+    const res = await api.get(`/feedback`, {
+      params: { eventoId },
+      signal,
+    });
+    if (Array.isArray(res.data)) return res.data;
   } catch {}
-  const all = await fetchJson(`${API_BASE}/feedback`, { signal }).catch(() => []);
+
+  const fallback = await api.get(`/feedback`, { signal }).catch(() => ({ data: [] }));
   const alvo = Number(idEvento);
-  return (Array.isArray(all) ? all : []).filter((f) => {
+
+  return fallback.data.filter((f) => {
     const id =
       f?.evento?.idEvento ??
       f?.evento?.id_evento ??

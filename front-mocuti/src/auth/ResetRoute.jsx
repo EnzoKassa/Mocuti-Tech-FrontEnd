@@ -1,4 +1,3 @@
-// src/auth/ResetRoute.jsx
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useResetPassword } from "./ResetPasswordContext";
@@ -13,5 +12,3 @@ export default function ResetRoute({ requiredStep, children }) {
 
   return children;
 }
-
-

@@ -1,4 +1,6 @@
 import Swal from "sweetalert2";
+import api from '../../api/api'
+
 
 const escapeHtml = (str) => (str ? String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : "");
 
@@ -15,14 +17,14 @@ export async function openListaPresencaModal(evento, { getAuthHeaders }) {
   try {
     console.debug('Headers enviados:', headers);
     const relUrl = `/participacoes/inscritos/cargo2/pendente/${encodeURIComponent(idEvento)}`;
-    let res = await fetch(relUrl, { method: 'GET', headers });
-    console.debug('fetch (rel):', res.status, res.url);
+    let res = await api.get(relUrl, { headers });
+    console.debug('axios (rel):', res.status, relUrl);
 
     if (res.status === 404) {
-      const absUrl = `http://localhost:8080/participacoes/inscritos/cargo2/pendente/${encodeURIComponent(idEvento)}`;
+      const absUrl = `/participacoes/inscritos/cargo2/pendente/${encodeURIComponent(idEvento)}`;
       console.debug('Rota relativa retornou 404 — tentando URL absoluta:', absUrl);
-      res = await fetch(absUrl, { method: 'GET', headers });
-      console.debug('fetch (abs):', res.status, res.url);
+      res = await api.get(absUrl, { headers });
+      console.debug('axios (abs):', res.status, absUrl);
     }
 
     if (res.status === 204) interessados = [];
@@ -113,29 +115,21 @@ export async function openListaPresencaModal(evento, { getAuthHeaders }) {
       }
 
       try {
-        const urlRel = `/participacoes/${encodeURIComponent(idEvento)}/presenca/bulk`;
+         const urlRel = `/participacoes/${encodeURIComponent(idEvento)}/presenca/bulk`;
         console.debug('Enviando PUT (rel):', urlRel, listaPresenca);
 
-        let r = await fetch(urlRel, {
-          method: "PUT",
-          headers: { ...headers, "Content-Type": "application/json" },
-          body: JSON.stringify({ listaPresenca })
-        });
-        console.debug('Resposta (rel):', r.status, r.url);
+        let r = await api.put(urlRel, { listaPresenca }, { headers });
+        console.debug('Resposta (rel):', r.status, urlRel);
 
         // se 404 no dev-server, tenta URL absoluta (pode ativar CORS)
         if (r.status === 404) {
           const urlAbs = `http://localhost:8080/participacoes/${encodeURIComponent(idEvento)}/presenca/bulk`;
           console.debug('Relativa retornou 404 — tentando absoluta:', urlAbs);
           try {
-            r = await fetch(urlAbs, {
-              method: "PUT",
-              headers: { ...headers, "Content-Type": "application/json" },
-              body: JSON.stringify({ listaPresenca })
-            });
-            console.debug('Resposta (abs):', r.status, r.url);
+            r = await api.put(urlAbs, { listaPresenca }, { headers });
+            console.debug('Resposta (abs):', r.status, urlAbs);
           } catch (errAbs) {
-            console.error('Erro fetch absoluta (possível CORS):', errAbs);
+            console.error('Erro axios absoluta (possível CORS):', errAbs);
             Swal.showValidationMessage("Falha ao alcançar backend via URL absoluta (possível CORS). Verifique proxy ou CORS no servidor.");
             return false;
           }
@@ -147,8 +141,7 @@ export async function openListaPresencaModal(evento, { getAuthHeaders }) {
           throw new Error(txt || `Erro ${r.status}`);
         }
 
-        const json = await r.json().catch(() => null);
-        return json ?? true;
+        return r.data ?? true;
       } catch (err) {
         console.error("Erro ao atualizar presenças em massa:", err);
         Swal.showValidationMessage("Falha ao salvar presenças em massa.");
