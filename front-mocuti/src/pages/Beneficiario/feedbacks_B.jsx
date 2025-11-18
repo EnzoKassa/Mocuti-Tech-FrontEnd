@@ -6,12 +6,8 @@ import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes"
 import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
 import ModalFeedback from "../../components/modal/Modal_Feedback_M2";
 import ModalVisualizacao from "../../components/modal/Modal_FeedbackVisul_M2";
-<<<<<<< HEAD
-import axios from "axios";
-import { BASE_URL, fetchInscritosCargo2Count } from "../../api/api";
-=======
+// import { BASE_URL, fetchInscritosCargo2Count } from "../../api/api";
 import api from "../../api/api"; 
->>>>>>> mudanca-url
 import "../../styles/meusEventos.css";
 import Swal from "sweetalert2";
 
@@ -50,60 +46,14 @@ export default function FeedbackBeneficiario() {
           api.get(`/participacoes/participacao-passados/${idUsuario}`)
         ]);
 
-<<<<<<< HEAD
-        // Função para buscar detalhes + foto + contagem de inscritos
-=======
+
         const dataParaComentar = resParaComentar.data || [];
         const dataPassados = resPassados.data || [];
 
-        // 🔹 Busca detalhes e imagem do evento
->>>>>>> mudanca-url
         const enrichEvento = async (p) => {
           const eventoId = p.idEvento || p.id?.eventoId;
           if (!eventoId) return p;
 
-<<<<<<< HEAD
-          // detalhes do evento
-          let eventoDetalhes = {};
-          try {
-            const res = await fetch(`${BASE_URL}/eventos/${encodeURIComponent(eventoId)}`);
-            if (res.ok) eventoDetalhes = await res.json();
-          } catch (err) {
-            console.debug("enrichEvento: falha ao buscar detalhes:", err);
-          }
-
-          // imagem
-          let imagemUrl = null;
-          try {
-            const imgRes = await fetch(`${BASE_URL}/eventos/foto/${encodeURIComponent(eventoId)}`);
-            if (imgRes.ok) {
-              const blob = await imgRes.blob();
-              imagemUrl = URL.createObjectURL(blob);
-            }
-          } catch (err) {
-            console.debug("enrichEvento: falha ao buscar imagem:", err);
-          }
-
-          // contagem de inscritos (cargo2)
-          let inscritosCount = 0;
-          try {
-            inscritosCount = await fetchInscritosCargo2Count(eventoId);
-            inscritosCount = Number(inscritosCount || 0);
-          } catch (err) {
-            console.debug("enrichEvento: fetchInscritosCargo2Count falhou:", err);
-          }
-
-          return {
-            ...p,
-            ...(eventoDetalhes || {}),
-            imagemUrl,
-            nota: p.nota?.tipoNota || null,
-            idEvento: eventoId,
-            qtdInscritosCargo2: inscritosCount,
-            qtdInscritos: inscritosCount,
-            qtdInteressado: p.qtdInteressado ?? inscritosCount
-          };
-=======
           try {
             const { data: eventoDetalhes } = await api.get(`/eventos/${eventoId}`);
 
@@ -122,12 +72,12 @@ export default function FeedbackBeneficiario() {
               ...eventoDetalhes,
               imagemUrl,
               nota: p.nota?.tipoNota || null,
+              idEvento: eventoId
             };
           } catch (err) {
             console.error("Erro ao enriquecer evento:", err);
             return p;
           }
->>>>>>> mudanca-url
         };
 
         const participacoesEnriquecidas = await Promise.all(dataParaComentar.map(enrichEvento));
@@ -274,7 +224,6 @@ export default function FeedbackBeneficiario() {
 
       <div className="meus-eventos-beneficiario">
         <div className="feedback-container">
-<<<<<<< HEAD
           <div
             className="eventos-unificado"
             style={{
@@ -286,10 +235,7 @@ export default function FeedbackBeneficiario() {
             <h1 style={{ marginTop: 0, padding: "0 0 0 100px", marginBottom: "10px" }}>
               Eventos para comentar
             </h1>
-=======
-          <div className="eventos-unificado" style={{ background: "#F5F5F5", padding: 0, boxShadow: "0 2px 4px rgba(0,0,0,0.06)" }}>
-            <h1 style={{ marginTop: 0, padding: "0 0 0 100px" }}>Eventos para comentar</h1>
->>>>>>> mudanca-url
+
             <div style={{ marginTop: 8 }}>
               <EspacoEventosBeneficiario
                 eventos={participacoes}
@@ -301,28 +247,19 @@ export default function FeedbackBeneficiario() {
               />
             </div>
 
-<<<<<<< HEAD
             <h1 style={{ marginTop: 32, paddingLeft: "100px", marginBottom: "10px" }}>
               Eventos passados
             </h1>
-=======
-            <h1 style={{ marginTop: 32, paddingLeft: "100px" }}>Eventos passados</h1>
->>>>>>> mudanca-url
+
             <div style={{ marginTop: 8 }}>
               <EspacoEventosBeneficiario
                 eventos={eventosPassados}
                 mostrarParticipar={false}
                 hideParticipar={true}
                 onOpenModal={mostrarDetalhes}
-<<<<<<< HEAD
-                showFeedbackButton={true} // Botão aparece só aqui
                 onFeedbackClick={abrirFeedbackView} // Abre modal M2
-                feedbackLabel="Ver comentário" // ou "Avaliar", "Responder", etc
-=======
                 showFeedbackButton={true}
-                onFeedbackClick={abrirFeedbackView}
                 feedbackButtonText="Visualizar feedback"
->>>>>>> mudanca-url
               />
             </div>
           </div>
