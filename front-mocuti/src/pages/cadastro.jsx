@@ -72,7 +72,7 @@ function Cadastro() {
     if (!email) return "Informe o email";
     // permite apenas letras, números e pontos nos lados local e domínio, exige '@' e '.'
     const re = /^[A-Za-z0-9.]+@[A-Za-z0-9.]+\.[A-Za-z]{2,}$/;
-    return re.test(email) ? null : "Email inválido. Deve conter '@' e '.' e não aceitar caracteres especiais";
+    return re.test(email) ? null : "Email inválido. Deve conter '@' e '.'";
   };
   
   // Valida nome: pelo menos 3 letras
