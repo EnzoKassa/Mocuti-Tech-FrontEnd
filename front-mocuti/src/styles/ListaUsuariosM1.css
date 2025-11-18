@@ -1,0 +1,451 @@
+/* ================================
+   LAYOUT GERAL DA TELA
+================================== */
+
+.containerGeral {
+  display: flex;
+  min-height: 100vh;
+  background: #f3f5f9;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+/* Área principal, fundo cinza, conteúdo central */
+.conteudoPrincipal {
+  padding: 32px 64px;
+  width: 100%;
+  background: #f2f4f8;
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Título da página */
+.tituloPagina {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #222;
+}
+
+/* ================================
+   ABAS (Mantenedores / Beneficiários)
+================================== */
+
+/* Abas superiores */
+.abasLista {
+  display: flex;
+  gap: 32px;
+  border-bottom: 1px solid #dedede;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.abasLista .aba {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #4b4b4b;
+  padding: 0 0 8px 0;
+  transition: 0.2s ease-in-out;
+}
+
+.abasLista .aba:hover {
+  background-color: #eef3ff;
+  color: #1f6feb;
+}
+
+/* Aba ativa */
+.abasLista .aba.ativa {
+  font-weight: 600;
+  color: #1f6feb;
+  border-bottom: 3px solid #1f6feb;
+  background-color: #dce6ff;
+}
+
+/* ================================
+   AÇÕES (botões superior direito)
+================================== */
+
+/* Linha com botões Novo / Excluir */
+.linhaAcoes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* Botão azul */
+.btnNovo {
+  background: #0d6efd;
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+/* Botão vermelho */
+.btnExcluir {
+  background: #d72626;
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.btnNovo:hover {
+  background-color: #2c8bff;
+  transform: translateY(-1px);
+}
+
+.btnExcluir:hover {
+  background-color: #cc0000;
+  transform: translateY(-1px);
+}
+
+/* ================================
+   TABELA
+================================== */
+
+/* Card branco da tabela */
+.tabelaContainer {
+  background: #ffffff;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  padding: 0;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.tabelaPadrao {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tabelaPadrao thead tr {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tabelaPadrao thead th {
+  text-align: left;
+  padding: 12px 16px;
+  background: #f3f4f6;
+  font-weight: 600;
+  color: #555;
+}
+
+.tabelaPadrao th,
+.tabelaPadrao td {
+  padding: 12px 16px;
+  text-align: left;
+}
+
+.tabelaPadrao tbody td {
+  border-bottom: 1px solid #eeeeee;
+  color: #333;
+}
+
+/* Linhas da tabela – hover suave */
+.tabelaPadrao tbody tr {
+  transition: background-color 0.15s linear;
+}
+
+.tabelaPadrao tbody tr:hover {
+  background-color: #fafcff;
+}
+
+/* Célula de "nenhum registro" */
+.semRegistro {
+  text-align: center;
+  padding: 24px 8px;
+  color: #777;
+}
+
+/* Coluna usuário com avatar */
+.colUsuario {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #d9d9d9;
+}
+
+/* Coluna ordenável */
+.colOrdenavel {
+  cursor: pointer;
+  user-select: none;
+}
+
+.colOrdenavel:hover {
+  color: #1f6feb;
+}
+
+/* Três pontinhos mais "clicáveis" */
+.tresPontos {
+  text-align: right;
+  font-size: 20px;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: 0.2s ease;
+}
+
+.tresPontos:hover {
+  color: #1f6feb;
+  font-weight: bold;
+}
+
+/* ================================
+   PAGINAÇÃO
+================================== */
+
+.paginacao {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.btnPaginacaoTexto {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px 10px;
+  color: #555;
+  transition: 0.2s ease;
+}
+
+.btnPaginacaoTexto:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btnPaginacaoNumero {
+  min-width: 32px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #d0d0d0;
+  background: #ffffff;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btnPaginacaoNumero:hover,
+.btnPaginacaoTexto:hover {
+  background-color: #e9f0ff;
+  color: #1f6feb;
+}
+
+.btnPaginacaoNumero.paginaAtiva {
+  background: #1f6feb;
+  color: #ffffff;
+  border-color: #1f6feb;
+  font-weight: 600;
+}
+
+.btnPaginacaoNumero.paginaAtiva:hover {
+  background-color: #1558d6;
+}
+
+.paginacaoDots {
+  padding: 0 4px;
+  color: #666;
+}
+
+/* ================================
+   CONTROLES DE FONTE
+================================== */
+
+/* A- / A+ na lateral direita */
+.controlesFonte {
+  position: fixed;
+  right: 24px;
+  top: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 10;
+}
+
+.controlesFonte button {
+  padding: 6px 10px;
+  background: #1f6feb;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.controlesFonte button:hover {
+  background-color: #1558d6;
+  transform: translateY(-1px);
+}
+
+/* ================================
+   MODAL NOVO USUÁRIO
+================================== */
+
+.modal-overlay-novo {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-card-novo {
+  background: #ffffff;
+  padding: 24px 24px 20px;
+  width: 420px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+  animation: modalScaleIn 0.22s ease-out;
+}
+
+.modal-card-novo h2 {
+  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.form-novo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-novo label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.form-novo input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 13px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.form-novo input:focus {
+  outline: none;
+  border-color: #1f6feb;
+  background-color: #f9fbff;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+}
+
+/* Botões do modal */
+.modal-acoes-novo {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.modal-acoes-novo .btnCancelar,
+.modal-acoes-novo .btnSalvar {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease,
+    box-shadow 0.2s ease;
+}
+
+.modal-acoes-novo .btnCancelar {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.modal-acoes-novo .btnCancelar:hover {
+  background: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(148, 163, 184, 0.6);
+}
+
+.modal-acoes-novo .btnSalvar {
+  background: #1f6feb;
+  color: #ffffff;
+}
+
+.modal-acoes-novo .btnSalvar:hover {
+  background: #1558d6;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.55);
+}
+
+/* Animação do modal */
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+/* OVERLAY DE LOADING SUAVE */
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  border-radius: 12px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* Spinner */
+.spinnerLoader {
+  width: 42px;
+  height: 42px;
+  border: 4px solid #d0d7e2;
+  border-top-color: #1f6feb;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

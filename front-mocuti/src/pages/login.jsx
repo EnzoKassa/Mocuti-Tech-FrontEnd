@@ -43,7 +43,7 @@ const Login = () => {
     const validateEmail = (value) => {
         if (!value) return "Informe o email";
         const re = /^[A-Za-z0-9.]+@[A-Za-z0-9.]+\.[A-Za-z]{2,}$/;
-        return re.test(value) ? null : "Email inválido. Deve conter '@' e '.' e não aceitar caracteres especiais";
+        return re.test(value) ? null : "Email inválido. Deve conter '@' e '.'";
     };
 
     const validateSenha = (value) => {
