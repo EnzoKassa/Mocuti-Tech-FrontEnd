@@ -15,8 +15,11 @@ const PerfilUsuario = () => {
     genero: "",
     cargo: "",
     endereco: "",
-    canalComunicacao: ""
+    canalComunicacao: "",
+    senha: ""
   });
+
+  const [senha, setSenha] = useState()
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -36,10 +39,13 @@ const PerfilUsuario = () => {
         const userId = user.id;
         const response = await api.get(`/usuarios/listar/${userId}`);
         const data = response.data;
+        
+        setSenha(data.senha)
 
         setFormData({
           id: data.idUsuario,
           nomeCompleto: data.nomeCompleto,
+          senha: data.senha,
           cpf: data.cpf,
           telefone: data.telefone,
           email: data.email,
@@ -118,7 +124,7 @@ const PerfilUsuario = () => {
           dt_nasc: formData.dataNascimento,
           etnia: formData.etnia,
           nacionalidade: formData.nacionalidade,
-          genero: formData.genero
+          genero: formData.genero,
         };
 
         await api.put(`/usuarios/editar/${user.id}`, dataToSend);
@@ -138,6 +144,104 @@ const PerfilUsuario = () => {
       Swal.fire("Alterações não salvas", "Nenhuma alteração foi feita.", "info");
     }
   };
+
+  const EditarSenha = async (e) => {
+    const { value: formValues, isConfirmed } = await Swal.fire({
+      title: "Editar senha",
+      html: `
+        <div style="text-align:center;display: flex;flex-direction: column;align-items: center;">
+          <div class="swal-input-group" style="text-align:center;display: flex;flex-direction: column;align-items: center;">
+            <label for="swal-old-pass" class="swal2-label" style="display:block;margin-bottom:6px;font-weight:600">Senha atual</label>
+            <input id="swal-old-pass" type="password" class="swal2-input" style="margin-left:0;margin-top:0;margin-bottom:12px;margin-right:0">
+          </div>
+          <div class="swal-input-group" style="text-align:center;display: flex;flex-direction: column;align-items: center;">
+            <label for="swal-new-pass" class="swal2-label" style="display:block;margin-bottom:6px;font-weight:600" >Nova senha</label>
+            <input id="swal-new-pass" type="password" class="swal2-input" style="margin-left:0;margin-top:0;margin-bottom:12px;margin-right:0">
+          </div>
+          <div class="swal-input-group" style="text-align:center;display: flex;flex-direction: column;align-items: center;">
+            <label for="swal-confirm-pass" class="swal2-label" style="display:block;margin-bottom:6px;font-weight:600">Confirmar nova senha</label>
+            <input id="swal-confirm-pass" type="password" class="swal2-input" style="margin-left:0;margin-top:0;margin-bottom:12px;margin-right:0">
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      showDenyButton: true,
+      confirmButtonText: "Editar senha",
+      denyButtonText: "Cancelar",
+      customClass: {
+        confirmButton: "btn-confirm",
+        denyButton: "btn-deny",
+      },
+      preConfirm: () => {
+        const oldPass = document.getElementById("swal-old-pass").value;
+        const newPass = document.getElementById("swal-new-pass").value;
+        const confirmPass = document.getElementById("swal-confirm-pass").value;
+        if (!oldPass || !newPass || !confirmPass) {
+          Swal.showValidationMessage("Preencha todos os campos!");
+          return false;
+        }
+
+        if (oldPass != senha) {
+          Swal.showValidationMessage("Senha Antiga Incorreta!");
+          return false;
+        }
+
+        if (newPass < 8) {
+          Swal.showValidationMessage("Senha deve ter no mínimo 8 caracteres");
+          return false;
+        }
+
+        if (!/[A-Z]/.test(newPass)) {
+          Swal.showValidationMessage("Senha deve conter ao menos uma letra maiúscula");
+          return false;
+        }
+
+        if (!/[0-9]/.test(newPass)) {
+          Swal.showValidationMessage("Senha deve conter ao menos um número");
+          return false;
+        }
+
+        if (!/[!@#$%^&*(),.?":{}|<>_\-\\[\]/+`~;]/.test(newPass)) {
+          Swal.showValidationMessage("Senha deve conter ao menos um caractere especial");
+          return false;
+        }
+              
+        if (newPass != confirmPass) {
+          Swal.showValidationMessage("A nova senha e a confirmação não coincidem!");
+          return false;
+        }
+
+        return { oldPass, newPass, confirmPass };
+      }
+    });
+
+    if (isConfirmed) {
+      try {
+        const user =
+          JSON.parse(localStorage.getItem("user")) ||
+          JSON.parse(sessionStorage.getItem("user"));
+
+        if (!user || !user.id) {
+          Swal.fire("Erro", "Usuário não autenticado.", "error");
+          return;
+        }
+
+        const userId = user.id;
+        const body = {senha: formValues.newPass};
+        const res = await api.patch(`/usuarios/redefinirSenha/${userId}`, body)
+
+        console.log('Senha redefinida com sucesso:', res.data)
+        Swal.fire("Salvo!", "A alteração de senha foi salva com sucesso.", "success");
+      } catch(error) {
+        console.error('Erro ao redefinir senha:', error)
+        Swal.fire("Erro", "Erro ao redefinir senha", "error");
+      }
+    } else {
+      console.log("Ação cancelada");
+      Swal.fire("A alteração de senha não salva", "Nenhuma alteração foi feita.", "info");
+    }
+
+  }
 
   return (
     <div className="user-details-container">
@@ -210,7 +314,6 @@ const PerfilUsuario = () => {
               <option value="Prefiro não informar">Prefiro não informar</option>
               <option value="Masculino">Masculino</option>
               <option value="Feminino">Feminino</option>
-              <option value="Outro">Outro</option>
             </select>
           </div>
         </div>
@@ -230,6 +333,10 @@ const PerfilUsuario = () => {
 
         <button type="submit" className="submit-button">
           Editar
+        </button>
+
+        <button type="button" onClick={EditarSenha} className="submit-button">
+          Editar Senha
         </button>
       </form>
     </div>

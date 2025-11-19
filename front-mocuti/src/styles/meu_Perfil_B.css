@@ -230,8 +230,10 @@
   
   /* Campos */
   .input-readonly {
-    background-color: #3a3a3a;
-    color: white;
+    background-color: #e1e1e1;
+    border: 1px solid #ccc;
+    font-weight: bold;
+    color: #333;
     padding: 16px;
     border-radius: 8px;
     font-size: 16px;
