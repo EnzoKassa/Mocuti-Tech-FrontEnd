@@ -16,6 +16,7 @@ import MeuPerfil from "../../assets/images/meuPerfil.svg";
 import feedback from "../../assets/images/feedbackLogo.svg";
 import Visao from "../../assets/images/visaoGeral.svg";
 import Lista from "../../assets/images/listausuariom1.svg";
+import api from "../../api/api";
 
 const INITIAL_FILTERS = {
   nome: "",
@@ -342,11 +343,11 @@ export default function EventosM1() {
           try {
             const id = evento.idEvento || evento.id || evento.id_evento;
             if (!id) return eventoCompletado;
-            const imgResponse = await fetch(
-              `http://localhost:8080/eventos/foto/${id}`,
+            const imgResponse = await api.get(
+              `/eventos/foto/${id}`,
               { headers: getAuthHeaders(), mode: "cors" }
             );
-            if (imgResponse.ok) {
+            if (imgResponse.status === 200) {
               const blob = await imgResponse.blob();
               eventoCompletado.imagemUrl = URL.createObjectURL(blob);
             }

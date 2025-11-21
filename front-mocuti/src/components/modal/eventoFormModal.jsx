@@ -5,6 +5,7 @@ import { buildPublicoOptions } from "./parts/PublicoSelect";
 import { buildEnderecosOptions } from "./parts/EnderecoFields";
 import { escapeHtml, formatCep } from "./parts/UtilsModal";
 import { attachModalBehavior } from "./parts/ModalBehavior";
+import api from "../../api/api";
 import { listarUsuariosPorCargo, inscreverUsuarioEvento, listarConvidadosPorEvento, BASE_URL, triggerApiRefresh } from "../../api/api";
 
 export async function openEventoFormModal(
@@ -59,9 +60,9 @@ export async function openEventoFormModal(
 
       if (!categorias || categorias.length === 0) {
         try {
-          const r = await fetch(`${BASE_URL}/categorias`, { method: "GET", headers: { Accept: "application/json", ...getAuthHeaders() }, mode: "cors" });
-          if (r.ok) {
-            const data = await r.json().catch(() => null);
+          const r = await api.get("/categorias", { headers: { Accept: "application/json", ...getAuthHeaders() } });
+          if (r.status === 200) {
+            const data = r.data ?? null;
             if (Array.isArray(data)) categorias = data;
           } else {
             console.debug(
@@ -662,8 +663,8 @@ export async function openEventoFormModal(
             estado: estadoNome || null
           };
 
-          const rEnd = await fetch(`${BASE_URL}/endereco`, { method: "POST", headers, body: JSON.stringify(payloadEndereco) });
-          if (!rEnd.ok) {
+          const rEnd = await api.post("/endereco", payloadEndereco, { headers });
+          if (rEnd.status !== 200) {
             let bodyText = await rEnd.text().catch(() => "");
             let parsed = bodyText;
             try { parsed = JSON.parse(bodyText); } catch (err) { /* ignore parse error */ }
@@ -801,8 +802,7 @@ export async function openEventoFormModal(
           );
           if (file) fd.append("foto", file);
 
-          const res = await fetch(`${BASE_URL}/eventos/cadastrar`, {
-            method: "POST",
+          const res = await api.post("/eventos/cadastrar", fd, {
             headers: { ...authHeaders },
           });
 
@@ -865,13 +865,11 @@ export async function openEventoFormModal(
 
          console.debug("eventoFormModal: PUT payloadEvento:", payloadForPut);
  
-         const resDados = await fetch(`${BASE_URL}/eventos/${encodeURIComponent(idEvento)}`, {
-           method: "PUT",
+         const resDados = await api.put(`/eventos/${encodeURIComponent(idEvento)}`, payloadForPut, {
            headers: { ...authHeaders, "Content-Type": "application/json", Accept: "application/json" },
-           body: JSON.stringify(payloadForPut),
          });
 
-        if (!resDados.ok) {
+        if (resDados.status !== 200) {
           let respText = await resDados.text().catch(() => "");
           let parsed = respText;
           try {
@@ -909,13 +907,11 @@ export async function openEventoFormModal(
         if (file) {
           const fd = new FormData();
           fd.append("foto", file);
-          const resFoto = await fetch(`${BASE_URL}/eventos/foto/${encodeURIComponent(idEvento)}`, {
-            method: "PATCH",
+          const resFoto = await api.patch(`/eventos/foto/${encodeURIComponent(idEvento)}`, fd, {
             headers: { ...authHeaders },
-            body: fd,
           });
 
-          if (!resFoto.ok) {
+          if (resFoto.status !== 200) {
             let body = await resFoto.text().catch(() => "");
             try {
               const j = JSON.parse(body);

@@ -6,6 +6,7 @@ import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes"
 import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
 import Swal from "sweetalert2";
 import "../../styles/meusEventos.css";
+import api from "../../api/api";
 
 export default function MeusEventosBeneficiario() {
   const navigate = useNavigate();
@@ -34,10 +35,10 @@ export default function MeusEventosBeneficiario() {
         try {
           const eventoId = p.idEvento || p.id?.eventoId || p.id?.evento_id || (p.id && (p.id.eventoId || p.id));
           if (eventoId) {
-            const res = await fetch(`http://localhost:8080/eventos/${eventoId}`);
-            if (res.ok) eventoDetalhes = await res.json();
-            const imgRes = await fetch(`http://localhost:8080/eventos/foto/${eventoId}`);
-            if (imgRes.ok) {
+            const res = await api.get(`/eventos/${eventoId}`);
+            if (res.status === 200) eventoDetalhes = res.data;
+            const imgRes = await api.get(`/eventos/foto/${eventoId}`);
+            if (imgRes.status === 200) {
               const blob = await imgRes.blob();
               imagemUrl = URL.createObjectURL(blob);
             }
@@ -80,9 +81,9 @@ export default function MeusEventosBeneficiario() {
     try {
       setLoading(true);
 
-      const urlInscritos = `http://localhost:8080/participacoes/eventos-inscritos/${encodeURIComponent(idUsuario)}`;
-      const inscritosRes = await fetch(urlInscritos);
-      const inscritos = inscritosRes.ok ? await inscritosRes.json() : [];
+      const urlInscritos = `/participacoes/eventos-inscritos/${encodeURIComponent(idUsuario)}`;
+      const inscritosRes = await api.get(urlInscritos);
+      const inscritos = inscritosRes.status === 200 ? inscritosRes.data : [];
 
       const normInscritos = await normalizeEventos(inscritos);
       setParticipacoes(normInscritos);
@@ -124,9 +125,9 @@ export default function MeusEventosBeneficiario() {
     if (!choice.isConfirmed) return;
 
     try {
-      const url = `http://localhost:8080/participacoes/${encodeURIComponent(idEvento)}/cancelar-inscricao?idUsuario=${encodeURIComponent(idUsuario)}`;
-      const res = await fetch(url, { method: "DELETE" });
-      if (res.ok || res.status === 204) {
+      const url = `/participacoes/${encodeURIComponent(idEvento)}/cancelar-inscricao?idUsuario=${encodeURIComponent(idUsuario)}`;
+      const res = await api.delete(url);
+      if (res.status === 200 || res.status === 204) {
         setParticipacoes((prev) => prev.filter((ev) => String(ev.idEvento) !== String(idEvento)));
         Swal.fire("Inscrição cancelada", "Sua inscrição foi cancelada.", "success");
       } else {

@@ -84,26 +84,24 @@ export default function EventosBeneficiario() {
   useEffect(() => {
     (async () => {
       try {
-        const r1 = await fetch(`${BASE_URL}/categorias`, {
-          method: "GET",
+        const r1 = await api.get(`/categorias`, {
           headers: { Accept: "application/json", ...getAuthHeaders() },
           mode: "cors",
         });
-        if (r1.ok) {
-          const cats = await r1.json().catch(() => []);
+        if (r1.status === 200) {
+          const cats = r1.data ?? [];
           if (Array.isArray(cats)) setCategorias(cats);
         }
       } catch (err) {
         console.error("Erro ao buscar categorias:", err);
       }
       try {
-        const r2 = await fetch(`${BASE_URL}/status-eventos`, {
-          method: "GET",
+        const r2 = await api.get(`/status-eventos`, {
           headers: { Accept: "application/json", ...getAuthHeaders() },
           mode: "cors",
         });
-        if (r2.ok) {
-          const sts = await r2.json().catch(() => []);
+        if (r2.status === 200) {
+          const sts = r2.data ?? [];
           if (Array.isArray(sts)) setStatusList(sts);
         }
       } catch (err) {
@@ -468,18 +466,17 @@ export default function EventosBeneficiario() {
       let inscritosIds = new Set();
       if (userId) {
         try {
-          const pr = await fetch(
-            `${BASE_URL}/participacoes/eventos-inscritos/${encodeURIComponent(
+          const pr = await api.get(
+            `/participacoes/eventos-inscritos/${encodeURIComponent(
               userId
             )}`,
             {
-              method: "GET",
               headers: { Accept: "application/json", ...getAuthHeaders() },
               mode: "cors",
             }
           );
-          if (pr.ok) {
-            const parts = await pr.json().catch(() => []);
+          if (pr.status === 200) {
+            const parts = pr.data ?? [];
             (parts || []).forEach((p) => {
               const id =
                 p.idEvento ??
@@ -748,10 +745,9 @@ export default function EventosBeneficiario() {
             publico = full.publicoAlvo || full.publico || publico;
 
             try {
-              const resp = await fetch(
-                `${BASE_URL}/eventos/${encodeURIComponent(id)}`,
+              const resp = await api.get(
+                `/eventos/${encodeURIComponent(id)}`,
                 {
-                  method: "GET",
                   headers: { Accept: "application/json", ...getAuthHeaders() },
                   mode: "cors",
                 }
