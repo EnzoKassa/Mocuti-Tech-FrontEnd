@@ -6,7 +6,7 @@ import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes"
 import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
 import Swal from "sweetalert2";
 import "../../styles/meusEventos.css";
-import api from "../../api/api";
+import api, { apiRefresh } from "../../api/api";
 
 export default function MeusEventosBeneficiario() {
   const navigate = useNavigate();

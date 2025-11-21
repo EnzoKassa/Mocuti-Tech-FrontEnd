@@ -37,7 +37,7 @@ export function NavHome({ texto, imgLink, onClick }) {
                         <img src={face} alt="Facebook" />
                     </a>
 
-                    <a href="mailto:mocuti@gmail.com">
+                    <a href="mailto:mocuti@gmail.com" target="_blank" rel="noopener noreferrer">
                         <img src={email} alt="Email" />
                     </a>
                 </div>
