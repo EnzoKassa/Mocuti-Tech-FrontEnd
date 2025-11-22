@@ -6,7 +6,14 @@ import { buildEnderecosOptions } from "./parts/EnderecoFields";
 import { escapeHtml, formatCep } from "./parts/UtilsModal";
 import { attachModalBehavior } from "./parts/ModalBehavior";
 import api from "../../api/api";
-import { listarUsuariosPorCargo, inscreverUsuarioEvento, listarConvidadosPorEvento, BASE_URL, triggerApiRefresh } from "../../api/api";
+import {
+  listarUsuariosPorCargo,
+  inscreverUsuarioEvento,
+  listarConvidadosPorEvento,
+  BASE_URL,
+  triggerApiRefresh,
+} from "../../api/api";
+
 
 export async function openEventoFormModal(
   evento = null,
@@ -60,7 +67,9 @@ export async function openEventoFormModal(
 
       if (!categorias || categorias.length === 0) {
         try {
-          const r = await api.get("/categorias", { headers: { Accept: "application/json", ...getAuthHeaders() } });
+          const r = await api.get("/categorias", {
+            headers: { Accept: "application/json", ...getAuthHeaders() },
+          });
           if (r.status === 200) {
             const data = r.data ?? null;
             if (Array.isArray(data)) categorias = data;
@@ -138,10 +147,10 @@ export async function openEventoFormModal(
       }
     }
 
-    if ((!Array.isArray(enderecos) || enderecos.length === 0)) {
+    if (!Array.isArray(enderecos) || enderecos.length === 0) {
       try {
         const headers = { Accept: "application/json", ...getAuthHeaders() };
-       const r = await api.get("/endereco/enderecos-eventos", { headers });
+        const r = await api.get("/endereco/enderecos-eventos", { headers });
 
         if (r.status === 200) {
           const data = r.data ?? null;
@@ -339,7 +348,11 @@ export async function openEventoFormModal(
     width: 760,
     focusConfirm: false,
     didOpen: () => {
-      try { attachModalBehavior({ values, enderecos, getAuthHeaders }); } catch (err) { console.debug("eventoFormModal: attachModalBehavior falhou:", err); }
+      try {
+        attachModalBehavior({ values, enderecos, getAuthHeaders });
+      } catch (err) {
+        console.debug("eventoFormModal: attachModalBehavior falhou:", err);
+      }
 
       // carregar usuários cargo=3 e convidados (após abrir modal)
       (async () => {
@@ -353,13 +366,19 @@ export async function openEventoFormModal(
             usuariosCargo3 = [];
           }
 
-          const idEventoExistente = evento?.idEvento ?? evento?.id ?? evento?.id_evento;
+          const idEventoExistente =
+            evento?.idEvento ?? evento?.id ?? evento?.id_evento;
           if (idEventoExistente) {
             try {
-              convidadosEvento = await listarConvidadosPorEvento(idEventoExistente);
+              convidadosEvento = await listarConvidadosPorEvento(
+                idEventoExistente
+              );
               if (!Array.isArray(convidadosEvento)) convidadosEvento = [];
             } catch (e) {
-              console.debug("eventoFormModal: listarConvidadosPorEvento falhou:", e);
+              console.debug(
+                "eventoFormModal: listarConvidadosPorEvento falhou:",
+                e
+              );
               convidadosEvento = [];
             }
           } else {
@@ -368,61 +387,82 @@ export async function openEventoFormModal(
 
           // construir set de convidados existentes para filtro/marcação
           convidadosExistentesSet.clear();
-          (convidadosEvento || []).forEach(c => {
+          (convidadosEvento || []).forEach((c) => {
             const uid = String(c.idUsuario ?? c.usuarioId ?? c.id ?? "");
             if (uid) convidadosExistentesSet.add(uid);
           });
 
           // filtrar usuariosCargo3 removendo os já convidados
-          usuariosCargo3 = (usuariosCargo3 || []).filter(u => {
+          usuariosCargo3 = (usuariosCargo3 || []).filter((u) => {
             const uid = String(u.idUsuario ?? u.id ?? u.usuarioId ?? "");
             return uid && !convidadosExistentesSet.has(uid);
           });
 
           // popular container de usuarios para convidar
-          const usuariosContainer = document.getElementById("ev-usuarios-cargo3");
+          const usuariosContainer =
+            document.getElementById("ev-usuarios-cargo3");
           if (usuariosContainer) {
-            usuariosContainer.innerHTML = usuariosCargo3.map(u => {
-              const uid = u.idUsuario ?? u.id ?? u.usuarioId ?? "";
-              const rawName = u.nome || u.nomeUsuario || u.nome_completo || u.email || "";
-              const rawEmail = u.email || "";
-              // sempre mostrar nome (fallback para email) e email abaixo
-              const nameToShow = escapeHtml(rawName || rawEmail);
-              const emailToShow = escapeHtml(rawEmail);
-              return `<div style="display:flex; gap:8px; align-items:center; padding:6px 0;">
+            usuariosContainer.innerHTML = usuariosCargo3
+              .map((u) => {
+                const uid = u.idUsuario ?? u.id ?? u.usuarioId ?? "";
+                const rawName =
+                  u.nome || u.nomeUsuario || u.nome_completo || u.email || "";
+                const rawEmail = u.email || "";
+                // sempre mostrar nome (fallback para email) e email abaixo
+                const nameToShow = escapeHtml(rawName || rawEmail);
+                const emailToShow = escapeHtml(rawEmail);
+                return `<div style="display:flex; gap:8px; align-items:center; padding:6px 0;">
                         <input data-uid="${uid}" class="ev-usr-chk" type="checkbox" style="width:16px; height:16px;" />
                         <div style="font-size:13px;"><strong>${nameToShow}</strong><div style="font-size:11px;color:#666;">${emailToShow}</div></div>
                       </div>`;
-            }).join("");
-            usuariosContainer.querySelectorAll(".ev-usr-chk").forEach(chk => {
+              })
+              .join("");
+            usuariosContainer.querySelectorAll(".ev-usr-chk").forEach((chk) => {
               chk.addEventListener("change", (ev) => {
                 const id = ev.target.getAttribute("data-uid");
                 if (!id) return;
-                if (ev.target.checked) selecionados.add(String(id)); else selecionados.delete(String(id));
+                if (ev.target.checked) selecionados.add(String(id));
+                else selecionados.delete(String(id));
               });
             });
           }
 
           // popular container de convidados (mostra pendente/confirmado/cancelado)
-          const convidadosContainer = document.getElementById("ev-convidados-list");
+          const convidadosContainer =
+            document.getElementById("ev-convidados-list");
           if (convidadosContainer) {
             if ((convidadosEvento || []).length === 0) {
               convidadosContainer.innerHTML = `<div style="padding:8px;color:#666;">Nenhum convidado</div>`;
             } else {
-              convidadosContainer.innerHTML = convidadosEvento.map(c => {
-                const uid = c.idUsuario ?? c.usuarioId ?? c.id ?? "";
-                // preferir os campos do DTO: nomeConvidado / statusConvite
-                const nome = escapeHtml(c.nomeConvidado ?? c.nomeUsuario ?? c.nome ?? c.email ?? "");
-                const status = escapeHtml(c.statusConvite ?? c.statusDescricao ?? c.situacao ?? c.status ?? String(c.idStatusInscricao ?? "Pendente"));
-                return `<div data-uid="${uid}" style="display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid #f6f6f6;">
-                          <div><strong>${nome}</strong><div style="font-size:11px;color:#666;">${escapeHtml(c.email||"")}</div></div>
+              convidadosContainer.innerHTML = convidadosEvento
+                .map((c) => {
+                  const uid = c.idUsuario ?? c.usuarioId ?? c.id ?? "";
+                  // preferir os campos do DTO: nomeConvidado / statusConvite
+                  const nome = escapeHtml(
+                    c.nomeConvidado ?? c.nomeUsuario ?? c.nome ?? c.email ?? ""
+                  );
+                  const status = escapeHtml(
+                    c.statusConvite ??
+                      c.statusDescricao ??
+                      c.situacao ??
+                      c.status ??
+                      String(c.idStatusInscricao ?? "Pendente")
+                  );
+                  return `<div data-uid="${uid}" style="display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid #f6f6f6;">
+                          <div><strong>${nome}</strong><div style="font-size:11px;color:#666;">${escapeHtml(
+                    c.email || ""
+                  )}</div></div>
                           <div style="min-width:110px; text-align:right;"><span style="padding:4px 8px; border-radius:6px; background:#f2f2f2;">${status}</span></div>
                         </div>`;
-              }).join("");
+                })
+                .join("");
             }
           }
         } catch (err) {
-          console.debug("eventoFormModal: erro ao inicializar lista de convidados/usuarios:", err);
+          console.debug(
+            "eventoFormModal: erro ao inicializar lista de convidados/usuarios:",
+            err
+          );
         }
       })();
 
@@ -431,92 +471,153 @@ export async function openEventoFormModal(
       if (btnEnviar) {
         btnEnviar.addEventListener("click", async () => {
           try {
-            const idEventoExistente = evento?.idEvento ?? evento?.id ?? evento?.id_evento;
+            const idEventoExistente =
+              evento?.idEvento ?? evento?.id ?? evento?.id_evento;
             if (!idEventoExistente) {
-              return Swal.fire("Atenção", "O evento precisa ser salvo primeiro para enviar convites. Ao salvar você poderá enviar automaticamente os selecionados.", "info");
+              return Swal.fire(
+                "Atenção",
+                "O evento precisa ser salvo primeiro para enviar convites. Ao salvar você poderá enviar automaticamente os selecionados.",
+                "info"
+              );
             }
-            const ids = Array.from(selecionados).map(x => Number(x)).filter(Boolean);
-            if (ids.length === 0) return Swal.fire("Atenção", "Nenhum usuário selecionado.", "warning");
-            const confirm = await Swal.fire({ title: "Enviar convites", text: `Enviar convite para ${ids.length} usuários?`, icon: "question", showCancelButton: true, confirmButtonText: "Enviar" });
+            const ids = Array.from(selecionados)
+              .map((x) => Number(x))
+              .filter(Boolean);
+            if (ids.length === 0)
+              return Swal.fire(
+                "Atenção",
+                "Nenhum usuário selecionado.",
+                "warning"
+              );
+            const confirm = await Swal.fire({
+              title: "Enviar convites",
+              text: `Enviar convite para ${ids.length} usuários?`,
+              icon: "question",
+              showCancelButton: true,
+              confirmButtonText: "Enviar",
+            });
             if (!confirm.isConfirmed) return;
 
             // chamar API para cada id
-            await Promise.all(ids.map(id => inscreverUsuarioEvento(idEventoExistente, Number(id), 1)));
+            await Promise.all(
+              ids.map((id) =>
+                inscreverUsuarioEvento(idEventoExistente, Number(id), 1)
+              )
+            );
             Swal.fire("Sucesso", "Convites enviados.", "success");
             triggerApiRefresh();
 
             // remover convidados enviados da lista de usuários e adicioná-los localmente aos convidados exibidos
             const sentSet = new Set(ids.map(String));
             // pegar info dos usuários enviados (nome/email) a partir do usuariosCargo3 ou, se não existir, manter id apenas
-            const sentUsers = (usuariosCargo3 || []).filter(u => sentSet.has(String(u.idUsuario ?? u.id ?? u.usuarioId ?? "")));
+            const sentUsers = (usuariosCargo3 || []).filter((u) =>
+              sentSet.has(String(u.idUsuario ?? u.id ?? u.usuarioId ?? ""))
+            );
 
             // atualizar usuariosCargo3 (remover enviados)
-            usuariosCargo3 = (usuariosCargo3 || []).filter(u => {
+            usuariosCargo3 = (usuariosCargo3 || []).filter((u) => {
               const uid = String(u.idUsuario ?? u.id ?? u.usuarioId ?? "");
               return !sentSet.has(uid);
             });
 
             // atualizar selecionados (remover os enviados)
-            ids.forEach(id => selecionados.delete(String(id)));
+            ids.forEach((id) => selecionados.delete(String(id)));
 
             // atualizar UI - usuarios para convidar
-            const usuariosContainer = document.getElementById("ev-usuarios-cargo3");
+            const usuariosContainer =
+              document.getElementById("ev-usuarios-cargo3");
             if (usuariosContainer) {
-              usuariosContainer.innerHTML = usuariosCargo3.map(u => {
-                const uid = u.idUsuario ?? u.id ?? u.usuarioId ?? "";
-                const rawName = u.nome || u.nomeUsuario || u.nome_completo || u.email || "";
-                const rawEmail = u.email || "";
-                // sempre mostrar nome (fallback para email) e email abaixo
-                const nameToShow = escapeHtml(rawName || rawEmail);
-                const emailToShow = escapeHtml(rawEmail);
-                return `<div style="display:flex; gap:8px; align-items:center; padding:6px 0;">
+              usuariosContainer.innerHTML = usuariosCargo3
+                .map((u) => {
+                  const uid = u.idUsuario ?? u.id ?? u.usuarioId ?? "";
+                  const rawName =
+                    u.nome || u.nomeUsuario || u.nome_completo || u.email || "";
+                  const rawEmail = u.email || "";
+                  // sempre mostrar nome (fallback para email) e email abaixo
+                  const nameToShow = escapeHtml(rawName || rawEmail);
+                  const emailToShow = escapeHtml(rawEmail);
+                  return `<div style="display:flex; gap:8px; align-items:center; padding:6px 0;">
                           <input data-uid="${uid}" class="ev-usr-chk" type="checkbox" style="width:16px; height:16px;" />
                           <div style="font-size:13px;"><strong>${nameToShow}</strong><div style="font-size:11px;color:#666;">${emailToShow}</div></div>
                         </div>`;
-              }).join("");
-              usuariosContainer.querySelectorAll(".ev-usr-chk").forEach(chk => {
-                chk.addEventListener("change", (ev) => {
-                  const id = ev.target.getAttribute("data-uid");
-                  if (!id) return;
-                  if (ev.target.checked) selecionados.add(String(id)); else selecionados.delete(String(id));
+                })
+                .join("");
+              usuariosContainer
+                .querySelectorAll(".ev-usr-chk")
+                .forEach((chk) => {
+                  chk.addEventListener("change", (ev) => {
+                    const id = ev.target.getAttribute("data-uid");
+                    if (!id) return;
+                    if (ev.target.checked) selecionados.add(String(id));
+                    else selecionados.delete(String(id));
+                  });
                 });
-              });
             }
 
             // atualizar convidadosEvento localmente: se endpoint não retornar entries, criar objetos PENDENTES com info conhecida
-            const convidadosAtualizados = await listarConvidadosPorEvento(idEventoExistente);
-            if (Array.isArray(convidadosAtualizados) && convidadosAtualizados.length > 0) {
+            const convidadosAtualizados = await listarConvidadosPorEvento(
+              idEventoExistente
+            );
+            if (
+              Array.isArray(convidadosAtualizados) &&
+              convidadosAtualizados.length > 0
+            ) {
               convidadosEvento = convidadosAtualizados;
             } else {
               // backend não retornou a lista atualizada: acrescentar localmente
-              const novos = (ids.map(id => {
-                const u = sentUsers.find(x => String(x.idUsuario ?? x.id ?? x.usuarioId) === String(id));
+              const novos = ids.map((id) => {
+                const u = sentUsers.find(
+                  (x) =>
+                    String(x.idUsuario ?? x.id ?? x.usuarioId) === String(id)
+                );
                 return {
                   idUsuario: id,
-                  nomeConvidado: u?.nome || u?.nomeUsuario || u?.nome_completo || u?.email || `Usuário ${id}`,
+                  nomeConvidado:
+                    u?.nome ||
+                    u?.nomeUsuario ||
+                    u?.nome_completo ||
+                    u?.email ||
+                    `Usuário ${id}`,
                   email: u?.email || "",
                   idStatusInscricao: 1,
-                  statusConvite: "Pendente"
+                  statusConvite: "Pendente",
                 };
-              }));
+              });
               convidadosEvento = (convidadosEvento || []).concat(novos);
             }
 
             // atualizar UI - convidados list
-            const convidadosContainer = document.getElementById("ev-convidados-list");
+            const convidadosContainer =
+              document.getElementById("ev-convidados-list");
             if (convidadosContainer) {
-              convidadosContainer.innerHTML = (convidadosEvento || []).map(c => {
-                const uid = c.idUsuario ?? c.usuarioId ?? c.id ?? "";
-                const nome = escapeHtml(c.nomeUsuario || c.nome || c.email || "");
-                const status = escapeHtml(c.statusDescricao ?? c.situacao ?? c.status ?? String(c.idStatusInscricao ?? "Pendente"));
-                return `<div data-uid="${uid}" style="display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid #f6f6f6;">
-                          <div><strong>${nome}</strong><div style="font-size:11px;color:#666;">${escapeHtml(c.email||"")}</div></div>
+              convidadosContainer.innerHTML =
+                (convidadosEvento || [])
+                  .map((c) => {
+                    const uid = c.idUsuario ?? c.usuarioId ?? c.id ?? "";
+                    const nome = escapeHtml(
+                      c.nomeUsuario || c.nome || c.email || ""
+                    );
+                    const status = escapeHtml(
+                      c.statusDescricao ??
+                        c.situacao ??
+                        c.status ??
+                        String(c.idStatusInscricao ?? "Pendente")
+                    );
+                    return `<div data-uid="${uid}" style="display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid #f6f6f6;">
+                          <div><strong>${nome}</strong><div style="font-size:11px;color:#666;">${escapeHtml(
+                      c.email || ""
+                    )}</div></div>
                           <div style="min-width:110px; text-align:right;"><span style="padding:4px 8px; border-radius:6px; background:#f2f2f2;">${status}</span></div>
                         </div>`;
-              }).join("") || `<div style="padding:8px;color:#666;">Nenhum convidado</div>`;
+                  })
+                  .join("") ||
+                `<div style="padding:8px;color:#666;">Nenhum convidado</div>`;
             }
           } catch (err) {
-            console.error("eventoFormModal: erro ao enviar convites manual:", err);
+            console.error(
+              "eventoFormModal: erro ao enviar convites manual:",
+              err
+            );
             Swal.fire("Erro", "Falha ao enviar convites.", "error");
           }
         });
@@ -539,45 +640,57 @@ export async function openEventoFormModal(
         }
       }
 
-
       const descricao = document.getElementById("ev-desc")?.value?.trim() || "";
-      const categoriaSelectVal = document.getElementById("ev-categoria")?.value || "";
+      const categoriaSelectVal =
+        document.getElementById("ev-categoria")?.value || "";
       const statusSelectVal = document.getElementById("ev-status")?.value || "";
       const horaInicio = document.getElementById("ev-hora-inicio")?.value || "";
       const horaFim = document.getElementById("ev-hora-fim")?.value || "";
       const qtdVagaRaw = document.getElementById("ev-qtd")?.value ?? "";
       const qtdVaga = qtdVagaRaw === "" ? null : Number(qtdVagaRaw);
-      const enderecoSelectVal = document.getElementById("ev-endereco-select")?.value || "";
+      const enderecoSelectVal =
+        document.getElementById("ev-endereco-select")?.value || "";
       const publicoSel = document.getElementById("ev-publico")?.value || "";
 
       const missing = [];
       if (!nome) missing.push("Nome");
       if (!dia) missing.push("Data deve ser hoje ou futura");
-      if (!descricao || descricao.length < 2 || descricao.length > 1000) missing.push("Descrição (2-1000 caracteres)");
-      if (!(categoriaSelectVal || values.categoriaId)) missing.push("Deve preencher categoria");
-      if (!(statusSelectVal || values.statusId || values.statusEventoId)) missing.push("Deve preencher status (inicial sempre em aberto)");
-      if (qtdVaga === null || !Number.isFinite(qtdVaga) || qtdVaga < 1) missing.push("Quantidade de vagas deve ser maior que zero e um número positivo.");
+      if (!descricao || descricao.length < 2 || descricao.length > 1000)
+        missing.push("Descrição (2-1000 caracteres)");
+      if (!(categoriaSelectVal || values.categoriaId))
+        missing.push("Deve preencher categoria");
+      if (!(statusSelectVal || values.statusId || values.statusEventoId))
+        missing.push("Deve preencher status (inicial sempre em aberto)");
+      if (qtdVaga === null || !Number.isFinite(qtdVaga) || qtdVaga < 1)
+        missing.push(
+          "Quantidade de vagas deve ser maior que zero e um número positivo."
+        );
       if (!horaInicio && !horaFim) {
         missing.push("Horário (início e fim)");
       } else if ((horaInicio && !horaFim) || (!horaInicio && horaFim)) {
         missing.push("Horário: informe início e fim");
       }
       if (publicoSel === "__novo") {
-        const novoPublico = (document.getElementById("ev-publico-novo-input")?.value || "").trim();
+        const novoPublico = (
+          document.getElementById("ev-publico-novo-input")?.value || ""
+        ).trim();
         if (!novoPublico) missing.push("Público alvo (novo)");
       }
       if (!enderecoSelectVal && !values.enderecoId) {
         missing.push("Endereço");
       } else if (enderecoSelectVal === "__novo") {
         const cep = document.getElementById("ev-cep")?.value?.trim() || "";
-        const logradouro = document.getElementById("ev-logradouro")?.value?.trim() || "";
+        const logradouro =
+          document.getElementById("ev-logradouro")?.value?.trim() || "";
         if (!cep) missing.push("CEP (endereço novo)");
         if (!logradouro) missing.push("Logradouro (endereço novo)");
       }
 
       if (missing.length > 0) {
-        const listHtml = missing.map(m => `• ${m}`).join("<br/>");
-        Swal.showValidationMessage(`Preencha os campos obrigatórios:<br/>${listHtml}`);
+        const listHtml = missing.map((m) => `• ${m}`).join("<br/>");
+        Swal.showValidationMessage(
+          `Preencha os campos obrigatórios:<br/>${listHtml}`
+        );
         return false;
       }
 
@@ -660,14 +773,20 @@ export async function openEventoFormModal(
             bairro: bairro || null,
             uf: ufClean || null,
             cidade: cidade || null,
-            estado: estadoNome || null
+            estado: estadoNome || null,
           };
 
-          const rEnd = await api.post("/endereco", payloadEndereco, { headers });
+          const rEnd = await api.post("/endereco", payloadEndereco, {
+            headers,
+          });
           if (rEnd.status !== 200) {
             let bodyText = await rEnd.text().catch(() => "");
             let parsed = bodyText;
-            try { parsed = JSON.parse(bodyText); } catch (err) { /* ignore parse error */ }
+            try {
+              parsed = JSON.parse(bodyText);
+            } catch (err) {
+              /* ignore parse error */
+            }
             let friendly = "";
 
             if (!parsed) {
@@ -756,7 +875,7 @@ export async function openEventoFormModal(
       const payloadEvento = {
         nomeEvento: nome,
         descricao,
-        publicoAlvo: (function() {
+        publicoAlvo: (function () {
           const sel = document.getElementById("ev-publico")?.value;
           if (sel === "__novo") {
             const novo = (
@@ -770,16 +889,24 @@ export async function openEventoFormModal(
             ""
           );
         })(),
-         categoriaId: categoriaSelectVal ? Number(categoriaSelectVal) : (values.categoriaId ? Number(values.categoriaId) : null),
-         statusEventoId: statusSelectVal ? Number(statusSelectVal) : (values.statusId ? Number(values.statusId) : null),
-         dia,
-         horaInicio,
-         horaFim,
-         qtdVaga,
-         isAberto: values.isAberto,
-         enderecoId,
-         idEndereco: enderecoId,
-       };
+        categoriaId: categoriaSelectVal
+          ? Number(categoriaSelectVal)
+          : values.categoriaId
+          ? Number(values.categoriaId)
+          : null,
+        statusEventoId: statusSelectVal
+          ? Number(statusSelectVal)
+          : values.statusId
+          ? Number(values.statusId)
+          : null,
+        dia,
+        horaInicio,
+        horaFim,
+        qtdVaga,
+        isAberto: values.isAberto,
+        enderecoId,
+        idEndereco: enderecoId,
+      };
       if (enderecoId) {
         payloadEvento.endereco = { idEndereco: Number(enderecoId) };
       }
@@ -791,59 +918,67 @@ export async function openEventoFormModal(
 
         let resultJson = null;
         let resultSaved = null;
-
         if (!isEdit) {
           const fd = new FormData();
+        
+          // JSON deve ser enviado com application/json
           fd.append(
             "dados",
             new Blob([JSON.stringify(payloadEvento)], {
               type: "application/json",
             })
           );
+        
           if (file) fd.append("foto", file);
-
-          const res = await api.post("/eventos/cadastrar", fd, {
-            headers: { ...authHeaders },
-          });
-
-          if (!res.ok) {
-            let body = await res.text().catch(() => "");
-            try {
-              const j = JSON.parse(body);
-              body = j?.message || j?.error || JSON.stringify(j);
-            } catch (err) {
-              /* ignore parse error */
-            }
-            Swal.showValidationMessage(
-              `Falha ao cadastrar evento: ${body || res.status}`
-            );
-            throw new Error(body || `Erro ${res.status}`);
-          }
-
+        
+          let res;
           try {
-            resultJson = await res.json().catch(() => null);
+            res = await api.post("/eventos/cadastrar", fd, {
+              headers: { 
+                ...authHeaders,
+                "Content-Type": "multipart/form-data" 
+              },
+            });
           } catch (err) {
-            resultJson = null;
+            const msg =
+              err?.response?.data?.message ||
+              err?.response?.data?.error ||
+              err.message ||
+              "Erro ao cadastrar evento";
+        
+            Swal.showValidationMessage(`Falha ao cadastrar evento: ${msg}`);
+            throw new Error(msg);
           }
-
+        
+          const resultJson = res?.data ?? null;
+        
           if (typeof onSaved === "function") {
-            try { await onSaved(resultJson); } catch (err) { console.debug("eventoFormModal: onSaved falhou:", err); }
+            try {
+              await onSaved(resultJson);
+            } catch (err) {
+              console.debug("eventoFormModal: onSaved falhou:", err);
+            }
           }
-
-          // após criar, enviar convites selecionados (se houver)
+        
+          // enviar convites pós-criação
           try {
-            const createdId = resultJson?.idEvento ?? resultJson?.id ?? resultJson?.id_evento ?? null;
+            const createdId =
+              resultJson?.idEvento ??
+              resultJson?.id ??
+              resultJson?.id_evento ??
+              null;
+        
             if (createdId && selecionados.size > 0) {
-              const ids = Array.from(selecionados).map((x) => Number(x));
-              await Promise.all(ids.map((id) => inscreverUsuarioEvento(createdId, id, 1)));
-               triggerApiRefresh();
+              const ids = Array.from(selecionados).map(Number);
+              await Promise.all(ids.map(id => inscreverUsuarioEvento(createdId, id, 1)));
+              triggerApiRefresh();
             }
           } catch (errInvite) {
             console.warn("eventoFormModal: convites pós-criação falharam:", errInvite);
           }
-
+        
           return resultJson ?? true;
-        }
+        }        
 
         // EDIÇÃO
         const idEvento = evento?.idEvento ?? evento?.id ?? evento?.id_evento;
@@ -863,11 +998,19 @@ export async function openEventoFormModal(
           delete payloadForPut.enderecoId;
         }
 
-         console.debug("eventoFormModal: PUT payloadEvento:", payloadForPut);
- 
-         const resDados = await api.put(`/eventos/${encodeURIComponent(idEvento)}`, payloadForPut, {
-           headers: { ...authHeaders, "Content-Type": "application/json", Accept: "application/json" },
-         });
+        console.debug("eventoFormModal: PUT payloadEvento:", payloadForPut);
+
+        const resDados = await api.put(
+          `/eventos/${encodeURIComponent(idEvento)}`,
+          payloadForPut,
+          {
+            headers: {
+              ...authHeaders,
+              type: "multipart/form-data",
+              Accept: "application/json",
+            },
+          }
+        );
 
         if (resDados.status !== 200) {
           let respText = await resDados.text().catch(() => "");
@@ -907,42 +1050,64 @@ export async function openEventoFormModal(
         if (file) {
           const fd = new FormData();
           fd.append("foto", file);
-          const resFoto = await api.patch(`/eventos/foto/${encodeURIComponent(idEvento)}`, fd, {
-            headers: { ...authHeaders },
-          });
-
-          if (resFoto.status !== 200) {
-            let body = await resFoto.text().catch(() => "");
-            try {
-              const j = JSON.parse(body);
-              body = j?.message || j?.error || JSON.stringify(j);
-            } catch (err) {
-              /* ignore parse error */
-            }
-            Swal.showValidationMessage(
-              `Falha ao enviar foto: ${body || resFoto.status}`
-            );
-            throw new Error(body || `Erro ao enviar foto: ${resFoto.status}`);
-          }
-
+        
           try {
-            const fotoJson = await resFoto.json().catch(() => null);
-            resultSaved = { ...(resultSaved || {}), foto: fotoJson };
-          } catch (err) {
-            console.debug("eventoFormModal: parse fotoJson falhou:", err);
+            const resFoto = await api.patch(
+              `/eventos/foto/${encodeURIComponent(idEvento)}`,
+              fd,
+              {
+                headers: {
+                  ...authHeaders,
+                  "Content-Type": "multipart/form-data",
+                },
+              }
+            );
+        
+            // axios nunca usa .ok — resposta 200/201/204 já é sucesso
+            if (!resFoto || resFoto.status < 200 || resFoto.status > 299) {
+              const errorMsg =
+                resFoto?.data?.message ||
+                resFoto?.data?.error ||
+                `Erro ao enviar foto: ${resFoto?.status}`;
+        
+              Swal.showValidationMessage(errorMsg);
+              throw new Error(errorMsg);
+            }
+        
+            // Se retornar JSON, salva no result
+            resultSaved = { ...(resultSaved || {}), foto: resFoto.data || null };
+        
+          } catch (error) {
+            const message =
+              error?.response?.data?.message ||
+              error?.response?.data?.error ||
+              error?.message ||
+              "Erro desconhecido ao enviar a foto";
+        
+            Swal.showValidationMessage(`Falha ao enviar foto: ${message}`);
+            throw new Error(message);
           }
         }
-
+        
         // após editar, enviar convites selecionados (somente novos)
         try {
-          const ids = Array.from(selecionados).map(x => Number(x)).filter(Boolean);
-          const newIds = ids.filter(id => !convidadosExistentesSet.has(String(id)));
+          const ids = Array.from(selecionados)
+            .map((x) => Number(x))
+            .filter(Boolean);
+          const newIds = ids.filter(
+            (id) => !convidadosExistentesSet.has(String(id))
+          );
           if (idEvento && newIds.length > 0) {
-            await Promise.all(newIds.map(id => inscreverUsuarioEvento(idEvento, id, 1)));
+            await Promise.all(
+              newIds.map((id) => inscreverUsuarioEvento(idEvento, id, 1))
+            );
             triggerApiRefresh();
           }
         } catch (errInvite) {
-          console.warn("eventoFormModal: convites pós-edicao falharam:", errInvite);
+          console.warn(
+            "eventoFormModal: convites pós-edicao falharam:",
+            errInvite
+          );
         }
 
         if (typeof onSaved === "function") {

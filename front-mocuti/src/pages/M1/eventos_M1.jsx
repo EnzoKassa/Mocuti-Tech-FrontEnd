@@ -343,20 +343,24 @@ export default function EventosM1() {
           try {
             const id = evento.idEvento || evento.id || evento.id_evento;
             if (!id) return eventoCompletado;
-            const imgResponse = await api.get(
-              `/eventos/foto/${id}`,
-              { headers: getAuthHeaders(), mode: "cors" }
-            );
-            if (imgResponse.status === 200) {
-              const blob = await imgResponse.blob();
+          
+            const imgResponse = await api.get(`/eventos/foto/${id}`, {
+              headers: getAuthHeaders(),
+              responseType: "blob", // 🔥 ESSENCIAL
+            });
+          
+            if (imgResponse && imgResponse.status >= 200 && imgResponse.status < 300) {
+              const blob = imgResponse.data; // axios retorna o blob direto aqui
               eventoCompletado.imagemUrl = URL.createObjectURL(blob);
             }
+          
           } catch (errorImg) {
             console.warn(
               `Erro ao buscar foto para evento ${evento.idEvento}:`,
               errorImg
             );
           }
+          
           return eventoCompletado;
         })
       );

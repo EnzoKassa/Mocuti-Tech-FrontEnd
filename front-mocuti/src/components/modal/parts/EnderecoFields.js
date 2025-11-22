@@ -25,19 +25,27 @@ export function attachEnderecoBehavior({
   getAuthHeaders = () => ({})
 } = {}) {
   try {
-    // Referência não-op para evitar warning de 'no-unused-vars' sem chamar a função.
     void getAuthHeaders;
+
     const enderecoSelect = document.getElementById(enderecoSelectId);
     const novoBlock = document.getElementById(novoBlockId);
+
     if (!enderecoSelect || !novoBlock) return;
 
     enderecoSelect.addEventListener("change", (ev) => {
       const val = ev.target.value;
       novoBlock.style.display = val === "__novo" ? "block" : "none";
+
       if (val && val !== "__novo") {
         const idNum = Number(val);
-        const found = (Array.isArray(enderecos) ? enderecos : []).find((ee) => (ee.idEndereco ?? ee.id) === idNum);
-        const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ""; };
+        const found = (Array.isArray(enderecos) ? enderecos : [])
+          .find((ee) => (ee.idEndereco ?? ee.id) === idNum);
+
+        const set = (id, v) => { 
+          const el = document.getElementById(id); 
+          if (el) el.value = v ?? ""; 
+        };
+
         if (found) {
           set("ev-cep", found.cep || "");
           set("ev-logradouro", found.logradouro || "");
@@ -58,29 +66,35 @@ export function attachEnderecoBehavior({
       }
     });
 
+    // --- VIA CEP FIXADO ---
     const cepInput = document.getElementById("ev-cep");
     if (cepInput) {
       cepInput.addEventListener("blur", async () => {
         const v = (cepInput.value || "").replace(/\D/g, "");
         if (!v) return;
+
         try {
           const r = await axios.get(`https://viacep.com.br/ws/${v}/json/`);
-          if (!r.ok) return;
-          const data = await r.data;
+          const data = r.data;
+
           if (data && !data.erro) {
-            const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ""; };
+            const set = (id, val) => { 
+              const el = document.getElementById(id); 
+              if (el) el.value = val ?? ""; 
+            };
+
             set("ev-logradouro", data.logradouro || "");
             set("ev-bairro", data.bairro || "");
             set("ev-uf", data.uf || "");
             set("ev-cidade", data.localidade || "");
           }
         } catch (err) {
-          console.debug("EnderecoFields.viacep falhou:", err);
+          console.debug("Erro no ViaCEP:", err);
         }
       });
     }
+
   } catch (err) {
     console.debug("EnderecoFields.attachEnderecoBehavior:", err);
   }
 }
-
