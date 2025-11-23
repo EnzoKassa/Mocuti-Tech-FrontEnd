@@ -1,4 +1,4 @@
-import '../styles/ForgotPassword.css';
+import '../styles/PasswordSucess.css';
 
 // Componente de ícone de check (sucesso)
 const CheckIcon = () => (
@@ -13,7 +13,7 @@ function ResetSucess() {
   }
 
   return (
-    <div className="container">
+    <div className="container-reset">
       <div className="form-wrapper">
         <div className="form-card">
           {/* Ícone de sucesso */}

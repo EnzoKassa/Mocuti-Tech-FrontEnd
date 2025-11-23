@@ -14,7 +14,29 @@
   justify-content: center;
   padding: 2rem;
   background-color: #f1f5f9;
+  position: relative; /* necessario para posicionar a seta */
 }
+
+.back-arrow {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 26px;
+  cursor: pointer;
+  color: #1f2937; /* cinza escuro elegante */
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.back-arrow:hover {
+  transform: scale(1.15);
+  color: #000;
+}
+
+.image-container {
+  max-width: 500px;
+  width: 100%;
+}
+
 
 .image-container {
   max-width: 500px;

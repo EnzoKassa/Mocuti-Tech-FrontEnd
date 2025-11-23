@@ -259,6 +259,7 @@ export default function FeedbackBeneficiario() {
                 onOpenModal={mostrarDetalhes}
                 onFeedbackClick={abrirFeedbackView} // Abre modal M2
                 showFeedbackButton={true}
+                feedbackLabel="Visualizar Feedback"
                 feedbackButtonText="Visualizar feedback"
               />
             </div>

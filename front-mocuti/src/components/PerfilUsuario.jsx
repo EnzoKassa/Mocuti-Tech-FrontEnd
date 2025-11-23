@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { useAuth } from "../auth/AuthContext";
 import Swal from "sweetalert2";
-import api from "../api/api"; //importa sua instância Axios configurada
+import api from "../api/api";
+import {
+  formatNomeCompleto,
+  formatTelefone,
+  formatEmail,
+} from "../utils/formatUtils";
 
 const PerfilUsuario = () => {
+  const { updateUser } = useAuth();
+
   const [formData, setFormData] = useState({
     id: Number,
     nomeCompleto: "",
@@ -16,31 +24,30 @@ const PerfilUsuario = () => {
     cargo: "",
     endereco: "",
     canalComunicacao: "",
-    senha: ""
+    senha: "",
   });
 
-  const [senha, setSenha] = useState()
-
+  const [senha, setSenha] = useState();
+  const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
-  // 🔹 Busca os dados do usuário ao carregar
+  // 🔹 Buscar dados do usuário
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const user =
+        const storedUser =
           JSON.parse(localStorage.getItem("user")) ||
           JSON.parse(sessionStorage.getItem("user"));
 
-        if (!user || !user.id) {
+        if (!storedUser?.id) {
           Swal.fire("Erro", "Usuário não autenticado.", "error");
           return;
         }
 
-        const userId = user.id;
-        const response = await api.get(`/usuarios/listar/${userId}`);
+        const response = await api.get(`/usuarios/listar/${storedUser.id}`);
         const data = response.data;
-        
-        setSenha(data.senha)
+
+        setSenha(data.senha);
 
         setFormData({
           id: data.idUsuario,
@@ -57,8 +64,10 @@ const PerfilUsuario = () => {
           endereco: data.endereco
             ? `${data.endereco.logradouro}, ${data.endereco.numero} - ${data.endereco.bairro}, ${data.endereco.uf}`
             : "",
-          canalComunicacao: data.canalComunicacao?.tipoCanalComunicacao || ""
+          canalComunicacao: data.canalComunicacao?.tipoCanalComunicacao || "",
         });
+
+        setLoading(false);
       } catch (error) {
         console.error("Erro ao buscar os dados do usuário:", error);
         Swal.fire(
@@ -75,173 +84,226 @@ const PerfilUsuario = () => {
   // 🔹 Atualiza os campos do formulário
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+    let formattedValue = value;
+
+    if (name === "telefone") formattedValue = formatTelefone(value);
+    if (name === "nomeCompleto") formattedValue = formatNomeCompleto(value);
+    if (name === "email") formattedValue = formatEmail(value);
+
+    setFormData((prev) => ({ ...prev, [name]: formattedValue }));
   };
 
-  // 🔹 Envia os dados atualizados para o backend
+  // 🔹 Submeter alterações
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.email.includes("@")) {
-      Swal.fire("Erro", "E-mail inválido.", "error");
-      return;
-    }
-    if (formData.telefone.length < 10) {
-      Swal.fire("Erro", "Telefone inválido.", "error");
-      return;
-    }
+    if (!formData.email.includes("@"))
+      return Swal.fire("Erro", "E-mail inválido.", "error");
+    if (formData.telefone.length < 10)
+      return Swal.fire("Erro", "Telefone inválido.", "error");
 
-    const result = await Swal.fire({
-      title: "Você deseja salvar as alterações?",
-      showDenyButton: true,
+    const confirm = await Swal.fire({
+      title: "Salvar alterações?",
+      showCancelButton: true,
       confirmButtonText: "Salvar",
-      denyButtonText: "Cancelar",
-      customClass: {
-        confirmButton: "btn-confirm",
-        denyButton: "btn-deny"
-      }
+      cancelButtonText: "Cancelar",
     });
 
-    if (result.isConfirmed) {
-      try {
-        const user =
-          JSON.parse(localStorage.getItem("user")) ||
-          JSON.parse(sessionStorage.getItem("user"));
+    if (!confirm.isConfirmed) return;
 
-        if (!user || !user.id) {
-          Swal.fire("Erro", "Usuário não autenticado.", "error");
-          return;
-        }
+    try {
+      const storedUser =
+        JSON.parse(localStorage.getItem("user")) ||
+        JSON.parse(sessionStorage.getItem("user"));
 
-        const dataToSend = {
-          nomeCompleto: formData.nomeCompleto,
-          cpf: formData.cpf,
-          telefone: formData.telefone,
-          email: formData.email,
-          dt_nasc: formData.dataNascimento,
-          etnia: formData.etnia,
-          nacionalidade: formData.nacionalidade,
-          genero: formData.genero,
-        };
-
-        await api.put(`/usuarios/editar/${user.id}`, dataToSend);
-
-        Swal.fire("Salvo!", "As alterações foram salvas com sucesso.", "success");
-      } catch (error) {
-        console.error(error);
-
-        const msg =
-          error.response?.data?.message ||
-          error.response?.data?.error ||
-          "Não foi possível salvar as alterações.";
-
-        Swal.fire("Erro", msg, "error");
+      if (!storedUser?.id) {
+        Swal.fire("Erro", "Usuário não autenticado.", "error");
+        return;
       }
-    } else if (result.isDenied) {
-      Swal.fire("Alterações não salvas", "Nenhuma alteração foi feita.", "info");
+
+      const dataToSend = {
+        nomeCompleto: formData.nomeCompleto,
+        cpf: formData.cpf,
+        telefone: formData.telefone,
+        email: formData.email,
+        dt_nasc: formData.dataNascimento,
+        etnia: formData.etnia,
+        nacionalidade: formData.nacionalidade,
+        genero: formData.genero,
+      };
+
+      const response = await api.put(
+        `/usuarios/editar/${storedUser.id}`,
+        dataToSend
+      );
+
+      const updatedUser = {
+        id: response.data.idUsuario,
+        nomeCompleto: response.data.nomeCompleto,
+        tipoCargo: response.data.cargo?.tipoCargo || storedUser.tipoCargo,
+        email: response.data.email,
+      };
+
+      updateUser(updatedUser);
+
+      if (localStorage.getItem("user")) {
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        localStorage.setItem("idUsuario", updatedUser.id);
+        localStorage.setItem("nomeCompleto", updatedUser.nomeCompleto);
+      }
+
+      if (sessionStorage.getItem("user")) {
+        sessionStorage.setItem("user", JSON.stringify(updatedUser));
+        sessionStorage.setItem("idUsuario", updatedUser.id);
+        sessionStorage.setItem("nomeCompleto", updatedUser.nomeCompleto);
+      }
+
+      setFormData((prev) => ({ ...prev, ...response.data }));
+
+      Swal.fire("Sucesso!", "Dados atualizados com sucesso!", "success").then(
+        () => {
+          window.location.reload();
+        }
+      );
+    } catch (error) {
+      const msg =
+        error.response?.data?.message || "Ocorreu um erro ao atualizar.";
+      Swal.fire("Erro", msg, "error");
     }
   };
 
-  const EditarSenha = async (e) => {
-    const { value: formValues, isConfirmed } = await Swal.fire({
-      title: "Editar senha",
+  // 🔹 Editar senha
+  const EditarSenha = async () => {
+    let showOld = false;
+    let showNew = false;
+    let showConfirm = false;
+
+    const EyeIcon = () =>
+      `<svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    const EyeOffIcon = () =>
+      `<svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+
+    const renderIcon = (inputId, currentState, toggleFn) => {
+      const input = document.getElementById(inputId);
+      input.type = currentState ? "password" : "text";
+      toggleFn(!currentState);
+      document.getElementById(`icon-${inputId}`).innerHTML = currentState
+        ? EyeIcon()
+        : EyeOffIcon();
+    };
+
+    const validatePassword = (senha) => {
+      if (!senha) return "Informe a senha";
+      if (senha.length < 8) return "Senha deve ter no mínimo 8 caracteres";
+      if (!/[A-Z]/.test(senha))
+        return "Senha deve conter ao menos uma letra maiúscula";
+      if (!/[0-9]/.test(senha)) return "Senha deve conter ao menos um número";
+      if (!/[!@#$%^&*(),.?\":{}|<>_\\\-\\[\]/+`~;]/.test(senha))
+        return "Senha deve conter ao menos um caractere especial";
+      return null;
+    };
+
+    const { isConfirmed } = await Swal.fire({
+      title: `<h2 style="font-size: 26px;">Editar Senha</h2>`,
       html: `
-        <div style="text-align:center;display: flex;flex-direction: column;align-items: center;">
-          <div class="swal-input-group" style="text-align:center;display: flex;flex-direction: column;align-items: center;">
-            <label for="swal-old-pass" class="swal2-label" style="display:block;margin-bottom:6px;font-weight:600">Senha atual</label>
-            <input id="swal-old-pass" type="password" class="swal2-input" style="margin-left:0;margin-top:0;margin-bottom:12px;margin-right:0">
+        <div style="display:flex; flex-direction:column; gap:16px; width: 85%; margin: 0 auto;">
+          <label>Senha atual</label>
+          <div style="position:relative;">
+            <input id="swal-old-pass" type="password" style="width:100%; padding:10px 40px 10px 12px; border-radius:8px; border:1px solid #ccc;">
+            <span id="icon-swal-old-pass" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer;">${EyeIcon()}</span>
           </div>
-          <div class="swal-input-group" style="text-align:center;display: flex;flex-direction: column;align-items: center;">
-            <label for="swal-new-pass" class="swal2-label" style="display:block;margin-bottom:6px;font-weight:600" >Nova senha</label>
-            <input id="swal-new-pass" type="password" class="swal2-input" style="margin-left:0;margin-top:0;margin-bottom:12px;margin-right:0">
+
+          <label>Nova senha</label>
+          <div style="position:relative;">
+            <input id="swal-new-pass" type="password" style="width:100%; padding:10px 40px 10px 12px; border-radius:8px; border:1px solid #ccc;">
+            <span id="icon-swal-new-pass" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer;">${EyeIcon()}</span>
           </div>
-          <div class="swal-input-group" style="text-align:center;display: flex;flex-direction: column;align-items: center;">
-            <label for="swal-confirm-pass" class="swal2-label" style="display:block;margin-bottom:6px;font-weight:600">Confirmar nova senha</label>
-            <input id="swal-confirm-pass" type="password" class="swal2-input" style="margin-left:0;margin-top:0;margin-bottom:12px;margin-right:0">
+
+          <label>Confirmar nova senha</label>
+          <div style="position:relative;">
+            <input id="swal-confirm-pass" type="password" style="width:100%; padding:10px 40px 10px 12px; border-radius:8px; border:1px solid #ccc;">
+            <span id="icon-swal-confirm-pass" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer;">${EyeIcon()}</span>
           </div>
         </div>
       `,
-      focusConfirm: false,
       showDenyButton: true,
-      confirmButtonText: "Editar senha",
+      confirmButtonText: "Salvar",
       denyButtonText: "Cancelar",
-      customClass: {
-        confirmButton: "btn-confirm",
-        denyButton: "btn-deny",
+      focusConfirm: false,
+      didRender: () => {
+        document
+          .getElementById("icon-swal-old-pass")
+          ?.addEventListener("click", () =>
+            renderIcon("swal-old-pass", showOld, (val) => (showOld = val))
+          );
+        document
+          .getElementById("icon-swal-new-pass")
+          ?.addEventListener("click", () =>
+            renderIcon("swal-new-pass", showNew, (val) => (showNew = val))
+          );
+        document
+          .getElementById("icon-swal-confirm-pass")
+          ?.addEventListener("click", () =>
+            renderIcon(
+              "swal-confirm-pass",
+              showConfirm,
+              (val) => (showConfirm = val)
+            )
+          );
       },
-      preConfirm: () => {
+      preConfirm: async () => {
         const oldPass = document.getElementById("swal-old-pass").value;
         const newPass = document.getElementById("swal-new-pass").value;
         const confirmPass = document.getElementById("swal-confirm-pass").value;
+
+        const validationMessage = validatePassword(newPass);
+        if (validationMessage) {
+          Swal.showValidationMessage(validationMessage);
+          return false;
+        }
+
         if (!oldPass || !newPass || !confirmPass) {
-          Swal.showValidationMessage("Preencha todos os campos!");
+          Swal.showValidationMessage("Preencha todos os campos.");
+          return false;
+        }
+        if (newPass !== confirmPass) {
+          Swal.showValidationMessage("As senhas não coincidem.");
+          return false;
+        }
+        if (newPass === oldPass) {
+          Swal.showValidationMessage(
+            "A nova senha não pode ser igual à atual."
+          );
           return false;
         }
 
-        if (oldPass != senha) {
-          Swal.showValidationMessage("Senha Antiga Incorreta!");
-          return false;
-        }
+        try {
+          const storedUser =
+            JSON.parse(localStorage.getItem("user")) ||
+            JSON.parse(sessionStorage.getItem("user"));
+          if (!storedUser?.id) {
+            Swal.showValidationMessage("Usuário não autenticado.");
+            return false;
+          }
 
-        if (newPass < 8) {
-          Swal.showValidationMessage("Senha deve ter no mínimo 8 caracteres");
+          await api.patch(`/usuarios/redefinirSenha/${storedUser.id}`, {
+            senhaAtual: oldPass,
+            novaSenha: newPass,
+          });
+          return true;
+        } catch (err) {
+          Swal.showValidationMessage(
+            err.response?.data?.message || "Senha atual incorreta."
+          );
           return false;
         }
-
-        if (!/[A-Z]/.test(newPass)) {
-          Swal.showValidationMessage("Senha deve conter ao menos uma letra maiúscula");
-          return false;
-        }
-
-        if (!/[0-9]/.test(newPass)) {
-          Swal.showValidationMessage("Senha deve conter ao menos um número");
-          return false;
-        }
-
-        if (!/[!@#$%^&*(),.?":{}|<>_\-\\[\]/+`~;]/.test(newPass)) {
-          Swal.showValidationMessage("Senha deve conter ao menos um caractere especial");
-          return false;
-        }
-              
-        if (newPass != confirmPass) {
-          Swal.showValidationMessage("A nova senha e a confirmação não coincidem!");
-          return false;
-        }
-
-        return { oldPass, newPass, confirmPass };
-      }
+      },
     });
 
     if (isConfirmed) {
-      try {
-        const user =
-          JSON.parse(localStorage.getItem("user")) ||
-          JSON.parse(sessionStorage.getItem("user"));
-
-        if (!user || !user.id) {
-          Swal.fire("Erro", "Usuário não autenticado.", "error");
-          return;
-        }
-
-        const userId = user.id;
-        const body = {senha: formValues.newPass};
-        const res = await api.patch(`/usuarios/redefinirSenha/${userId}`, body)
-
-        console.log('Senha redefinida com sucesso:', res.data)
-        Swal.fire("Salvo!", "A alteração de senha foi salva com sucesso.", "success");
-      } catch(error) {
-        console.error('Erro ao redefinir senha:', error)
-        Swal.fire("Erro", "Erro ao redefinir senha", "error");
-      }
-    } else {
-      console.log("Ação cancelada");
-      Swal.fire("A alteração de senha não salva", "Nenhuma alteração foi feita.", "info");
+      Swal.fire("Sucesso!", "Senha atualizada com sucesso!", "success");
     }
-
-  }
+  };
 
   return (
     <div className="user-details-container">
@@ -251,7 +313,9 @@ const PerfilUsuario = () => {
         <div className="form-row">
           <div className="form-group">
             <label>Cargo</label>
-            <div className="input-readonly">{formData.cargo}</div>
+            <div className="input-readonly">
+              {formData.cargo || "Não informado"}
+            </div>
           </div>
           <div className="form-group">
             <label>CPF</label>
@@ -331,13 +395,27 @@ const PerfilUsuario = () => {
           />
         </div>
 
-        <button type="submit" className="submit-button">
-          Editar
-        </button>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "20px",
+            width: "100%",
+          }}
+        >
+          <button
+            style={{ flex: 1 }}
+            type="button"
+            onClick={EditarSenha}
+            className="submit-button"
+          >
+            Editar Senha
+          </button>
 
-        <button type="button" onClick={EditarSenha} className="submit-button">
-          Editar Senha
-        </button>
+          <button style={{ flex: 1 }} type="submit" className="submit-button">
+            Editar
+          </button>
+        </div>
       </form>
     </div>
   );

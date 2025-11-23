@@ -3,6 +3,7 @@ import { useAuth } from "../auth/AuthContext";
 import "../styles/NavLateral.css";
 import "../styles/TelaComNavLateral.css";
 import { BotaoNav } from "./BotaoNav";
+import Swal from "sweetalert2";
 
 // Imagens
 import Person from "../assets/images/Person.svg";
@@ -17,6 +18,33 @@ export function NavLateral({ rotasPersonalizadas }) {
     localStorage.getItem("nomeCompleto") ||
     sessionStorage.getItem("nomeCompleto") ||
     "Usuário";
+
+  async function confirmarLogout() {
+    const result = await Swal.fire({
+      title: "Deseja sair?",
+      text: "Ao sair, você precisará fazer login novamente.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sim, sair",
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#45AA48",
+    });
+
+    if (result.isConfirmed) {
+      logout?.();
+      navigate("/login");
+
+      Swal.fire({
+        icon: "success",
+        title: "Sessão encerrada",
+        text: "Você saiu com sucesso!",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    }
+  }
 
   return (
     <div className="NavLateral">
@@ -40,14 +68,7 @@ export function NavLateral({ rotasPersonalizadas }) {
 
       {/* Botão sair */}
       <div className="BoxBtnSair">
-        <BotaoNav
-          texto="Sair"
-          imgLink={Sair}
-          onClick={() => {
-            logout?.();
-            navigate("/login");
-          }}
-        />
+        <BotaoNav texto="Sair" imgLink={Sair} onClick={confirmarLogout} />
       </div>
     </div>
   );

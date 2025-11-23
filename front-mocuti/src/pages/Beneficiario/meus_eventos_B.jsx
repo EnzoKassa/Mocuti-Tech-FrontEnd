@@ -6,7 +6,7 @@ import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes"
 import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
 import Swal from "sweetalert2";
 import "../../styles/meusEventos.css";
-import api, { apiRefresh } from "../../api/api";
+import api, { apiRefresh, fetchInscritosCargo2Count } from "../../api/api";
 
 export default function MeusEventosBeneficiario() {
   const navigate = useNavigate();
@@ -17,10 +17,26 @@ export default function MeusEventosBeneficiario() {
     sessionStorage.getItem("idUsuario");
 
   const botoesNav = [
-    { onClick: () => navigate("/usuario/eventos"), label: "Eventos", className: "btn-inicio" },
-    { onClick: () => navigate("/usuario/perfil"), label: "Meu Perfil", className: "btn-sobre" },
-    { onClick: () => navigate("/usuario/meus-eventos"), label: "Meus Eventos", className: "btn-linha" },
-    { onClick: () => navigate("/usuario/feedback"), label: "Feedback", className: "btn-comentarios" },
+    {
+      onClick: () => navigate("/usuario/eventos"),
+      label: "Eventos",
+      className: "btn-inicio",
+    },
+    {
+      onClick: () => navigate("/usuario/perfil"),
+      label: "Meu Perfil",
+      className: "btn-sobre",
+    },
+    {
+      onClick: () => navigate("/usuario/meus-eventos"),
+      label: "Meus Eventos",
+      className: "btn-linha",
+    },
+    {
+      onClick: () => navigate("/usuario/feedback"),
+      label: "Feedback",
+      className: "btn-comentarios",
+    },
   ];
 
   const [participacoes, setParticipacoes] = useState([]);
@@ -32,15 +48,24 @@ export default function MeusEventosBeneficiario() {
       (arr || []).map(async (p) => {
         let imagemUrl = null;
         let eventoDetalhes = null;
+
         try {
-          const eventoId = p.idEvento || p.id?.eventoId || p.id?.evento_id || (p.id && (p.id.eventoId || p.id));
+          const eventoId =
+            p.idEvento ||
+            p.id?.eventoId ||
+            p.id?.evento_id ||
+            (p.id && (p.id.eventoId || p.id));
           if (eventoId) {
+            // detalhes do evento
             const res = await api.get(`/eventos/${eventoId}`);
             if (res.status === 200) eventoDetalhes = res.data;
-            const imgRes = await api.get(`/eventos/foto/${eventoId}`);
-            if (imgRes.status === 200) {
-              const blob = await imgRes.blob();
-              imagemUrl = URL.createObjectURL(blob);
+
+            // imagem do evento
+            const imgRes = await api.get(`/eventos/foto/${eventoId}`, {
+              responseType: "blob",
+            });
+            if (imgRes.status === 200 && imgRes.data) {
+              imagemUrl = URL.createObjectURL(imgRes.data);
             }
           }
         } catch (err) {
@@ -52,20 +77,33 @@ export default function MeusEventosBeneficiario() {
           const idForCount = eventoId ?? extractEventId(p);
           if (idForCount) {
             // debug: log do id consultado e resultado
-            console.debug("fetchInscritosCargo2Count -> idForCount:", idForCount);
+            console.debug(
+              "fetchInscritosCargo2Count -> idForCount:",
+              idForCount
+            );
             inscritosCount = await fetchInscritosCargo2Count(idForCount);
-            console.debug("fetchInscritosCargo2Count -> result:", inscritosCount);
+            console.debug(
+              "fetchInscritosCargo2Count -> result:",
+              inscritosCount
+            );
             inscritosCount = Number(inscritosCount || 0);
           }
         } catch (errCount) {
-          console.debug("Erro ao buscar contagem de inscritos (meus_eventos):", errCount);
+          console.debug(
+            "Erro ao buscar contagem de inscritos (meus_eventos):",
+            errCount
+          );
         }
 
         return {
           ...p,
           ...(eventoDetalhes || {}),
           imagemUrl,
-          idEvento: p.idEvento || p.id?.eventoId || (eventoDetalhes && eventoDetalhes.idEvento) || p.id,
+          idEvento:
+            p.idEvento ||
+            p.id?.eventoId ||
+            (eventoDetalhes && eventoDetalhes.idEvento) ||
+            p.id,
         };
       })
     );
@@ -81,7 +119,9 @@ export default function MeusEventosBeneficiario() {
     try {
       setLoading(true);
 
-      const urlInscritos = `/participacoes/eventos-inscritos/${encodeURIComponent(idUsuario)}`;
+      const urlInscritos = `/participacoes/eventos-inscritos/${encodeURIComponent(
+        idUsuario
+      )}`;
       const inscritosRes = await api.get(urlInscritos);
       const inscritos = inscritosRes.status === 200 ? inscritosRes.data : [];
 
@@ -97,9 +137,9 @@ export default function MeusEventosBeneficiario() {
 
   useEffect(() => {
     fetchEventos();
-   const onRefresh = () => fetchEventos();
-   apiRefresh.addEventListener("refresh", onRefresh);
-   return () => apiRefresh.removeEventListener("refresh", onRefresh);
+    const onRefresh = () => fetchEventos();
+    apiRefresh.addEventListener("refresh", onRefresh);
+    return () => apiRefresh.removeEventListener("refresh", onRefresh);
   }, [idUsuario]);
 
   const cancelarInscricao = async (idEvento) => {
@@ -125,13 +165,25 @@ export default function MeusEventosBeneficiario() {
     if (!choice.isConfirmed) return;
 
     try {
-      const url = `/participacoes/${encodeURIComponent(idEvento)}/cancelar-inscricao?idUsuario=${encodeURIComponent(idUsuario)}`;
+      const url = `/participacoes/${encodeURIComponent(
+        idEvento
+      )}/cancelar-inscricao?idUsuario=${encodeURIComponent(idUsuario)}`;
       const res = await api.delete(url);
       if (res.status === 200 || res.status === 204) {
-        setParticipacoes((prev) => prev.filter((ev) => String(ev.idEvento) !== String(idEvento)));
-        Swal.fire("Inscrição cancelada", "Sua inscrição foi cancelada.", "success");
+        setParticipacoes((prev) =>
+          prev.filter((ev) => String(ev.idEvento) !== String(idEvento))
+        );
+        Swal.fire(
+          "Inscrição cancelada",
+          "Sua inscrição foi cancelada.",
+          "success"
+        );
       } else {
-        Swal.fire("Erro", "Não foi possível cancelar a inscrição de um evento que já está em andamento ou encerrado.", "error");
+        Swal.fire(
+          "Erro",
+          "Não foi possível cancelar a inscrição de um evento que já está em andamento ou encerrado.",
+          "error"
+        );
       }
     } catch (err) {
       console.error("Erro ao cancelar inscrição:", err);
@@ -146,7 +198,8 @@ export default function MeusEventosBeneficiario() {
   // 🔹 Exibe modal de detalhes
   const mostrarDetalhes = (evento) => {
     const titulo = evento.nomeEvento || evento.nome || "Evento";
-    const descricao = evento.descricao || evento.descricaoEvento || "Sem descrição.";
+    const descricao =
+      evento.descricao || evento.descricaoEvento || "Sem descrição.";
     const dataFormat = evento.dia || evento.data_evento || "";
     const horaInicio = evento.horaInicio || evento.hora_inicio || "-";
     const horaFim = evento.horaFim || evento.hora_fim || "-";
@@ -221,9 +274,13 @@ export default function MeusEventosBeneficiario() {
 
   useEffect(() => {
     return () => {
-      participacoes.forEach(p => {
+      participacoes.forEach((p) => {
         if (p && p.imagemUrl) {
-          try { URL.revokeObjectURL(p.imagemUrl); } catch (e) { /* ignore */ }
+          try {
+            URL.revokeObjectURL(p.imagemUrl);
+          } catch (e) {
+            /* ignore */
+          }
         }
       });
     };
@@ -247,7 +304,13 @@ export default function MeusEventosBeneficiario() {
                 boxShadow: "0 2px 4px rgba(0,0,0,0.06)",
               }}
             >
-              <h1 style={{ marginTop: 0, padding: "0 0 0 100px" }}>
+              <h1
+                style={{
+                  marginTop: 0,
+                  padding: "0 0 0 100px",
+                  marginBottom: "10px",
+                }}
+              >
                 Meus Eventos
               </h1>
               <div style={{ marginTop: 8 }}>

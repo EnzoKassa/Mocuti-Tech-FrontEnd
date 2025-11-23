@@ -14,7 +14,9 @@ const PrivateRoute = ({ children, roles }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (roles && !roles.includes(user.tipoCargo)) {
+  const cargo = user?.tipoCargo || user?.cargo?.tipoCargo;
+
+  if (roles && !roles.includes(cargo)) {
     // Usuário não tem permissão
     return <Navigate to="/nao-autorizado" replace />;
   }

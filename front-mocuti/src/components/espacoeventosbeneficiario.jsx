@@ -18,7 +18,7 @@ export default function EspacoEventosBeneficiario({
   onOpenModal,
   showFeedbackButton = false, // NOVO: controla se o botão aparece
   onFeedbackClick, // opcional: callback ao clicar
-  feedbackLabel = "Enviar Feedback", // << NOVO
+  feedbackLabel = "Enviar Feedback"
 }) {
   const exibirParticipar =
     hideParticipar === true

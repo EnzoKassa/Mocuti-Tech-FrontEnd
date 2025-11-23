@@ -16,6 +16,27 @@ const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  const updateUser = (newUserData) => {
+    const updatedUser = {
+      id: newUserData.idUsuario,
+      nomeCompleto: newUserData.nomeCompleto,
+      tipoCargo: newUserData.cargo?.tipoCargo || newUserData.tipoCargo,
+      email: newUserData.email,
+    };
+  
+    setUser(updatedUser);
+  
+    if (localStorage.getItem("user")) {
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+    }
+  
+    if (sessionStorage.getItem("user")) {
+      sessionStorage.setItem("user", JSON.stringify(updatedUser));
+    }
+  
+    console.log("🔄 Storage atualizado:", updatedUser);
+  };  
+
   const login = async (email, senha, rememberMe = false) => {
     try {
       setLoading(true);
@@ -63,7 +84,7 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, error }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, loading, error }}>
       {children}
     </AuthContext.Provider>
   );

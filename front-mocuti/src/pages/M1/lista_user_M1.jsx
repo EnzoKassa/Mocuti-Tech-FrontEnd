@@ -10,10 +10,10 @@ import "../../styles/TelaComNavLateral.css";
 import "../../styles/ListaUsuariosM1.css";
 
 import Calendario from "../../assets/images/calendario.svg";
-import ListaIcon from "../../assets/images/listausuariom1.svg";
-import FeedbackIcon from "../../assets/images/feedbackLogo.svg";
 import MeuPerfil from "../../assets/images/meuPerfil.svg";
+import feedback from "../../assets/images/feedbackLogo.svg";
 import Visao from "../../assets/images/visaoGeral.svg";
+import Lista from "../../assets/images/listausuariom1.svg";
 
 export default function ListaUsuariosM1() {
   const navigate = useNavigate();
@@ -39,12 +39,20 @@ export default function ListaUsuariosM1() {
     senha: "",
   });
 
-  const rotasAdmin = [
+  // const rotasAdmin = [
+  //   { texto: "Eventos", rota: "/admin/eventos", img: Calendario },
+  //   { texto: "Lista De Usuários", rota: "/admin/lista-usuarios", img: ListaIcon },
+  //   { texto: "Feedbacks", rota: "/admin/feedbacks", img: FeedbackIcon },
+  //   { texto: "Meu Perfil", rota: "/admin/perfil", img: MeuPerfil },
+  //   { texto: "Visão Geral", rota: "/admin/visao-geral", img: Visao },
+  // ];
+
+  const rotasPersonalizadas = [
+    { texto: "Visão Geral", rota: "/admin/geral", img: Visao },
     { texto: "Eventos", rota: "/admin/eventos", img: Calendario },
-    { texto: "Lista De Usuários", rota: "/admin/lista-usuarios", img: ListaIcon },
-    { texto: "Feedbacks", rota: "/admin/feedbacks", img: FeedbackIcon },
+    { texto: "Usuários", rota: "/admin/lista-usuarios", img: Lista },
+    { texto: "Feedbacks", rota: "/admin/feedbacks", img: feedback },
     { texto: "Meu Perfil", rota: "/admin/perfil", img: MeuPerfil },
-    { texto: "Visão Geral", rota: "/admin/visao-geral", img: Visao },
   ];
 
   const getTituloPagina = () => {
@@ -87,7 +95,7 @@ export default function ListaUsuariosM1() {
         cpf: u.cpf,
         email: u.email,
         telefone: u.telefone,
-        dataNascimento: u.dtNasc,
+        dt_nasc: u.dt_nasc, // <-- aqui
         ativo: u.isAtivo,
       }));
 
@@ -116,10 +124,7 @@ export default function ListaUsuariosM1() {
     carregarUsuarios(cargoSelecionado);
   }, [cargoSelecionado]);
 
-  const totalPaginas = Math.max(
-    1,
-    Math.ceil(usuarios.length / itensPorPagina)
-  );
+  const totalPaginas = Math.max(1, Math.ceil(usuarios.length / itensPorPagina));
 
   const indiceInicial = (paginaAtual - 1) * itensPorPagina;
   const indiceFinal = indiceInicial + itensPorPagina;
@@ -238,13 +243,11 @@ export default function ListaUsuariosM1() {
   };
 
   return (
-    <div className="containerGeral">
-      <NavLateral rotasPersonalizadas={rotasAdmin} />
+    <div className="TelaComNavLateral containerGeral">
+      {/* <NavLateral rotasPersonalizadas={rotasAdmin} /> */}
+      <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
 
-      <main
-        className="conteudoPrincipal"
-        style={{ fontSize: `${fonte}px` }}
-      >
+      <main className="conteudoPrincipal" style={{ fontSize: `${fonte}px` }}>
         <h1 className="tituloPagina">{getTituloPagina()}</h1>
 
         <div className="abasLista">
@@ -284,7 +287,6 @@ export default function ListaUsuariosM1() {
 
         {/* TABELA COM LOADING */}
         <section className="tabelaContainer" style={{ position: "relative" }}>
-
           {loading && (
             <div className="loadingOverlay">
               <div className="spinnerLoader"></div>
@@ -334,15 +336,19 @@ export default function ListaUsuariosM1() {
                     </td>
 
                     <td className="colUsuario">
-                      <div className="avatar"></div>
+                      {/* <div className="avatar"></div> */}
                       {u.nome}
                     </td>
 
                     <td>{u.cpf}</td>
                     <td>{u.email}</td>
                     <td>{u.telefone}</td>
-                    <td>{u.dataNascimento}</td>
-                    <td className="tresPontos">⋯</td>
+                    <td>
+                      {u.dt_nasc
+                        ? new Date(u.dt_nasc).toLocaleDateString("pt-BR")
+                        : "-"}
+                    </td>
+                    {/* <td className="tresPontos">⋯</td> */}
                   </tr>
                 ))
               )}
@@ -383,9 +389,7 @@ export default function ListaUsuariosM1() {
             className="btnPaginacaoTexto"
             disabled={paginaAtual === totalPaginas}
             onClick={() =>
-              setPaginaAtual((prev) =>
-                prev < totalPaginas ? prev + 1 : prev
-              )
+              setPaginaAtual((prev) => (prev < totalPaginas ? prev + 1 : prev))
             }
           >
             Next
@@ -423,7 +427,10 @@ export default function ListaUsuariosM1() {
                 <input
                   value={formNovoUsuario.cpf}
                   onChange={(e) =>
-                    setFormNovoUsuario({ ...formNovoUsuario, cpf: e.target.value })
+                    setFormNovoUsuario({
+                      ...formNovoUsuario,
+                      cpf: e.target.value,
+                    })
                   }
                 />
 

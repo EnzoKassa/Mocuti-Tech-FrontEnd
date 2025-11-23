@@ -39,9 +39,25 @@
   align-items: flex-start;
   background-color: white;
   box-sizing: border-box;
-
+  padding-top: 3rem; /* espaço pra não colar no topo */
+  position: relative; /* necessário pra seta */
   max-height: 100vh;
-  overflow-y: auto; 
+  overflow-y: auto;
+}
+
+.back-arrow {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 26px !important;;
+  cursor: pointer;
+  color: #1f2937;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.back-arrow:hover {
+  transform: scale(1.15);
+  color: #111;
 }
 
 
