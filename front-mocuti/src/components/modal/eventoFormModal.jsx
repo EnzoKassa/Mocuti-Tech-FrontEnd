@@ -51,6 +51,121 @@ export async function openEventoFormModal(
   const selecionados = new Set(); // ids selecionados no modal
   const convidadosExistentesSet = new Set();
 
+  // normaliza a lista de convidados para garantir nomeConvidado/email disponíveis
+  function tryPaths(obj, paths) {
+    for (const p of paths) {
+      try {
+        const parts = p.split(".");
+        let cur = obj;
+        for (const k of parts) {
+          if (cur == null) { cur = null; break; }
+          cur = cur[k];
+        }
+        if (typeof cur === "string" && cur.trim()) return cur.trim();
+      } catch (e) { /* ignore */ }
+    }
+    return "";
+  }
+
+  function normalizeConvidadosList(list) {
+    if (!Array.isArray(list)) return [];
+    const normalized = list.map((c) => {
+      const uid = String(c.idUsuario ?? c.usuarioId ?? c.id ?? (c.usuario && c.usuario.id) ?? "");
+
+      // caminhos possíveis onde o nome pode estar (inclui nomeCompleto)
+      const namePaths = [
+        "nomeConvidado",
+        "nomeCompleto",
+        "nomeUsuario",
+        "nome",
+        "email",
+        "usuario.nome",
+        "usuario.nomeCompleto",
+        "usuario.nomeUsuario",
+        "usuario.pessoa.nome",
+        "usuario.pessoa.nomeCompleto",
+        "convidado.nome",
+        "convidado.pessoa.nome",
+        "pessoa.nome",
+        "pessoa.nomeCompleto"
+      ];
+
+      // caminhos possíveis para email/status
+      const emailPaths = ["email", "usuario.email", "usuario.login", "convidado.email", "pessoa.email"];
+      const statusPaths = ["statusConvite", "statusDescricao", "situacao", "status", "tipoInscricao"];
+
+      const nomeFound = tryPaths(c, namePaths) || "";
+      const emailFound = tryPaths(c, emailPaths) || "";
+      const statusFound = tryPaths(c, statusPaths) || "";
+
+      const nome = nomeFound || (uid ? `Usuário ${uid}` : "");
+      const status = statusFound || String(c.idStatusInscricao ?? "Pendente");
+
+      // preservar outros campos, garantir idUsuario/nomeConvidado/email/statusConvite
+      return { ...c, idUsuario: uid, nomeConvidado: nome, email: emailFound || c.email || "", statusConvite: status };
+    });
+    console.debug("eventoFormModal: convidados normalizados:", normalized);
+    return normalized;
+  }
+
+  // tenta resolver nome real do usuário por id (usa cache usuariosCargo3 e fallback API)
+  async function getNomeUsuarioById(id) {
+    if (!id) return "";
+    const sid = String(id);
+    try {
+      const found = (usuariosCargo3 || []).find(u => String(u.idUsuario ?? u.id ?? u.usuarioId ?? "") === sid);
+      if (found) return tryPaths(found, ["nomeCompleto","nome","nomeUsuario","nome_completo","email"]) || `Usuário ${sid}`;
+    } catch (e) { /* ignore */ }
+    try {
+      const res = await api.get(`/usuarios/${encodeURIComponent(sid)}`);
+      const data = res?.data ?? null;
+      if (data) return tryPaths(data, ["nomeCompleto","nome","nomeUsuario","pessoa.nome","pessoa.nomeCompleto","email"]) || `Usuário ${sid}`;
+    } catch (e) { /* ignore */ }
+    return `Usuário ${sid}`;
+  }
+
+  // enriquece lista de convidados preenchendo nomeConvidado quando estiver como "Usuário {id}"
+  async function enrichConvidadosWithNames(list) {
+    if (!Array.isArray(list) || list.length === 0) return list || [];
+    const enriched = await Promise.all(list.map(async (c) => {
+      const uid = String(c.idUsuario ?? c.usuarioId ?? c.id ?? "");
+      const existingName = tryPaths(c, ["nomeConvidado", "nomeCompleto", "nomeUsuario", "nome", "email"]);
+      if (existingName && !existingName.startsWith("Usuário ")) {
+        return { ...c, idUsuario: uid, nomeConvidado: existingName };
+      }
+      const resolved = await getNomeUsuarioById(uid);
+      return { ...c, idUsuario: uid, nomeConvidado: resolved };
+    }));
+    console.debug("eventoFormModal: convidados enriquecidos com nomes:", enriched);
+    return enriched;
+  }
+
+  // novo: atualiza convidados do backend e re-renderiza a lista no modal
+  async function refreshConvidados(eventoId) {
+    try {
+      if (!eventoId) return;
+      const fetched = await listarConvidadosPorEvento(eventoId).catch(() => null);
+      const normalized = normalizeConvidadosList(fetched || []);
+      convidadosEvento = await enrichConvidadosWithNames(normalized);
+      // rebuild simple UI block
+      const convidadosContainer = document.getElementById("ev-convidados-list");
+      if (!convidadosContainer) return;
+      convidadosContainer.innerHTML = (convidadosEvento && convidadosEvento.length)
+        ? convidadosEvento.map(c => {
+            const uid = c.idUsuario ?? c.usuarioId ?? c.id ?? "";
+            const nome = escapeHtml(c.nomeConvidado || tryPaths(c, ["nome","email"]) || (uid ? `Usuário ${uid}` : ""));
+            const status = escapeHtml(c.statusConvite ?? c.statusDescricao ?? c.situacao ?? c.status ?? String(c.idStatusInscricao ?? "Pendente"));
+            return `<div data-uid="${uid}" style="display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid #f6f6f6;">
+                      <div><strong>${nome}</strong><div style="font-size:11px;color:#666;">${escapeHtml(c.email||"")}</div></div>
+                      <div style="min-width:110px; text-align:right;"><span style="padding:4px 8px; border-radius:6px; background:#f2f2f2;">${status}</span></div>
+                    </div>`;
+          }).join("")
+        : `<div style="padding:8px;color:#666;">Nenhum convidado</div>`;
+    } catch (err) {
+      console.debug("refreshConvidados falhou:", err);
+    }
+  }
+
   try {
     if (!categorias || categorias.length === 0) {
       if (typeof safeFetchJson === "function") {
@@ -370,15 +485,9 @@ export async function openEventoFormModal(
             evento?.idEvento ?? evento?.id ?? evento?.id_evento;
           if (idEventoExistente) {
             try {
-              convidadosEvento = await listarConvidadosPorEvento(
-                idEventoExistente
-              );
-              if (!Array.isArray(convidadosEvento)) convidadosEvento = [];
+              await refreshConvidados(idEventoExistente);
             } catch (e) {
-              console.debug(
-                "eventoFormModal: listarConvidadosPorEvento falhou:",
-                e
-              );
+              console.debug("eventoFormModal: refreshConvidados falhou:", e);
               convidadosEvento = [];
             }
           } else {
@@ -562,7 +671,8 @@ export async function openEventoFormModal(
               Array.isArray(convidadosAtualizados) &&
               convidadosAtualizados.length > 0
             ) {
-              convidadosEvento = convidadosAtualizados;
+              convidadosEvento = normalizeConvidadosList(convidadosAtualizados);
+              convidadosEvento = await enrichConvidadosWithNames(convidadosEvento);
             } else {
               // backend não retornou a lista atualizada: acrescentar localmente
               const novos = ids.map((id) => {
@@ -584,6 +694,10 @@ export async function openEventoFormModal(
                 };
               });
               convidadosEvento = (convidadosEvento || []).concat(novos);
+              // enriquecer nomes locais (caso existam em usuariosCargo3)
+              convidadosEvento = await enrichConvidadosWithNames(convidadosEvento);
+              // re-render após fallback local
+              await refreshConvidados(evento?.idEvento ?? idEventoExistente);
             }
 
             // atualizar UI - convidados list
@@ -594,11 +708,17 @@ export async function openEventoFormModal(
                 (convidadosEvento || [])
                   .map((c) => {
                     const uid = c.idUsuario ?? c.usuarioId ?? c.id ?? "";
-                    const nome = escapeHtml(
-                      c.nomeUsuario || c.nome || c.email || ""
-                    );
+                    // preferir nomeConvidado (DTO) -> nomeUsuario -> nome -> email -> fallback com id
+                    const rawName =
+                      c.nomeConvidado ??
+                      c.nomeUsuario ??
+                      c.nome ??
+                      c.email ??
+                      (uid ? `Usuário ${uid}` : "");
+                    const nome = escapeHtml(rawName);
                     const status = escapeHtml(
-                      c.statusDescricao ??
+                      c.statusConvite ??
+                        c.statusDescricao ??
                         c.situacao ??
                         c.status ??
                         String(c.idStatusInscricao ?? "Pendente")
@@ -779,98 +899,78 @@ export async function openEventoFormModal(
           const rEnd = await api.post("/endereco", payloadEndereco, {
             headers,
           });
-          if (rEnd.status !== 200) {
-            let bodyText = await rEnd.text().catch(() => "");
-            let parsed = bodyText;
-            try {
-              parsed = JSON.parse(bodyText);
-            } catch (err) {
-              /* ignore parse error */
-            }
-            let friendly = "";
-
-            if (!parsed) {
-              friendly = `HTTP ${rEnd.status}`;
-            } else if (typeof parsed === "string") {
-              friendly = parsed;
-            } else if (
-              parsed.fieldErrors &&
-              Array.isArray(parsed.fieldErrors)
-            ) {
-              friendly = parsed.fieldErrors
-                .map(
-                  (fe) =>
-                    `${fe.field}: ${
-                      fe.defaultMessage || fe.message || JSON.stringify(fe)
-                    }`
-                )
-                .join("; ");
-            } else if (parsed.message || parsed.error) {
-              friendly = parsed.message || parsed.error;
-            } else {
-              friendly = JSON.stringify(parsed);
-            }
-
-            Swal.showValidationMessage(`Falha ao salvar endereço: ${friendly}`);
-            return false;
-          }
-
-          const savedEndereco = rEnd.data ?? null;
-          enderecoId = savedEndereco?.idEndereco ?? savedEndereco?.id ?? null;
-          if (!enderecoId) {
-            Swal.showValidationMessage(
-              "Endereço salvo, mas id não retornado pelo servidor."
-            );
-            return false;
-          }
-          try {
-            const sel = document.getElementById("ev-endereco-select");
-            if (sel) {
-              const opt = document.createElement("option");
-              opt.value = enderecoId;
-              opt.text = `${savedEndereco.logradouro || ""}${
-                savedEndereco.numero ? ", " + savedEndereco.numero : ""
-              }${savedEndereco.bairro ? " - " + savedEndereco.bairro : ""} (${
-                savedEndereco.cep || ""
-              })`;
-              const last = sel.querySelector('option[value="__novo"]');
-              if (last) sel.insertBefore(opt, last);
-              sel.value = enderecoId;
-            }
-          } catch (err) {
-            console.debug(
-              "eventoFormModal: atualizar select ev-endereco-select falhou:",
-              err
-            );
-          }
-        } catch (err) {
-          Swal.showValidationMessage(
-            `Erro ao salvar novo endereço: ${err?.message || err}`
-          );
-          return false;
-        }
-      } else if (enderecoSelectVal) {
-        const idNum = Number(enderecoSelectVal);
-        if (Number.isFinite(idNum) && idNum > 0) {
-          const existe = Array.isArray(enderecos)
-            ? enderecos.some((e) => (e.idEndereco ?? e.id) === idNum)
-            : true;
-          if (!existe) {
-            Swal.showValidationMessage("Endereço selecionado inválido.");
-            return false;
-          }
-          enderecoId = idNum;
-        } else {
-          Swal.showValidationMessage("Endereço selecionado inválido.");
-          return false;
-        }
-      } else {
-        if (isEdit && values.enderecoId) {
-          enderecoId = Number(values.enderecoId) || null;
-        } else {
-          enderecoId = null;
-        }
-      }
+          // axios response: considerar qualquer 2xx como sucesso
+          if (!rEnd || rEnd.status < 200 || rEnd.status >= 300) {
+             const parsed = rEnd.data ?? null;
+             let friendly = "";
+             if (!parsed) friendly = `HTTP ${rEnd.status}`;
+             else if (typeof parsed === "string") friendly = parsed;
+             else if (parsed.fieldErrors && Array.isArray(parsed.fieldErrors)) {
+               friendly = parsed.fieldErrors
+                 .map((fe) => `${fe.field}: ${fe.defaultMessage || fe.message || JSON.stringify(fe)}`)
+                 .join("; ");
+             } else if (parsed.message || parsed.error) friendly = parsed.message || parsed.error;
+             else friendly = JSON.stringify(parsed);
+             Swal.showValidationMessage(`Falha ao salvar endereço: ${friendly}`);
+             return false;
+           }
+ 
+           const savedEndereco = rEnd.data ?? null;
+           enderecoId = savedEndereco?.idEndereco ?? savedEndereco?.id ?? null;
+           if (!enderecoId) {
+             Swal.showValidationMessage(
+               "Endereço salvo, mas id não retornado pelo servidor."
+             );
+             return false;
+           }
+           try {
+             const sel = document.getElementById("ev-endereco-select");
+             if (sel) {
+               const opt = document.createElement("option");
+               opt.value = enderecoId;
+               opt.text = `${savedEndereco.logradouro || ""}${
+                 savedEndereco.numero ? ", " + savedEndereco.numero : ""
+               }${savedEndereco.bairro ? " - " + savedEndereco.bairro : ""} (${
+                 savedEndereco.cep || ""
+               })`;
+               const last = sel.querySelector('option[value="__novo"]');
+               if (last) sel.insertBefore(opt, last);
+               sel.value = enderecoId;
+             }
+           } catch (err) {
+             console.debug(
+               "eventoFormModal: atualizar select ev-endereco-select falhou:",
+               err
+             );
+           }
+         } catch (err) {
+           Swal.showValidationMessage(
+             `Erro ao salvar novo endereço: ${err?.message || err}`
+           );
+           return false;
+         }
+       } else if (enderecoSelectVal) {
+         const idNum = Number(enderecoSelectVal);
+         if (Number.isFinite(idNum) && idNum > 0) {
+           const existe = Array.isArray(enderecos)
+             ? enderecos.some((e) => (e.idEndereco ?? e.id) === idNum)
+             : true;
+           if (!existe) {
+             Swal.showValidationMessage("Endereço selecionado inválido.");
+             return false;
+           }
+           enderecoId = idNum;
+         } else {
+           Swal.showValidationMessage("Endereço selecionado inválido.");
+           return false;
+         }
+       } else {
+         if (isEdit && values.enderecoId) {
+           enderecoId = Number(values.enderecoId) || null;
+         } else {
+           enderecoId = null;
+         }
+       }
 
       const payloadEvento = {
         nomeEvento: nome,
@@ -1013,40 +1113,21 @@ export async function openEventoFormModal(
         );
 
         if (resDados.status !== 200) {
-          let respText = await resDados.text().catch(() => "");
-          let parsed = respText;
-          try {
-            const j = JSON.parse(respText);
-            parsed = j;
-          } catch (err) {
-            /* ignore parse error */
-          }
+          const parsed = resDados.data ?? null;
           console.error("eventoFormModal: PUT /eventos response not ok", {
             status: resDados.status,
             statusText: resDados.statusText,
             body: parsed,
-            headers: Array.from(resDados.headers.entries()),
+            headers: resDados.headers,
           });
-          Swal.showValidationMessage(
-            `Falha ao salvar dados: ${
-              typeof parsed === "string"
-                ? parsed
-                : JSON.stringify(parsed) || resDados.status
-            }`
-          );
-          throw new Error(
-            typeof parsed === "string"
-              ? parsed
-              : JSON.stringify(parsed) || `Erro ${resDados.status}`
-          );
+          const friendly = typeof parsed === "string" ? parsed : JSON.stringify(parsed) || String(resDados.status);
+          Swal.showValidationMessage(`Falha ao salvar dados: ${friendly}`);
+          throw new Error(friendly);
         }
 
-        try {
-          resultSaved = await resDados.json().catch(() => null);
-        } catch (err) {
-          resultSaved = null;
-        }
-
+        // axios -> data
+        resultSaved = resDados.data ?? null;
+ 
         if (file) {
           const fd = new FormData();
           fd.append("foto", file);
