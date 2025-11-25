@@ -4,34 +4,33 @@ import api from '../../api/api'
 
 const escapeHtml = (str) => (str ? String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : "");
 
-export async function openListaPresencaModal(evento, { getAuthHeaders }) {
+export async function openListaPresencaModal(evento, { getAuthHeaders } = {}) {
   const idEvento = evento?.idEvento || evento?.id || evento?.id_evento;
   if (!idEvento) {
     Swal.fire("Erro", "ID do evento não encontrado.", "error");
     return;
   }
 
-  const headers = { Accept: "application/json", ...getAuthHeaders() };
+  const headers = { Accept: "application/json", ...(typeof getAuthHeaders === "function" ? (getAuthHeaders() || {}) : {}) };
 
   let interessados = [];
   try {
     console.debug('Headers enviados:', headers);
     const relUrl = `/participacoes/inscritos/cargo2/pendente/${encodeURIComponent(idEvento)}`;
-    let res = await api.get(relUrl, { headers });
-    console.debug('axios (rel):', res.status, relUrl);
+    const res = await api.get(relUrl, { headers });
+    console.debug('axios (rel):', res?.status, relUrl);
 
-    if (res.status === 404) {
-      const absUrl = `/participacoes/inscritos/cargo2/pendente/${encodeURIComponent(idEvento)}`;
-      console.debug('Rota relativa retornou 404 — tentando URL absoluta:', absUrl);
-      res = await api.get(absUrl, { headers });
-      console.debug('axios (abs):', res.status, absUrl);
+    if (!res || res.status < 200 || res.status >= 300) {
+      const body = res?.data ?? {};
+      console.error('Erro ao buscar inscritos:', res?.status, body);
+      Swal.fire("Erro", `Falha ao carregar interessados: ${res?.status || "?"} ${JSON.stringify(body)}`, "error");
+      return;
     }
 
-    if (res.status === 204) interessados = [];
-    else if (res.ok) {
-      const data = await res.json();
-
-      interessados = (Array.isArray(data) ? data : []).map((item) => {
+    const data = res.data;
+    if (res.status === 204 || !data) interessados = [];
+    else {
+      interessados = (Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : [])).map((item) => {
         const usuario = item.usuario || {};
         const idUsuario = item.idUsuario ?? item.id?.usuarioId ?? usuario.idUsuario ?? item.usuarioId ?? item.id;
         const nomeCompleto = item.nomeCompleto ?? usuario.nomeCompleto ?? usuario.nome ?? item.nome ?? "";
@@ -40,15 +39,11 @@ export async function openListaPresencaModal(evento, { getAuthHeaders }) {
         const presente = !!(item.isPresente ?? item.is_presente ?? item.presente);
         return { ...item, idUsuario, nomeCompleto, telefone, email, presente };
       });
-    } else {
-      const text = await res.text().catch(() => '');
-      console.error('Resposta não OK ao buscar inscritos:', res.status, res.statusText, text);
-      Swal.fire("Erro", `Falha ao carregar interessados: ${res.status} ${res.statusText}\n${text}`, "error");
-      return;
     }
   } catch (err) {
     console.error("Erro ao buscar interessados:", err);
-    Swal.fire("Erro", "Não foi possível carregar a lista de interessados.", "error");
+    const msg = err?.response?.data ?? err?.message ?? String(err);
+    Swal.fire("Erro", `Não foi possível carregar a lista de interessados: ${typeof msg === "string" ? msg : JSON.stringify(msg)}`, "error");
     return;
   }
 
@@ -87,9 +82,11 @@ export async function openListaPresencaModal(evento, { getAuthHeaders }) {
     title: "Lista de Presença",
     html,
     showCancelButton: true,
-    confirmButtonText: "Salvar presenças",
+    confirmButtonText: "Salvar Presenças",
     cancelButtonText: "Fechar",
+    confirmButtonColor: "#4CAF50",
     width: 760,
+    focusConfirm: false,
     didOpen: () => {
       initialState.forEach((u, idx) => {
         const el = document.getElementById(`lp-chk-${idx}`);
@@ -115,19 +112,16 @@ export async function openListaPresencaModal(evento, { getAuthHeaders }) {
       }
 
       try {
-         const urlRel = `/participacoes/${encodeURIComponent(idEvento)}/presenca/bulk`;
+        const urlRel = `/participacoes/${encodeURIComponent(idEvento)}/presenca/bulk`;
         console.debug('Enviando PUT (rel):', urlRel, listaPresenca);
-
         let r = await api.put(urlRel, { listaPresenca }, { headers });
-        console.debug('Resposta (rel):', r.status, urlRel);
-
-        // se 404 no dev-server, tenta URL absoluta (pode ativar CORS)
-        if (r.status === 404) {
+        console.debug('Resposta (rel):', r?.status, urlRel);
+        if (r && r.status === 404) {
           const urlAbs = `http://localhost:8080/participacoes/${encodeURIComponent(idEvento)}/presenca/bulk`;
           console.debug('Relativa retornou 404 — tentando absoluta:', urlAbs);
           try {
             r = await api.put(urlAbs, { listaPresenca }, { headers });
-            console.debug('Resposta (abs):', r.status, urlAbs);
+            console.debug('Resposta (abs):', r?.status, urlAbs);
           } catch (errAbs) {
             console.error('Erro axios absoluta (possível CORS):', errAbs);
             Swal.showValidationMessage("Falha ao alcançar backend via URL absoluta (possível CORS). Verifique proxy ou CORS no servidor.");
@@ -135,12 +129,11 @@ export async function openListaPresencaModal(evento, { getAuthHeaders }) {
           }
         }
 
-        if (!r.ok) {
-          const txt = await r.text().catch(() => `Erro ${r.status}`);
-          console.error('Resposta não OK ao enviar bulk:', r.status, txt);
-          throw new Error(txt || `Erro ${r.status}`);
+        if (!r || r.status < 200 || r.status >= 300) {
+          const body = r?.data ?? r;
+          console.error('Resposta não OK ao enviar bulk:', r?.status, body);
+          throw new Error(JSON.stringify(body));
         }
-
         return r.data ?? true;
       } catch (err) {
         console.error("Erro ao atualizar presenças em massa:", err);
@@ -151,9 +144,8 @@ export async function openListaPresencaModal(evento, { getAuthHeaders }) {
   });
 
   if (popup.isConfirmed) {
-    // popup.value pode conter o json retornado do backend
-    const info = popup.value && popup.value.totalAtualizado ? ` (${popup.value.totalAtualizado} registros atualizados)` : "";
-    Swal.fire("Sucesso", `Presenças atualizadas.${info}`, "success");
+    const info = popup.value && popup.value.totalAtualizado ? " (" + popup.value.totalAtualizado + " registros atualizados)" : "";
+    Swal.fire("Sucesso", "Presenças atualizadas." + info, "success");
   }
 }
 

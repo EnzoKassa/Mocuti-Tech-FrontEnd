@@ -229,10 +229,71 @@ export async function openGerenciarModal(evento, { onEdit, onDelete, onLista, na
         if (onEdit) onEdit(evento);
       });
       document.getElementById("gerenciar-cancelar")?.addEventListener("click", async () => {
-        const c = await Swal.fire({ title: "Confirmar cancelamento", text: "Deseja realmente cancelar/excluir este evento?", icon: "warning", showCancelButton: true, confirmButtonText: "Sim, cancelar", cancelButtonText: "Não" });
-        if (!c.isConfirmed) return;
-        if (onDelete) await onDelete(evento);
-        Swal.close();
+        const confirm = await Swal.fire({
+          title: "Confirmação",
+          text: "Tem certeza que deseja cancelar o evento?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Sim, cancelar",
+          cancelButtonText: "Não",
+          confirmButtonColor: "#FFC107",
+          cancelButtonColor: "#6c757d",
+        });
+        if (!confirm.isConfirmed) return;
+
+        const id = evento.idEvento ?? evento.id;
+        if (!id) return Swal.fire("Erro", "ID do evento não disponível.", "error");
+
+        // se a página forneceu onDelete, delega
+        if (typeof onDelete === "function") {
+          try {
+            await onDelete(evento);
+            Swal.fire("Cancelado", "Evento cancelado com sucesso.", "success");
+            try { triggerApiRefresh(); } catch (_) {}
+          } catch (err) {
+            console.error("gerenciarModal: onDelete falhou:", err);
+            const msg = err?.response?.data ?? err?.message ?? String(err);
+            Swal.fire("Erro", "Falha ao cancelar evento: " + (typeof msg === "string" ? msg : JSON.stringify(msg)), "error");
+          }
+          return;
+        }
+
+        // tentativa padrão: DELETE /eventos/{id}
+        try {
+          const headers = typeof getAuthHeaders === "function" ? (getAuthHeaders() || {}) : {};
+          const res = await api.delete(`/eventos/${encodeURIComponent(id)}`, { headers }).catch(e => e);
+          if (res && res.status >= 200 && res.status < 300) {
+            Swal.fire("Cancelado", "Evento removido com sucesso.", "success");
+            try { triggerApiRefresh(); } catch (_) {}
+            return;
+          }
+
+          // falha do servidor: mostrar detalhes e oferecer copiar ID
+          const srv = res?.response?.data ?? res?.data ?? res;
+          console.error("Erro ao deletar evento:", res);
+          const text = typeof srv === "string" ? srv : JSON.stringify(srv);
+          const action = await Swal.fire({
+            title: "Falha ao cancelar",
+            html: `<pre style="text-align:left;max-height:220px;overflow:auto">${escapeHtml(text)}</pre>`,
+            icon: "error",
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonText: "Fechar",
+            denyButtonText: "Copiar ID",
+            cancelButtonText: "Abrir issue/backend",
+            confirmButtonColor: "#6c757d",
+            denyButtonColor: "#4CAF50",
+          });
+          if (action.isDenied) {
+            try { await navigator.clipboard.writeText(String(id)); } catch {}
+            Swal.fire("Copiado", "ID do evento copiado para a área de transferência.", "info");
+          }
+        } catch (err) {
+          console.error("gerenciarModal: exceção ao tentar deletar:", err);
+          const resp = err?.response?.data ?? err?.message ?? String(err);
+          try { await navigator.clipboard.writeText(String(id)); } catch {}
+          Swal.fire("Erro", "Falha ao cancelar evento. ID copiado para ajudar suporte. Detalhes: " + (typeof resp === "string" ? resp : JSON.stringify(resp)), "error");
+        }
       });
       document.getElementById("gerenciar-lista")?.addEventListener("click", () => {
         Swal.close();

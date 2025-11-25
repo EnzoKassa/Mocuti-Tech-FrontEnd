@@ -460,6 +460,8 @@ export async function openEventoFormModal(
     showCancelButton: true,
     confirmButtonText: isEdit ? "Salvar" : "Cadastrar",
     cancelButtonText: "Fechar",
+    // manter sempre verde para o botão de confirmação (Cadastrar / Salvar)
+    confirmButtonColor: "#4CAF50",
     width: 760,
     focusConfirm: false,
     didOpen: () => {
@@ -467,6 +469,37 @@ export async function openEventoFormModal(
         attachModalBehavior({ values, enderecos, getAuthHeaders });
       } catch (err) {
         console.debug("eventoFormModal: attachModalBehavior falhou:", err);
+      }
+
+      // garantir comportamento correto do select de endereços: pré-selecionar e limpar campos ao escolher "__novo"
+      const enderecoSelect = document.getElementById("ev-endereco-select");
+      const novoContainer = document.getElementById("ev-endereco-novo");
+      const clearNovoFields = () => {
+        ["ev-cep","ev-logradouro","ev-numero","ev-complemento","ev-bairro","ev-uf","ev-cidade"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = "";
+        });
+      };
+      if (enderecoSelect) {
+        // setar valor inicial ao abrir (edição)
+        if (values.enderecoId) {
+          try { enderecoSelect.value = String(values.enderecoId); } catch (e) { /* ignore */ }
+        }
+        // inicializar visibilidade
+        if (enderecoSelect.value === "__novo") {
+          if (novoContainer) novoContainer.style.display = "block";
+        } else {
+          if (novoContainer) novoContainer.style.display = "none";
+        }
+        enderecoSelect.addEventListener("change", (ev) => {
+          const v = ev.target.value;
+          if (v === "__novo") {
+            if (novoContainer) novoContainer.style.display = "block";
+            clearNovoFields();
+          } else {
+            if (novoContainer) novoContainer.style.display = "none";
+          }
+        });
       }
 
       // carregar usuários cargo=3 e convidados (após abrir modal)

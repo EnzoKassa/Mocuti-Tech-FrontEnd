@@ -5,7 +5,7 @@ import { AuthContext } from "../../auth/AuthContext";
 import HeaderBeneficiario from "../../components/HeaderBeneficiario";
 import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
 import FiltroBeneficiario from "../../components/FiltroBeneficiario";
-import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
+import EspacoEventosBeneficiario from "../../components/espacoeventosbeneficiario";
 import "../../styles/EventosBeneficiario.css";
 import { useNavigate } from "react-router-dom";
 import api, {
@@ -87,7 +87,7 @@ export default function EventosBeneficiario() {
       const candidate = t ? `${ds} ${t}` : ds;
       const dObj = new Date(candidate);
       if (!isNaN(dObj.getTime())) return dObj;
-    } catch {}
+    } catch { /* empty */ }
     return null;
   };
 
@@ -179,6 +179,7 @@ export default function EventosBeneficiario() {
             if (imgResponse.status === 200 && imgResponse.data) {
               copy.imagemUrl = URL.createObjectURL(imgResponse.data);
             }
+          // eslint-disable-next-line no-unused-vars
           } catch (e) {
             // ignore image errors
           }
@@ -202,45 +203,22 @@ export default function EventosBeneficiario() {
 
       processed.sort((a, b) => (a._startTs || 0) - (b._startTs || 0));
 
-      const closedStatusIds = new Set((statusList || [])
-        .filter(s => String(s.situacao || s.nome || "").toLowerCase().includes("encerr"))
-        .map(s => Number(s.idStatusEvento ?? s.id)).filter(Boolean)
-      );
-
-      const containsEncerrado = (val) => {
-        if (!val) return false;
-        try { return String(val).toLowerCase().includes("encerr"); } catch { return false; }
+      // Mostrar por padrão apenas eventos não-encerrados.
+      // Apenas permitir encerrados quando o filtro de status estiver definido e corresponder a "Encerrado".
+      const isClosed = (ev) => {
+        const s = String(ev.statusEfetivo || ev.statusSituacao || ev.statusEvento?.situacao || ev.situacao || ev.status_evento || "").toLowerCase();
+        return s.includes("encerr");
       };
 
-      const inscritosIds = new Set();
-      if (userId) {
-        try {
-          const pr = await api.get(`/participacoes/eventos-inscritos/${encodeURIComponent(userId)}`);
-          if (pr.status === 200) {
-            const parts = Array.isArray(pr.data) ? pr.data : [];
-            parts.forEach(p => {
-              const id = p.idEvento ?? p.evento?.idEvento ?? p.eventoId ?? p.id?.eventoId ?? p.id;
-              if (id !== undefined && id !== null) inscritosIds.add(String(id));
-            });
-          }
-        } catch (err) {
-          console.warn("Não foi possível buscar participações do usuário:", err);
-        }
+      let allowClosed = false;
+      if (filtrosAtuais.statusEventoId) {
+        const sel = (statusList || []).find(s => String(s.idStatusEvento ?? s.id ?? s.value) === String(filtrosAtuais.statusEventoId));
+        const situ = sel ? String(sel.situacao || sel.nome || "").toLowerCase() : "";
+        if (situ.includes("encerr")) allowClosed = true;
       }
 
-      const filtered = processed.filter(ev => {
-        if (containsEncerrado(ev.statusEfetivo)) return false;
-        for (const t of [ev.statusSituacao, ev.statusEvento?.situacao, ev.situacao, ev.status, ev.status_evento]) {
-          if (containsEncerrado(t)) return false;
-        }
-        const backendId = Number(ev.statusEvento?.idStatusEvento ?? ev.statusEvento?.id ?? ev.statusId ?? ev.statusEventoId ?? 0);
-        if (backendId && closedStatusIds.has(backendId)) return false;
-        const evId = ev.idEvento ?? ev.id ?? ev.id_evento ?? ev.eventoId;
-        if (evId !== undefined && evId !== null && inscritosIds.has(String(evId))) return false;
-        return true;
-      });
-
-      setEventos(filtered.map(p => { const c = { ...p }; delete c._startTs; return c; }));
+      const visible = allowClosed ? processed : processed.filter(ev => !isClosed(ev));
+      setEventos(visible.map(p => { const c = { ...p }; delete c._startTs; return c; }));
       setFiltrosUI(INITIAL_FILTERS);
     } catch (error) {
       console.error("Erro ao buscar eventos:", error);
