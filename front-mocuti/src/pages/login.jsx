@@ -94,8 +94,7 @@ const Login = () => {
     setIsSubmitting(true);
     try {
       const userData = await login(email, senha, rememberMe);
-      const user =
-        userData ||
+      const user =userData ||
         JSON.parse(
           localStorage.getItem("user") || sessionStorage.getItem("user")
         );
@@ -107,41 +106,35 @@ const Login = () => {
         timer: 1500,
       });
 
-      if (user?.tipoCargo === "Administrador") navigate("/admin/eventos");
-      else if (user?.tipoCargo === "Moderador") navigate("/moderador/eventos");
-      else if (user?.tipoCargo === "Usuário") navigate("/usuario/eventos");
+      if (userData.tipoCargo === "Administrador")
+        navigate("/admin/eventos");
+      else if (userData.tipoCargo === "Moderador")
+        navigate("/moderador/eventos");
+      else navigate("/usuario/eventos");
     } catch (err) {
-      // verifica se o backend fornece status
       const status = err?.response?.status;
 
-      // mensagens personalizadas
-      if (status === 400 || status === 401) {
-        Swal.fire({
-          icon: "error",
-          title: "Credenciais inválidas",
-          text: "Seu email ou senha estão incorretos. Tente novamente.",
-          confirmButtonColor: "#3b82f6",
-        });
-      } else if (status === 404) {
+      if (status === 404) {
         Swal.fire({
           icon: "warning",
-          title: "Conta não encontrada",
-          text: "Esse e-mail não está cadastrado no sistema.",
-          confirmButtonColor: "#3b82f6",
+          title: "E-mail não encontrado",
+          text: "Esse e-mail não está cadastrado.",
         });
-      } else {
-        // erro genérico
+      } else if (status === 401) {
         Swal.fire({
           icon: "error",
-          title: "Algo deu errado",
+          title: "Senha incorreta",
+          text: "A senha informada está incorreta.",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Erro no login",
           text: "Não foi possível fazer login agora. Tente novamente mais tarde.",
-          confirmButtonColor: "#3b82f6",
         });
       }
-
-      setSubmitError("Falha no login. Verifique os dados.");
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); // 🔹 garante que o botão volte ao normal
     }
   };
 

@@ -28,7 +28,7 @@ export function NavLateral({ rotasPersonalizadas }) {
       confirmButtonText: "Sim, sair",
       cancelButtonText: "Cancelar",
       reverseButtons: true,
-      confirmButtonColor: "#d33",
+      confirmButtonColor: "#FFBB00",
       cancelButtonColor: "#45AA48",
     });
 
