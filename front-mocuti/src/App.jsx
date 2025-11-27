@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import AuthProvider from "./auth/AuthContext";
@@ -36,6 +35,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ResetSuccess from "./pages/ResetSuccess";
 
+import ChatBot from "./components/ChatBot";
+
 function App() {
   return (
     <AuthProvider>
@@ -43,6 +44,8 @@ function App() {
         {" "}
         {/* <<< <--- ÚNICO provider para o fluxo */}
         <Router>
+          <ChatBot />
+
           <Routes>
             {/* Redirecionamento inicial */}
             <Route path="/" element={<HomeRedirect />} />
@@ -142,58 +145,54 @@ function App() {
               }
             />
 
-          {/* Rotas de Administrador */}
-          <Route
-            path="/admin/eventos"
-            element={
-              <PrivateRoute roles={["Administrador"]}>
-                <Eventos_M1 />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/admin/lista-usuarios"
-            element={
-              <PrivateRoute roles={["Administrador"]}>
-                <ListaUser_M1 />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/admin/feedbacks"
-            element={
-              <PrivateRoute roles={["Administrador"]}>
-                <Feedbacks_M1 />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/admin/perfil"
-            element={
-              <PrivateRoute roles={["Administrador"]}>
-                <MeuPerfil_M1 />
-              </PrivateRoute>
-            }
-          />
-        <Route
-            path="/admin/geral"
-            element={
-              <PrivateRoute roles={["Administrador"]}>
-                <GeralM1 />
-              </PrivateRoute>
-            }
-          />
+            {/* Rotas de Administrador */}
+            <Route
+              path="/admin/eventos"
+              element={
+                <PrivateRoute roles={["Administrador"]}>
+                  <Eventos_M1 />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/lista-usuarios"
+              element={
+                <PrivateRoute roles={["Administrador"]}>
+                  <ListaUser_M1 />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/feedbacks"
+              element={
+                <PrivateRoute roles={["Administrador"]}>
+                  <Feedbacks_M1 />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/perfil"
+              element={
+                <PrivateRoute roles={["Administrador"]}>
+                  <MeuPerfil_M1 />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/geral"
+              element={
+                <PrivateRoute roles={["Administrador"]}>
+                  <GeralM1 />
+                </PrivateRoute>
+              }
+            />
             {/* Acesso negado */}
             <Route path="/nao-autorizado" element={<h1>Acesso negado ❌</h1>} />
           </Routes>
         </Router>
       </ResetPasswordProvider>
     </AuthProvider>
-
-    
   );
 }
 
 export default App;
-
-

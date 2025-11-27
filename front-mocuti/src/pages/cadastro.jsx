@@ -63,6 +63,28 @@ function Cadastro() {
       });
   }, []);
 
+  const validarIdade = (dataNascimento) => {
+  if (!dataNascimento) return "Informe a data de nascimento";
+
+  const hoje = new Date();
+  const nascimento = new Date(dataNascimento);
+
+  let idade = hoje.getFullYear() - nascimento.getFullYear();
+  const mesDiff = hoje.getMonth() - nascimento.getMonth();
+  const diaDiff = hoje.getDate() - nascimento.getDate();
+
+  // Ajusta se ainda não fez aniversário esse ano
+  if (mesDiff < 0 || (mesDiff === 0 && diaDiff < 0)) {
+    idade--;
+  }
+
+  if (idade < 5) {
+    return "Data de aniversário inválida: usuário deve ter pelo menos 5 anos";
+  }
+
+  return null; // tudo certo
+};
+
   const handleInputChange = (field, value) => {
     let formattedValue = value;
 
@@ -144,6 +166,7 @@ function Cadastro() {
   // Valida todos os campos da Etapa 1 antes de permitir avançar
   const validarEtapa1 = () => {
     const newErrors = {};
+  
     // campos obrigatórios da etapa 1
     const nomeErr = validateNome(formData.nomeCompleto);
     if (nomeErr) newErrors.nomeCompleto = nomeErr;
@@ -151,8 +174,13 @@ function Cadastro() {
     if (cpfErr) newErrors.cpf = cpfErr;
     const telErr = validateTelefone(formData.telefone);
     if (telErr) newErrors.telefone = telErr;
+
     if (!formData.dataNascimento)
       newErrors.dataNascimento = "Informe a data de nascimento";
+
+     const dataNascErr = validarIdade(formData.dataNascimento);
+  if (dataNascErr) newErrors.dataNascimento = dataNascErr;
+  
     if (!formData.genero) newErrors.genero = "Selecione o gênero";
     if (!formData.nacionalidade)
       newErrors.nacionalidade = "Selecione a nacionalidade";
