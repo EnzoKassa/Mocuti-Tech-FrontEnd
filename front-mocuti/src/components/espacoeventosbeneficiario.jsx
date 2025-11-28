@@ -252,7 +252,6 @@ export default function EspacoEventosBeneficiario({
                           display: "flex",
                           alignItems: "center",
                           gap: 8,
-                          backgroundColor: "#dad9d6",
                           padding: "6px 8px",
                           borderRadius: 6,
                         }}
@@ -269,8 +268,6 @@ export default function EspacoEventosBeneficiario({
                           display: "flex",
                           alignItems: "center",
                           gap: 8,
-                          
-                          backgroundColor: "#dad9d6",
                           padding: "6px 8px",
                           borderRadius: 6,
                         }}

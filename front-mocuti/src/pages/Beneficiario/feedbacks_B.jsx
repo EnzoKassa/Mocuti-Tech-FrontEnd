@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import HeaderBeneficiario from "../../components/HeaderBeneficiario";
 import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
-import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
+import EspacoEventosBeneficiario from "../../components/espacoeventosbeneficiario";
 import ModalFeedback from "../../components/modal/Modal_Feedback_M2";
 import ModalVisualizacao from "../../components/modal/Modal_FeedbackVisul_M2";
 // import { BASE_URL, fetchInscritosCargo2Count } from "../../api/api";

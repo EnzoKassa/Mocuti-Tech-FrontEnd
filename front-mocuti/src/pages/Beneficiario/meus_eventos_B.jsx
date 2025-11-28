@@ -1,9 +1,10 @@
+/* eslint-disable no-undef */
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import HeaderBeneficiario from "../../components/HeaderBeneficiario";
 import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
-import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
+import EspacoEventosBeneficiario from "../../components/espacoeventosbeneficiario";
 import Swal from "sweetalert2";
 import "../../styles/meusEventos.css";
 import api, { apiRefresh, fetchInscritosCargo2Count } from "../../api/api";
@@ -279,7 +280,7 @@ export default function MeusEventosBeneficiario() {
           try {
             URL.revokeObjectURL(p.imagemUrl);
           } catch (e) {
-            /* ignore */
+            console.debug("Ignorado:", e);
           }
         }
       });

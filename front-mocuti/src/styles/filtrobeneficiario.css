@@ -2,7 +2,6 @@
     display: flex;
     height: 25vh;
     width: 100%;
-    background-color: #F5F5F5;
         justify-content: center;
     align-items: center;
 }
@@ -11,7 +10,6 @@
     display: flex;
     height: 90%;
     width: 90%;
-    background-color: red;
     flex-direction: row;
 }
 
@@ -19,7 +17,6 @@
     display: flex;
     height: 100%;
     width: 100%;
-    background-color: purple;
     flex-direction: column;
 }
 
@@ -29,7 +26,6 @@
     justify-content: space-between;
     width: 100%;
     align-items: center;
-    background-color: #F5F5F5;
     flex-direction: row;
 } 
 
@@ -59,7 +55,6 @@
     display: flex;
     height: 50%;
     width: 100%;
-    background-color: #F5F5F5;
     flex-direction: row;
     align-items: center;
     gap: 2%;

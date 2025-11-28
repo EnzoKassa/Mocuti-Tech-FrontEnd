@@ -286,7 +286,30 @@ export default function EventosM1() {
       const categoryFilter = filtrosAtuais.categoriaId ? String(filtrosAtuais.categoriaId) : "";
       const statusFilter = filtrosAtuais.statusEventoId ? String(filtrosAtuais.statusEventoId) : "";
 
-      const isClosed = (ev) => String(ev.statusEfetivo || ev.statusSituacao || ev.statusEvento?.situacao || ev.situacao || ev.status_evento || "").toLowerCase().includes("encerr");
+      // identificar ids de status que representam "Encerrado" a partir do statusList
+      const closedStatusIds = new Set(
+        (statusList || [])
+          .filter(s => String(s.situacao || s.nome || "").toLowerCase().includes("encerr"))
+          .map(s => String(s.idStatusEvento ?? s.id ?? s.value))
+      );
+
+      const isClosed = (ev) => {
+        // checar ids numéricos/strings primeiro (trata explicitamente '2' como encerrado)
+        const candIds = [
+          ev.status_evento,
+          ev.statusEventoId,
+          ev.statusId,
+          ev.statusEvento?.idStatusEvento,
+          ev.statusEvento?.id,
+        ].map(v => (v === undefined || v === null ? "" : String(v)));
+
+        // considerar id '2' como encerrado por padrão + ids vindos do statusList
+        if (candIds.some(id => id && (id === "2" || closedStatusIds.has(id)))) return true;
+
+        // fallback por texto (situacao)
+        const txt = String(ev.statusEfetivo || ev.statusSituacao || ev.statusEvento?.situacao || ev.situacao || "").toLowerCase();
+        return txt.includes("encerr");
+      };
 
       const filteredProcessed = processed.filter(ev => {
         // nome
@@ -314,7 +337,7 @@ export default function EventosM1() {
             if (!isClosed(ev)) return false;
           } else {
             // filtrar por id preferencialmente, fallback por texto
-            const evStatusId = String(ev.statusEvento?.idStatusEvento ?? ev.statusId ?? ev.statusEventoId ?? "");
+            const evStatusId = String(ev.statusEvento?.idStatusEvento ?? ev.statusId ?? ev.statusEventoId ?? ev.status_evento ?? "");
             if (evStatusId && statusFilter) {
               if (evStatusId !== statusFilter) return false;
             } else if (selText) {
@@ -365,30 +388,88 @@ export default function EventosM1() {
       onEdit: (ev) => abrirFormularioEvento(ev),
       onDelete: async (ev) => {
         try {
-          const idToCancel = ev.idEvento || ev.id || ev.id_evento;
-          if (!idToCancel) {
+          const id = ev.idEvento || ev.id || ev.id_evento;
+          if (!id) {
             Swal.fire("Erro", "ID do evento inválido.", "error");
             return;
           }
 
-          // payload que força status para 2 (encerrado) — envia vários formatos para compatibilidade
-          const payload = {
-            status_evento: 2,
-            statusEventoId: 2,
-            statusEvento: { idStatusEvento: 2 },
-          };
+          // 1) tentativa: endpoint específico de status (se existir)
+          try {
+            await api.patch(
+              `/eventos/${encodeURIComponent(id)}/status`,
+              { idStatusEvento: 2 },
+              { headers: getAuthHeaders() }
+            );
+            Swal.fire("Cancelado", "Evento marcado como encerrado (status = 2).", "success");
+            buscarEventos();
+            return;
+          } catch (errStatusEndpoint) {
+            console.debug("PATCH /status falhou:", errStatusEndpoint?.response?.data ?? errStatusEndpoint.message);
+          }
 
-          await api.patch(
-            `/eventos/${encodeURIComponent(idToCancel)}`,
-            payload,
-            { headers: getAuthHeaders() }
-          );
+          // 2) tentativa: PATCH direto no recurso com payload minimal
+          try {
+            await api.patch(
+              `/eventos/${encodeURIComponent(id)}`,
+              { statusEventoId: 2, status_evento: 2, statusEvento: { idStatusEvento: 2 } },
+              { headers: getAuthHeaders() }
+            );
+            Swal.fire("Cancelado", "Evento marcado como encerrado (status = 2).", "success");
+            buscarEventos();
+            return;
+          } catch (errPatchMinimal) {
+            console.debug("PATCH minimal falhou:", errPatchMinimal?.response?.data ?? errPatchMinimal.message);
+          }
 
-          Swal.fire("Cancelado", "Evento marcado como encerrado (status_evento = 2).", "success");
-          buscarEventos();
+          // 3) tentativa final: buscar objeto atual, limpar campos problemáticos e enviar PUT
+          try {
+            const getRes = await api.get(`/eventos/${encodeURIComponent(id)}`, { headers: getAuthHeaders() });
+            const eventoAtual = getRes?.data;
+            if (!eventoAtual) {
+              Swal.fire("Erro", "Evento não encontrado no servidor.", "error");
+              return;
+            }
+
+            const payload = {
+              ...eventoAtual,
+              status_evento: 2,
+              statusEventoId: 2,
+              statusEvento: { idStatusEvento: 2 },
+            };
+
+            // remover campos que frequentemente causam validação no backend
+            delete payload.createdAt;
+            delete payload.updatedAt;
+            // remover objetos/relacionamentos completos que possam disparar validação de endereço/usuários
+            delete payload.endereco; // backend pode esperar apenas um id ou tratar diferente
+            delete payload.imagemUrl;
+            delete payload.convidados;
+            delete payload.interessados;
+            delete payload.cargos;
+            // se backend esperar campo idEndereco separado, enviar apenas id (descomente se necessário)
+            // if (eventoAtual.endereco && (eventoAtual.endereco.idEndereco || eventoAtual.endereco.id)) {
+            //   payload.idEndereco = eventoAtual.endereco.idEndereco ?? eventoAtual.endereco.id;
+            // }
+
+            await api.put(
+              `/eventos/${encodeURIComponent(id)}`,
+              payload,
+              { headers: { "Content-Type": "application/json", ...getAuthHeaders() } }
+            );
+
+            Swal.fire("Cancelado", "Evento marcado como encerrado (status = 2).", "success");
+            buscarEventos();
+            return;
+          } catch (errPut) {
+            console.error("PUT final falhou:", errPut);
+            const serverMsg = errPut?.response?.data ?? errPut?.response?.data?.message ?? errPut?.message ?? "Erro desconhecido";
+            Swal.fire("Erro", typeof serverMsg === "string" ? serverMsg : JSON.stringify(serverMsg), "error");
+            return;
+          }
         } catch (err) {
-          const msg = err.response?.data || err.message || "Falha ao atualizar evento.";
-          Swal.fire("Erro", String(msg), "error");
+          console.error("Erro ao processar cancelamento:", err);
+          Swal.fire("Erro", err.message || "Falha desconhecida", "error");
         }
       },
       onLista: (ev) => abrirListaPresenca(ev),
