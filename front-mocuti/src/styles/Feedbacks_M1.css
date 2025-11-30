@@ -15,21 +15,27 @@
   border-radius: 14px;
   padding: 18px 20px;
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: space-between;
-  gap: 12px;
+  /* gap: 100px; */
   box-shadow: 0 2px 8px rgba(17, 24, 39, 0.06);
 }
 
 .headerLeft {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
   min-width: 0;
+    gap: 16px;
+      font-weight: 1000;
+
 }
 
 .headerLegenda {
-  font-size: 14px;
+  font-size: 20px;
   color: #374151;
+  font-weight: 1000;
 }
 
 .headerTitulo {
@@ -45,16 +51,19 @@
   display: flex;
   gap: 16px;
   align-items: center;
+  flex-direction: column;
   flex-wrap: wrap;
+  font-weight: 1000;
+
 }
 
 .metaLabel {
-  font-size: 14px;
+  font-size: 20px;
   color: #4B5563;
 }
 
 .metaValor {
-  font-size: 22px;
+  font-size: 30px;
   font-weight: 800;
   color: #111827;
 }
@@ -70,6 +79,41 @@
   cursor: pointer;
   transition: background 0.2s, transform 0.1s, opacity 0.15s ease, box-shadow 0.15s;
   line-height: 1.1;
+}
+
+.selectTituloEvento {
+  font-size: 22px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  padding: 6px 32px 6px 6px;
+  width: 100%;
+  max-width: 500px;
+  /* appearance: none; 
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  position: relative; */
+  /* border: 1px solid #fff; */
+  border-radius: 10px;
+    background: #2563eb;
+color: #fff;
+}
+
+.selectTituloEvento option {
+  background-color: #fff;
+  color: #000;
+}
+
+
+/* Ajuste mobile */
+@media (max-width: 600px) {
+  .selectTituloEvento {
+    font-size: 18px;
+    max-width: 100%;
+    background-size: 18px;
+  }
 }
 
 .btnTrocarEvento:hover {

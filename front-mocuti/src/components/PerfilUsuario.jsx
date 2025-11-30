@@ -139,9 +139,10 @@ const PerfilUsuario = () => {
     const confirm = await Swal.fire({
       title: "Salvar alterações?",
       showCancelButton: true,
+      cancelButtonText: "Cancelar",
       confirmButtonText: "Salvar",
       confirmButtonColor: "#45AA48",
-      cancelButtonText: "Cancelar",
+      reverseButtons: true // 🔥 INVERTE OS BOTÕES
     });
 
     if (!confirm.isConfirmed) return;
@@ -282,6 +283,7 @@ const PerfilUsuario = () => {
         </div>
       `,
       showDenyButton: true,
+      reverseButtons: true, // 🔥 INVERTE OS BOTÕES
       confirmButtonText: "Salvar",
       confirmButtonColor: "#45AA48",
       denyButtonText: "Cancelar",
@@ -476,7 +478,7 @@ const PerfilUsuario = () => {
           </button>
 
           <button style={{ flex: 1 }} type="submit" className="submit-button">
-            Editar
+            Salvar alterações
           </button>
         </div>
       </form>

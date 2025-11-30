@@ -1,7 +1,8 @@
 // src/pages/admin/ListaUsuariosM1.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios";
+import api from "../../api/api";
 import Swal from "sweetalert2";
 
 import { NavLateral } from "../../components/NavLateral";
@@ -39,13 +40,19 @@ export default function ListaUsuariosM1() {
     senha: "",
   });
 
-  // const rotasAdmin = [
-  //   { texto: "Eventos", rota: "/admin/eventos", img: Calendario },
-  //   { texto: "Lista De Usuários", rota: "/admin/lista-usuarios", img: ListaIcon },
-  //   { texto: "Feedbacks", rota: "/admin/feedbacks", img: FeedbackIcon },
-  //   { texto: "Meu Perfil", rota: "/admin/perfil", img: MeuPerfil },
-  //   { texto: "Visão Geral", rota: "/admin/visao-geral", img: Visao },
-  // ];
+  const [usuarioOpcoes, setUsuarioOpcoes] = useState(null);
+  const abrirMenuUsuario = (id) => setUsuarioOpcoes(id);
+  const [modalTrocarCargo, setModalTrocarCargo] = useState({
+    aberto: false,
+    idUsuario: null,
+  });
+
+  const [novoCargoSelecionado, setNovoCargoSelecionado] = useState("");
+
+  const abrirModalTrocarCargo = (id) => {
+    setModalTrocarCargo({ aberto: true, idUsuario: id });
+    setUsuarioOpcoes(null);
+  };
 
   const rotasPersonalizadas = [
     { texto: "Visão Geral", rota: "/admin/geral", img: Visao },
@@ -58,9 +65,9 @@ export default function ListaUsuariosM1() {
   const getTituloPagina = () => {
     switch (cargoSelecionado) {
       case 1:
-        return "Lista de Mantenedores 1";
+        return "Lista de Administradores";
       case 2:
-        return "Lista de Mantenedores 2";
+        return "Lista de Mantenedores";
       case 3:
         return "Lista de Beneficiários";
       default:
@@ -68,26 +75,24 @@ export default function ListaUsuariosM1() {
     }
   };
 
-  const getTextoBotaoNovo = () => {
-    switch (cargoSelecionado) {
-      case 1:
-        return "+ Novo Mantenedor 1";
-      case 2:
-        return "+ Novo Mantenedor 2";
-      case 3:
-        return "+ Novo Beneficiário";
-      default:
-        return "+ Novo Usuário";
-    }
-  };
+  // const getTextoBotaoNovo = () => {
+  //   switch (cargoSelecionado) {
+  //     case 1:
+  //       return "+ Novo Mantenedor 1";
+  //     case 2:
+  //       return "+ Novo Mantenedor 2";
+  //     case 3:
+  //       return "+ Novo Beneficiário";
+  //     default:
+  //       return "+ Novo Usuário";
+  //   }
+  // };
 
   const carregarUsuarios = async (cargo) => {
     try {
       setLoading(true);
 
-      const { data } = await axios.get(
-        `http://localhost:8080/usuarios/listar-por-cargo/${cargo}`
-      );
+      const { data } = await api.get(`/usuarios/inativos-por-cargo/${cargo}`);
 
       const normalizados = (data || []).map((u) => ({
         id: u.idUsuario,
@@ -178,7 +183,12 @@ export default function ListaUsuariosM1() {
 
   async function desativarSelecionados() {
     if (selecionados.length === 0) {
-      Swal.fire("Atenção", "Selecione ao menos um usuário.", "info");
+      Swal.fire({
+        title: "Atenção",
+        text: "Selecione ao menos um usuário.",
+        icon: "info",
+        confirmButtonColor: "#45AA48",
+      });
       return;
     }
 
@@ -188,16 +198,16 @@ export default function ListaUsuariosM1() {
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Sim",
+      confirmButtonColor: "#45AA48",
       cancelButtonText: "Cancelar",
+      reverseButtons: true,
     });
 
     if (!confirm.isConfirmed) return;
 
     try {
       await Promise.all(
-        selecionados.map((id) =>
-          axios.patch(`http://localhost:8080/usuarios/desativar/${id}`)
-        )
+        selecionados.map((id) => api.patch(`/usuarios/desativar/${id}`))
       );
 
       Swal.fire("Sucesso", "Usuários desativados!", "success");
@@ -207,45 +217,217 @@ export default function ListaUsuariosM1() {
     }
   }
 
-  const irParaNovoUsuario = () => {
-    setFormNovoUsuario({
-      nomeCompleto: "",
-      cpf: "",
-      email: "",
-      telefone: "",
-      dtNasc: "",
-      senha: "",
-    });
-    setMostrarModal(true);
-  };
+  // const irParaNovoUsuario = () => {
+  //   setFormNovoUsuario({
+  //     nomeCompleto: "",
+  //     cpf: "",
+  //     email: "",
+  //     telefone: "",
+  //     dtNasc: "",
+  //     senha: "",
+  //   });
+  //   setMostrarModal(true);
+  // };
 
-  const salvarNovoUsuario = async () => {
-    try {
-      const body = {
-        ...formNovoUsuario,
-        cargo: cargoSelecionado,
-        isAtivo: true,
-      };
+  //  const salvarNovoUsuario = async () => {
+  //   try {
 
-      await axios.post("http://localhost:8080/usuarios/cadastrar", body);
+  //     // ---------------- VALIDACOES DIRETAS ----------------
 
-      Swal.fire("Sucesso!", "Usuário cadastrado.", "success");
-      setMostrarModal(false);
-      carregarUsuarios(cargoSelecionado);
-    } catch (err) {
-      Swal.fire("Erro", "Dados inválidos.", "error");
-    }
-  };
+  //     if (!formNovoUsuario.nomeCompleto || formNovoUsuario.nomeCompleto.trim().length < 3) {
+  //       return Swal.fire("Erro", "Nome deve ter pelo menos 3 letras.", "error");
+  //     }
+
+  //     const cpfDigits = formNovoUsuario.cpf.replace(/\D/g, "");
+  //     if (cpfDigits.length !== 11) {
+  //       return Swal.fire("Erro", "CPF inválido (precisa ter 11 dígitos).", "error");
+  //     }
+
+  //     const telefoneDigits = formNovoUsuario.telefone.replace(/\D/g, "");
+  //     if (telefoneDigits.length < 10 || telefoneDigits.length > 11) {
+  //       return Swal.fire("Erro", "Telefone inválido (10 ou 11 dígitos).", "error");
+  //     }
+
+  //     if (!formNovoUsuario.dtNasc) {
+  //       return Swal.fire("Erro", "Informe a data de nascimento.", "error");
+  //     }
+
+  //     const hoje = new Date();
+  //     const nascimento = new Date(formNovoUsuario.dtNasc);
+  //     let idade = hoje.getFullYear() - nascimento.getFullYear();
+  //     const diffMes = hoje.getMonth() - nascimento.getMonth();
+  //     if (diffMes < 0 || (diffMes === 0 && hoje.getDate() < nascimento.getDate())) idade--;
+
+  //     if (idade < 5) {
+  //       return Swal.fire("Erro", "Usuário deve ter pelo menos 5 anos.", "error");
+  //     }
+
+  //     const emailRegex = /^[A-Za-z0-9.]+@[A-Za-z0-9.]+\.[A-Za-z]{2,}$/;
+  //     if (!emailRegex.test(formNovoUsuario.email)) {
+  //       return Swal.fire("Erro", "Email inválido.", "error");
+  //     }
+
+  //     const senha = formNovoUsuario.senha;
+
+  //     if (!senha || senha.length < 8) {
+  //       return Swal.fire("Erro", "A senha deve ter no mínimo 8 caracteres.", "error");
+  //     }
+
+  //     if (!/[A-Z]/.test(senha)) {
+  //       return Swal.fire("Erro", "A senha deve conter pelo menos 1 letra maiúscula.", "error");
+  //     }
+
+  //     if (!/[0-9]/.test(senha)) {
+  //       return Swal.fire("Erro", "A senha deve conter pelo menos 1 número.", "error");
+  //     }
+
+  //     if (!/[!@#$%^&*(),.?":{}|<>_\-\\[\]/+`~;]/.test(senha)) {
+  //       return Swal.fire("Erro", "A senha deve conter pelo menos 1 caractere especial.", "error");
+  //     }
+
+  //     if (senha.toLowerCase().includes(formNovoUsuario.nomeCompleto.replace(/\s+/g, "").toLowerCase())) {
+  //       return Swal.fire("Erro", "A senha não pode conter o nome do usuário.", "error");
+  //     }
+
+  //     if (senha === formNovoUsuario.email) {
+  //       return Swal.fire("Erro", "A senha não pode ser igual ao email.", "error");
+  //     }
+
+  //     // ---------------- ENVIAR PRO BACKEND ----------------
+  //     const body = {
+  //       ...formNovoUsuario,
+  //       cargo: cargoSelecionado,
+  //       isAtivo: true,
+  //     };
+
+  //     await axios.post("http://localhost:8080/usuarios/cadastrar", body);
+
+  //     Swal.fire("Sucesso!", "Usuário cadastrado.", "success");
+  //     setMostrarModal(false);
+  //     carregarUsuarios(cargoSelecionado);
+
+  //   } catch (err) {
+  //     Swal.fire("Erro", err.response?.data || "Dados inválidos.", "error");
+  //   }
+  // };
 
   const handleTrocarCargo = (cargo) => {
     if (cargo === cargoSelecionado) return;
     setCargoSelecionado(cargo);
   };
 
+  async function desativarUsuario(id) {
+    const confirm = await Swal.fire({
+      title: "Desativar usuário?",
+      text: "Ele não poderá acessar o sistema.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sim",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await api.patch(`/usuarios/desativar/${id}`);
+
+      Swal.fire("Sucesso", "Usuário desativado!", "success");
+      carregarUsuarios(cargoSelecionado);
+    } catch (err) {
+      Swal.fire("Erro", "Não foi possível desativar.", "error");
+    }
+  }
+
+  // fecha menu ao clicar fora
+  useEffect(() => {
+    function handleDocClick(e) {
+      // se não houver menu aberto, nada a fazer
+      if (!usuarioOpcoes) return;
+      // se o clique for dentro de um wrapper de três pontos, ignora
+      if (
+        e.target.closest(".tresPontosWrapper") ||
+        e.target.closest(".menu-flutuante")
+      )
+        return;
+      setUsuarioOpcoes(null);
+    }
+
+    document.addEventListener("click", handleDocClick);
+    return () => document.removeEventListener("click", handleDocClick);
+  }, [usuarioOpcoes]);
+
+  async function atualizarCargoUsuario(idUsuario, idCargo) {
+    try {
+      const response = await api.patch(
+        `/usuarios/${idUsuario}/cargo/${idCargo}`
+      );
+
+      Swal.fire("Sucesso!", "Cargo atualizado!", "success");
+
+      setModalTrocarCargo({ aberto: false, idUsuario: null });
+      carregarUsuarios(cargoSelecionado);
+    } catch (err) {
+      Swal.fire("Erro", "Não foi possível atualizar o cargo.", "error");
+    }
+  }
+
   return (
     <div className="TelaComNavLateral containerGeral">
       {/* <NavLateral rotasPersonalizadas={rotasAdmin} /> */}
       <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
+
+      {/* MODAL TROCAR CARGO */}
+      {modalTrocarCargo.aberto && (
+        <div className="modal-overlay-novo">
+          <div className="modal-card-novo">
+            <h2>Alterar Cargo</h2>
+
+            <p style={{ marginBottom: "10px" }}>
+              Selecione o novo cargo para o usuário:
+            </p>
+
+            <select
+              className="selectTrocarCargo"
+              value={novoCargoSelecionado}
+              onChange={(e) => setNovoCargoSelecionado(e.target.value)}
+            >
+              <option value="" disabled>
+                Selecione
+              </option>
+              <option value="1">Administradores</option>
+              <option value="3">Mantenedores</option>
+              <option value="2">Beneficiário</option>
+            </select>
+
+            <div className="modal-acoes-novo">
+              <button
+                className="btnCancelar"
+                onClick={() => {
+                  setNovoCargoSelecionado("");
+                  setModalTrocarCargo({ aberto: false, idUsuario: null });
+                }}
+              >
+                Cancelar
+              </button>
+
+              <button
+                className="btnSalvar"
+                disabled={!novoCargoSelecionado}
+                onClick={() => {
+                  atualizarCargoUsuario(
+                    modalTrocarCargo.idUsuario,
+                    novoCargoSelecionado
+                  );
+                  setModalTrocarCargo({ aberto: false, idUsuario: null });
+                  setNovoCargoSelecionado("");
+                }}
+              >
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="conteudoPrincipal" style={{ fontSize: `${fonte}px` }}>
         <h1 className="tituloPagina">{getTituloPagina()}</h1>
@@ -255,17 +437,17 @@ export default function ListaUsuariosM1() {
             className={`aba ${cargoSelecionado === 1 ? "ativa" : ""}`}
             onClick={() => handleTrocarCargo(1)}
           >
-            Mantenedores 1
-          </button>
-          <button
-            className={`aba ${cargoSelecionado === 2 ? "ativa" : ""}`}
-            onClick={() => handleTrocarCargo(2)}
-          >
-            Mantenedores 2
+            Administradores
           </button>
           <button
             className={`aba ${cargoSelecionado === 3 ? "ativa" : ""}`}
             onClick={() => handleTrocarCargo(3)}
+          >
+            Mantenedores
+          </button>
+          <button
+            className={`aba ${cargoSelecionado === 2 ? "ativa" : ""}`}
+            onClick={() => handleTrocarCargo(2)}
           >
             Beneficiários
           </button>
@@ -275,9 +457,9 @@ export default function ListaUsuariosM1() {
           <div></div>
 
           <div style={{ display: "flex", gap: "8px" }}>
-            <button className="btnNovo" onClick={irParaNovoUsuario}>
+            {/* <button className="btnNovo" onClick={irParaNovoUsuario}>
               {getTextoBotaoNovo()}
-            </button>
+            </button> */}
 
             <button className="btnExcluir" onClick={desativarSelecionados}>
               - Excluir
@@ -348,7 +530,41 @@ export default function ListaUsuariosM1() {
                         ? new Date(u.dt_nasc).toLocaleDateString("pt-BR")
                         : "-"}
                     </td>
-                    {/* <td className="tresPontos">⋯</td> */}
+                    <td className="tresPontosCell">
+                      <div
+                        className="tresPontosWrapper"
+                        onClick={(e) => {
+                          e.stopPropagation(); // evita que o listener de document.feche imediatamente
+                          abrirMenuUsuario(u.id);
+                        }}
+                      >
+                        <span className="tresPontosIcon">⋮</span>
+
+                        {usuarioOpcoes === u.id && (
+                          <div
+                            className="menu-flutuante"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                abrirModalTrocarCargo(u.id);
+                              }}
+                            >
+                              Trocar cargo
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                desativarUsuario(u.id);
+                              }}
+                            >
+                              Desativar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
