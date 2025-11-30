@@ -249,7 +249,7 @@ export async function openGerenciarModal(evento, { onEdit, onDelete, onLista, na
           try {
             await onDelete(evento);
             Swal.fire("Cancelado", "Evento cancelado com sucesso.", "success");
-            try { triggerApiRefresh(); } catch (_) {}
+            // eslint-disable-next-line no-undef
           } catch (err) {
             console.error("gerenciarModal: onDelete falhou:", err);
             const msg = err?.response?.data ?? err?.message ?? String(err);
@@ -264,7 +264,8 @@ export async function openGerenciarModal(evento, { onEdit, onDelete, onLista, na
           const res = await api.delete(`/eventos/${encodeURIComponent(id)}`, { headers }).catch(e => e);
           if (res && res.status >= 200 && res.status < 300) {
             Swal.fire("Cancelado", "Evento removido com sucesso.", "success");
-            try { triggerApiRefresh(); } catch (_) {}
+            // eslint-disable-next-line no-undef
+            try { triggerApiRefresh(); } catch (e) { console.debug("Ignorado:", e); }
             return;
           }
 
@@ -285,13 +286,13 @@ export async function openGerenciarModal(evento, { onEdit, onDelete, onLista, na
             denyButtonColor: "#4CAF50",
           });
           if (action.isDenied) {
-            try { await navigator.clipboard.writeText(String(id)); } catch {}
+            try { await navigator.clipboard.writeText(String(id)); } catch (e) { console.debug("Ignorado:", e); }
             Swal.fire("Copiado", "ID do evento copiado para a área de transferência.", "info");
           }
         } catch (err) {
           console.error("gerenciarModal: exceção ao tentar deletar:", err);
           const resp = err?.response?.data ?? err?.message ?? String(err);
-          try { await navigator.clipboard.writeText(String(id)); } catch {}
+          try { await navigator.clipboard.writeText(String(id)); } catch (e) { console.debug("Ignorado:", e); }
           Swal.fire("Erro", "Falha ao cancelar evento. ID copiado para ajudar suporte. Detalhes: " + (typeof resp === "string" ? resp : JSON.stringify(resp)), "error");
         }
       });

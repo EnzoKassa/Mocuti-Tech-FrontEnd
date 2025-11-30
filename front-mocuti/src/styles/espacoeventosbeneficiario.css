@@ -1,7 +1,6 @@
 .espaco-eventos-beneficiario-geral {
     width: 100%;
     height: 55vh;
-    background-color: #F5F5F5;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -12,9 +11,8 @@ a {
 }
 
 .espaco-eventos-beneficiario-engloba-eventos {
-    width: 95%;
-    height: 95%;
-    background-color: #F5F5F5;
+    width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -23,20 +21,17 @@ a {
 
 
 .espaco-eventos-beneficiario-eventos {
-    width: 95%;
+    width: 100%;
     height: 100%;
-    background-color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .espaco-eventos-beneficiario-lista {
     margin-top: 30px;
     width: 90%;
     height: 90%; 
-    background-color: white;
     display: flex;
     overflow-y: auto;
     scroll-behavior: smooth;
@@ -63,13 +58,13 @@ a {
 /* Barra de rolagem estilizada para Firefox */
 .espaco-eventos-beneficiario-lista {
     scrollbar-width: thin;
-    scrollbar-color: #cacaca #ffffff;
+    scrollbar-color: #cacaca #F5F5F5;
 }
 
 .eventos-beneficiario-lista {
-    margin-top: 2px;
+    margin-top: 12px;
     width: 100%;
-    min-height: 140px; 
+    min-height: 230px; 
     background-color: rgb(255, 255, 255);
     display: flex;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -82,8 +77,8 @@ a {
 .eventos-foto-beneficiario {
     display: flex;
     margin: 2px;
-    height: 130px;
-    width: 150px;
+    height: 80%;
+    width: 17%;
 }
 
 .eventos-descricao-beneficiario {
@@ -103,6 +98,7 @@ a {
     font-weight: bold;
     color: #333;
     background-color: white;
+    align-items: center;
 }
 
 .eventos-tipocategoria-beneficiario {
@@ -120,7 +116,6 @@ a {
     height: 50%;
     width: fit-content;
     border-radius: 60px;
-    background-color: rgb(79, 189, 52);
     padding-left: 16px;
     padding-right: 16px;
     padding-top: 1px;
@@ -136,7 +131,6 @@ a {
     width: fit-content;
     background-color: white;
     border-radius: 60px;
-    background-color: #FFBB00;
     padding-left: 16px;
     padding-right: 16px;
     padding-top: 1px;
