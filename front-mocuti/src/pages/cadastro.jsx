@@ -350,6 +350,8 @@ function Cadastro() {
         title: "Sucesso!",
         text: "Cadastro realizado com sucesso!",
         confirmButtonText: "OK",
+        confirmButtonColor: "#45AA48",
+
       });
 
       navigate("/login");
@@ -367,6 +369,7 @@ function Cadastro() {
       title: "Erro!",
       text: mensagemErro,
       confirmButtonText: "OK",
+      confirmButtonColor: "#d33",
     });
   }
 };

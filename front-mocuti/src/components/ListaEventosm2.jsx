@@ -35,7 +35,10 @@ export function TabelaEventos({ eventos = [], onTogglePresenca }) {
 
           novoDetalhes[ev.eventoId] = { ...detalhe, imagemUrl };
         } catch (err) {
-          console.error(`Erro ao buscar detalhes do evento ${ev.eventoId}:`, err);
+          console.error(
+            `Erro ao buscar detalhes do evento ${ev.eventoId}:`,
+            err
+          );
         }
       }
       setDetalhesEventos(novoDetalhes);
@@ -47,7 +50,12 @@ export function TabelaEventos({ eventos = [], onTogglePresenca }) {
   const mostrarDetalhes = (evento) => {
     const data = detalhesEventos[evento.eventoId];
     if (!data) {
-      Swal.fire("Erro!", "Não foi possível carregar as informações do evento.", "error");
+      Swal.fire({
+        title: "Erro!",
+        text: "Não foi possível carregar as informações do evento.",
+        icon: "error",
+        confirmButtonColor: "#FF4848",
+      });
       return;
     }
 
@@ -66,7 +74,8 @@ export function TabelaEventos({ eventos = [], onTogglePresenca }) {
     if (data.endereco) {
       const e = data.endereco;
       const partes = [];
-      if (e.logradouro) partes.push(e.logradouro + (e.numero ? `, ${e.numero}` : ""));
+      if (e.logradouro)
+        partes.push(e.logradouro + (e.numero ? `, ${e.numero}` : ""));
       if (e.bairro) partes.push(e.bairro);
       localStr = partes.join(" - ");
     }
@@ -132,10 +141,20 @@ export function TabelaEventos({ eventos = [], onTogglePresenca }) {
                   {ev.nome}
                 </div>
               </td>
-              <td>{detalhesEventos[ev.eventoId] ? formatarData(detalhesEventos[ev.eventoId].dia) : "-"}</td>
+              <td>
+                {detalhesEventos[ev.eventoId]
+                  ? formatarData(detalhesEventos[ev.eventoId].dia)
+                  : "-"}
+              </td>
               <td>
                 <div
-                  className={`switch-3 ${ev.status === 1 ? "pendente" : ev.status === 2 ? "confirmada" : "cancelada"}`}
+                  className={`switch-3 ${
+                    ev.status === 1
+                      ? "pendente"
+                      : ev.status === 2
+                      ? "confirmada"
+                      : "cancelada"
+                  }`}
                   onClick={() => onTogglePresenca(ev)}
                   role="button"
                   aria-label={`Alterar status do evento ${ev.nome}`}
@@ -144,7 +163,10 @@ export function TabelaEventos({ eventos = [], onTogglePresenca }) {
                 </div>
               </td>
               <td>
-                <button className="btn-mais-info" onClick={() => mostrarDetalhes(ev)}>
+                <button
+                  className="btn-mais-info"
+                  onClick={() => mostrarDetalhes(ev)}
+                >
                   Mais Informações
                 </button>
               </td>

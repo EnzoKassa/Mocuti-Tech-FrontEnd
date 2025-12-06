@@ -1,79 +1,149 @@
 import Swal from "sweetalert2";
-import api from '../../api/api'
+import api from "../../api/api";
 
-
-const escapeHtml = (str) => (str ? String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : "");
+const escapeHtml = (str) =>
+  str
+    ? String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+    : "";
 
 export async function openListaPresencaModal(evento, { getAuthHeaders } = {}) {
   const idEvento = evento?.idEvento || evento?.id || evento?.id_evento;
   if (!idEvento) {
-    Swal.fire("Erro", "ID do evento não encontrado.", "error");
+    Swal.fire({
+      title: "Erro",
+      text: "ID do evento não encontrado.",
+      icon: "error",
+      confirmButtonColor: "#FF4848",
+    });
     return;
   }
 
-  const headers = { Accept: "application/json", ...(typeof getAuthHeaders === "function" ? (getAuthHeaders() || {}) : {}) };
+  const headers = {
+    Accept: "application/json",
+    ...(typeof getAuthHeaders === "function" ? getAuthHeaders() || {} : {}),
+  };
 
   let interessados = [];
   try {
-    console.debug('Headers enviados:', headers);
-    const relUrl = `/participacoes/inscritos/cargo2/pendente/${encodeURIComponent(idEvento)}`;
+    console.debug("Headers enviados:", headers);
+    const relUrl = `/participacoes/inscritos/cargo2/pendente/${encodeURIComponent(
+      idEvento
+    )}`;
     const res = await api.get(relUrl, { headers });
-    console.debug('axios (rel):', res?.status, relUrl);
+    console.debug("axios (rel):", res?.status, relUrl);
 
     if (!res || res.status < 200 || res.status >= 300) {
       const body = res?.data ?? {};
-      console.error('Erro ao buscar inscritos:', res?.status, body);
-      Swal.fire("Erro", `Falha ao carregar interessados: ${res?.status || "?"} ${JSON.stringify(body)}`, "error");
+      console.error("Erro ao buscar inscritos:", res?.status, body);
+      Swal.fire({
+        title: "Erro",
+        text: `Falha ao carregar interessados: ${
+          res?.status || "?"
+        } ${JSON.stringify(body)}`,
+        icon: "error",
+        confirmButtonColor: "#FF4848",
+      });
       return;
     }
 
     const data = res.data;
     if (res.status === 204 || !data) interessados = [];
     else {
-      interessados = (Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : [])).map((item) => {
+      interessados = (
+        Array.isArray(data)
+          ? data
+          : Array.isArray(data?.items)
+          ? data.items
+          : []
+      ).map((item) => {
         const usuario = item.usuario || {};
-        const idUsuario = item.idUsuario ?? item.id?.usuarioId ?? usuario.idUsuario ?? item.usuarioId ?? item.id;
-        const nomeCompleto = item.nomeCompleto ?? usuario.nomeCompleto ?? usuario.nome ?? item.nome ?? "";
+        const idUsuario =
+          item.idUsuario ??
+          item.id?.usuarioId ??
+          usuario.idUsuario ??
+          item.usuarioId ??
+          item.id;
+        const nomeCompleto =
+          item.nomeCompleto ??
+          usuario.nomeCompleto ??
+          usuario.nome ??
+          item.nome ??
+          "";
         const telefone = item.telefone ?? usuario.telefone ?? "";
         const email = item.email ?? usuario.email ?? "";
-        const presente = !!(item.isPresente ?? item.is_presente ?? item.presente);
+        const presente = !!(
+          item.isPresente ??
+          item.is_presente ??
+          item.presente
+        );
         return { ...item, idUsuario, nomeCompleto, telefone, email, presente };
       });
     }
   } catch (err) {
     console.error("Erro ao buscar interessados:", err);
     const msg = err?.response?.data ?? err?.message ?? String(err);
-    Swal.fire("Erro", `Não foi possível carregar a lista de interessados: ${typeof msg === "string" ? msg : JSON.stringify(msg)}`, "error");
+    Swal.fire({
+      title: "Erro",
+      text: `Não foi possível carregar a lista de interessados: ${
+        typeof msg === "string" ? msg : JSON.stringify(msg)
+      }`,
+      icon: "error",
+      confirmButtonColor: "#FF4848",
+    });
+
     return;
   }
 
-  const initialState = (interessados || []).map(u => ({ ...u, presente: !!u.presente }));
-  let currentState = initialState.map(x => ({ ...x }));
+  const initialState = (interessados || []).map((u) => ({
+    ...u,
+    presente: !!u.presente,
+  }));
+  let currentState = initialState.map((x) => ({ ...x }));
 
-  const rowsHtml = (items) => items.map((u, idx) => {
-    const nome = u.nomeCompleto || u.nome || u.nomeUsuario || "";
-    const telefone = u.telefone || u.celular || u.phone || "";
-    const email = u.email || u.emailContato || "";
-    return `
+  const rowsHtml = (items) =>
+    items
+      .map((u, idx) => {
+        const nome = u.nomeCompleto || u.nome || u.nomeUsuario || "";
+        const telefone = u.telefone || u.celular || u.phone || "";
+        const email = u.email || u.emailContato || "";
+        return `
     <div class="lp-row" style="display:flex; align-items:center; gap:12px; padding:8px 12px; border-bottom:1px solid #eee;">
-      <input type="checkbox" id="lp-chk-${idx}" ${u.presente ? "checked" : ""} style="flex:0 0 auto;" />
+      <input type="checkbox" id="lp-chk-${idx}" ${
+          u.presente ? "checked" : ""
+        } style="flex:0 0 auto;" />
       <div style="flex:1; display:flex; align-items:center; gap:16px;">
         <div style="flex:1; min-width:0;">
-          <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(nome)}</strong>
+          <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(
+            nome
+          )}</strong>
         </div>
-        <div style="flex:0 0 170px; color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(telefone)}</div>
-        <div style="flex:0 0 300px; color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(email)}</div>
+        <div style="flex:0 0 170px; color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(
+          telefone
+        )}</div>
+        <div style="flex:0 0 300px; color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(
+          email
+        )}</div>
       </div>
     </div>
   `;
-  }).join("");
+      })
+      .join("");
 
   const html = `
     <div style="width:100%; max-width:720px;">
-      <div style="font-weight:700; margin-bottom:8px;">Lista de Presença - ${escapeHtml(evento.nomeEvento || evento.nome || "")}</div>
+      <div style="font-weight:700; margin-bottom:8px;">Lista de Presença - ${escapeHtml(
+        evento.nomeEvento || evento.nome || ""
+      )}</div>
       <div id="lp-list" style="max-height:380px; overflow:auto; border:1px solid #eee; border-radius:6px; background:#fff">
         ${rowsHtml(initialState)}
-        ${initialState.length === 0 ? `<div style="padding:16px; color:#666">Nenhum interessado encontrado.</div>` : ""}
+        ${
+          initialState.length === 0
+            ? `<div style="padding:16px; color:#666">Nenhum interessado encontrado.</div>`
+            : ""
+        }
       </div>
     </div>
   `;
@@ -84,6 +154,7 @@ export async function openListaPresencaModal(evento, { getAuthHeaders } = {}) {
     showCancelButton: true,
     confirmButtonText: "Salvar Presenças",
     cancelButtonText: "Fechar",
+    reverseButtons: true,
     confirmButtonColor: "#4CAF50",
     width: 760,
     focusConfirm: false,
@@ -97,14 +168,18 @@ export async function openListaPresencaModal(evento, { getAuthHeaders } = {}) {
       });
     },
     preConfirm: async () => {
-      const changed = currentState.filter((u, i) => u.presente !== initialState[i].presente);
+      const changed = currentState.filter(
+        (u, i) => u.presente !== initialState[i].presente
+      );
       if (changed.length === 0) return null;
 
       // monta lista para enviar em massa
-      const listaPresenca = changed.map(u => {
-        const userId = u.idUsuario ?? u.id ?? u.usuario?.idUsuario;
-        return { idUsuario: Number(userId), presente: !!u.presente };
-      }).filter(x => Number.isFinite(x.idUsuario));
+      const listaPresenca = changed
+        .map((u) => {
+          const userId = u.idUsuario ?? u.id ?? u.usuario?.idUsuario;
+          return { idUsuario: Number(userId), presente: !!u.presente };
+        })
+        .filter((x) => Number.isFinite(x.idUsuario));
 
       if (listaPresenca.length === 0) {
         Swal.showValidationMessage("Nenhum usuário válido para atualizar.");
@@ -112,26 +187,32 @@ export async function openListaPresencaModal(evento, { getAuthHeaders } = {}) {
       }
 
       try {
-        const urlRel = `/participacoes/${encodeURIComponent(idEvento)}/presenca/bulk`;
-        console.debug('Enviando PUT (rel):', urlRel, listaPresenca);
+        const urlRel = `/participacoes/${encodeURIComponent(
+          idEvento
+        )}/presenca/bulk`;
+        console.debug("Enviando PUT (rel):", urlRel, listaPresenca);
         let r = await api.put(urlRel, { listaPresenca }, { headers });
-        console.debug('Resposta (rel):', r?.status, urlRel);
+        console.debug("Resposta (rel):", r?.status, urlRel);
         if (r && r.status === 404) {
-          const urlAbs = `http://localhost:8080/participacoes/${encodeURIComponent(idEvento)}/presenca/bulk`;
-          console.debug('Relativa retornou 404 — tentando absoluta:', urlAbs);
+          const urlAbs = `http://localhost:8080/participacoes/${encodeURIComponent(
+            idEvento
+          )}/presenca/bulk`;
+          console.debug("Relativa retornou 404 — tentando absoluta:", urlAbs);
           try {
             r = await api.put(urlAbs, { listaPresenca }, { headers });
-            console.debug('Resposta (abs):', r?.status, urlAbs);
+            console.debug("Resposta (abs):", r?.status, urlAbs);
           } catch (errAbs) {
-            console.error('Erro axios absoluta (possível CORS):', errAbs);
-            Swal.showValidationMessage("Falha ao alcançar backend via URL absoluta (possível CORS). Verifique proxy ou CORS no servidor.");
+            console.error("Erro axios absoluta (possível CORS):", errAbs);
+            Swal.showValidationMessage(
+              "Falha ao alcançar backend via URL absoluta (possível CORS). Verifique proxy ou CORS no servidor."
+            );
             return false;
           }
         }
 
         if (!r || r.status < 200 || r.status >= 300) {
           const body = r?.data ?? r;
-          console.error('Resposta não OK ao enviar bulk:', r?.status, body);
+          console.error("Resposta não OK ao enviar bulk:", r?.status, body);
           throw new Error(JSON.stringify(body));
         }
         return r.data ?? true;
@@ -140,12 +221,19 @@ export async function openListaPresencaModal(evento, { getAuthHeaders } = {}) {
         Swal.showValidationMessage("Falha ao salvar presenças em massa.");
         return false;
       }
-    }
+    },
   });
 
   if (popup.isConfirmed) {
-    const info = popup.value && popup.value.totalAtualizado ? " (" + popup.value.totalAtualizado + " registros atualizados)" : "";
-    Swal.fire("Sucesso", "Presenças atualizadas." + info, "success");
+    const info =
+      popup.value && popup.value.totalAtualizado
+        ? " (" + popup.value.totalAtualizado + " registros atualizados)"
+        : "";
+    Swal.fire({
+      title: "Sucesso",
+      text: "Presenças atualizadas." + info,
+      icon: "success",
+      confirmButtonColor: "#45AA48",
+    });
   }
 }
-

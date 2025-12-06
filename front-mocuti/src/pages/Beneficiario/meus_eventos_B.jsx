@@ -144,11 +144,13 @@ export default function MeusEventosBeneficiario() {
 
   const cancelarInscricao = async (idEvento) => {
     if (!idUsuario) {
-      Swal.fire(
-        "Atenção",
-        "Você precisa estar logado para cancelar a inscrição.",
-        "warning"
-      );
+      Swal.fire({
+        title: "Atenção",
+        text: "Você precisa estar logado para cancelar a inscrição.",
+        icon: "warning",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#f8bb86",
+      });
       return;
     }
 
@@ -161,6 +163,7 @@ export default function MeusEventosBeneficiario() {
       showCancelButton: true,
       confirmButtonText: "Sim, cancelar",
       cancelButtonText: "Manter inscrição",
+      // reverseButtons: true,
     });
     if (!choice.isConfirmed) return;
 
@@ -173,17 +176,21 @@ export default function MeusEventosBeneficiario() {
         setParticipacoes((prev) =>
           prev.filter((ev) => String(ev.idEvento) !== String(idEvento))
         );
-        Swal.fire(
-          "Inscrição cancelada",
-          "Sua inscrição foi cancelada.",
-          "success"
-        );
+        Swal.fire({
+          title: "Inscrição cancelada",
+          text: "Sua inscrição foi cancelada.",
+          icon: "success",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#45AA48", // verde padrão de sucesso
+        });
       } else {
-        Swal.fire(
-          "Erro",
-          "Não foi possível cancelar a inscrição de um evento que já está em andamento ou encerrado.",
-          "error"
-        );
+        Swal.fire({
+          title: "Erro",
+          text: "Não foi possível cancelar a inscrição de um evento que já está em andamento ou encerrado.",
+          icon: "error",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#FF4848",
+        });
       }
     } catch (err) {
       console.error("Erro ao cancelar inscrição:", err);
@@ -191,7 +198,13 @@ export default function MeusEventosBeneficiario() {
       const msg =
         err.response?.data?.message ||
         "Não foi possível cancelar a inscrição de um evento que já está em andamento ou encerrado.";
-      Swal.fire("Erro", msg, "error");
+      Swal.fire({
+        title: "Erro",
+        text: msg,
+        icon: "error",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#FF4848", // vermelho padrão
+      });
     }
   };
 
@@ -256,6 +269,7 @@ export default function MeusEventosBeneficiario() {
       showCloseButton: true,
       confirmButtonText: "Cancelar Inscrição",
       cancelButtonText: "Fechar",
+      reverseButtons: true,
       customClass: {
         popup: "my-swal compact-swal",
         title: "swal2-title my-swal-title",

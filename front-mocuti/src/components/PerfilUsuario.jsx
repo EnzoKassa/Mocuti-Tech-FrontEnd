@@ -41,7 +41,12 @@ const PerfilUsuario = () => {
           JSON.parse(sessionStorage.getItem("user"));
 
         if (!storedUser?.id) {
-          Swal.fire("Erro", "Usuário não autenticado.", "error");
+          Swal.fire({
+            title: "Erro",
+            text: "Usuário não autenticado.",
+            icon: "error",
+            confirmButtonColor: "#FF4848",
+          });
           return;
         }
 
@@ -82,11 +87,12 @@ const PerfilUsuario = () => {
         setLoading(false);
       } catch (error) {
         console.error("Erro ao buscar os dados do usuário:", error);
-        Swal.fire(
-          "Erro",
-          "Não foi possível carregar os dados do usuário.",
-          "error"
-        );
+        Swal.fire({
+          title: "Erro",
+          text: "Não foi possível carregar os dados do usuário.",
+          icon: "error",
+          confirmButtonColor: "#FF4848",
+        });
       }
     };
 
@@ -110,9 +116,19 @@ const PerfilUsuario = () => {
     e.preventDefault();
 
     if (!formData.email.includes("@"))
-      return Swal.fire("Erro", "E-mail inválido.", "error");
+      return Swal.fire({
+        title: "Erro",
+        text: "E-mail inválido.",
+        icon: "error",
+        confirmButtonColor: "#FF4848",
+      });
     if (formData.telefone.length < 10)
-      return Swal.fire("Erro", "Telefone inválido.", "error");
+      return Swal.fire({
+        title: "Erro",
+        text: "Telefone inválido.",
+        icon: "error",
+        confirmButtonColor: "#FF4848",
+      });
 
     if (formData.email !== originalData.email) {
       try {
@@ -121,18 +137,20 @@ const PerfilUsuario = () => {
         );
 
         if (check.data.exists) {
-          return Swal.fire(
-            "Erro",
-            "Este e-mail já está sendo usado por outro usuário.",
-            "error"
-          );
+          return Swal.fire({
+            title: "Erro",
+            text: "Este e-mail já está sendo usado por outro usuário.",
+            icon: "error",
+            confirmButtonColor: "#FF4848",
+          });
         }
       } catch (err) {
-        return Swal.fire(
-          "Erro",
-          err.response?.data?.message || "Erro ao verificar e-mail.",
-          "error"
-        );
+        return Swal.fire({
+          title: "Erro",
+          text: err.response?.data?.message || "Erro ao verificar e-mail.",
+          icon: "error",
+          confirmButtonColor: "#FF4848",
+        });
       }
     }
 
@@ -142,7 +160,7 @@ const PerfilUsuario = () => {
       cancelButtonText: "Cancelar",
       confirmButtonText: "Salvar",
       confirmButtonColor: "#45AA48",
-      reverseButtons: true // 🔥 INVERTE OS BOTÕES
+      reverseButtons: true,
     });
 
     if (!confirm.isConfirmed) return;
@@ -153,7 +171,12 @@ const PerfilUsuario = () => {
         JSON.parse(sessionStorage.getItem("user"));
 
       if (!storedUser?.id) {
-        return Swal.fire("Erro", "Usuário não autenticado.", "error");
+        return Swal.fire({
+          title: "Erro",
+          text: "Usuário não autenticado.",
+          icon: "error",
+          confirmButtonColor: "#FF4848",
+        });
       }
 
       const dataToSend = {
@@ -180,7 +203,12 @@ const PerfilUsuario = () => {
         dataToSend.genero === originalData.genero;
 
       if (unchanged) {
-        return Swal.fire("Aviso", "Nenhuma alteração foi realizada.", "info");
+        return Swal.fire({
+          title: "Aviso",
+          text: "Nenhuma alteração foi realizada.",
+          icon: "info",
+          confirmButtonColor: "#FF4848",
+        });
       }
 
       // 🔥 Só chama API se houve mudança
@@ -216,15 +244,23 @@ const PerfilUsuario = () => {
         cargo: response.data.cargo?.tipoCargo || prev.cargo,
       }));
 
-      Swal.fire("Sucesso!", "Dados atualizados com sucesso!", "success").then(
-        () => {
-          window.location.reload();
-        }
-      );
+      Swal.fire({
+        title: "Sucesso!",
+        text: "Dados atualizados com sucesso!",
+        icon: "success",
+        confirmButtonColor: "#45AA48",
+      }).then(() => {
+        window.location.reload();
+      });
     } catch (error) {
       const msg =
         error.response?.data?.message || "Ocorreu um erro ao atualizar.";
-      Swal.fire("Erro", msg, "error");
+      Swal.fire({
+        title: "Erro",
+        text: msg,
+        icon: "error",
+        confirmButtonColor: "#FF4848",
+      });
     }
   };
 
@@ -283,7 +319,7 @@ const PerfilUsuario = () => {
         </div>
       `,
       showDenyButton: true,
-      reverseButtons: true, // 🔥 INVERTE OS BOTÕES
+      reverseButtons: true,
       confirmButtonText: "Salvar",
       confirmButtonColor: "#45AA48",
       denyButtonText: "Cancelar",
@@ -359,7 +395,12 @@ const PerfilUsuario = () => {
     });
 
     if (isConfirmed) {
-      Swal.fire("Sucesso!", "Senha atualizada com sucesso!", "success");
+      Swal.fire({
+        title: "Sucesso!",
+        text: "Senha atualizada com sucesso!",
+        icon: "success",
+        confirmButtonColor: "#45AA48",
+      });
     }
   };
 

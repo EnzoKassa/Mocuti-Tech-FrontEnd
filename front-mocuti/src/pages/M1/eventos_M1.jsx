@@ -109,8 +109,10 @@ export default function EventosM1() {
       let url = "/eventos/por-eventos";
       const params = new URLSearchParams();
       if (filtrosAtuais.nome) params.append("nome", filtrosAtuais.nome);
-      if (filtrosAtuais.dataInicio) params.append("dataInicio", filtrosAtuais.dataInicio);
-      if (filtrosAtuais.dataFim) params.append("dataFim", filtrosAtuais.dataFim);
+      if (filtrosAtuais.dataInicio)
+        params.append("dataInicio", filtrosAtuais.dataInicio);
+      if (filtrosAtuais.dataFim)
+        params.append("dataFim", filtrosAtuais.dataFim);
       const filtrosAdicionais = params.toString();
       if (filtrosAtuais.categoriaId && !filtrosAtuais.statusEventoId) {
         url = `/eventos/por-categoria?categoriaId=${filtrosAtuais.categoriaId}`;
@@ -123,19 +125,30 @@ export default function EventosM1() {
       }
 
       const data = (await safeFetchJson(url)) || [];
-      if (!Array.isArray(data)) { setEventos([]); return; }
+      if (!Array.isArray(data)) {
+        setEventos([]);
+        return;
+      }
 
       // Enriquecimento parecido com EventosBeneficiario (categoria/status/local)
       const tryParseIfJson = (v) => {
         if (!v || typeof v !== "string") return v;
         const s = v.trim();
-        if ((s.startsWith("{") && s.endsWith("}")) || (s.startsWith("[") && s.endsWith("]"))) {
-          try { return JSON.parse(s); } catch { return v; }
+        if (
+          (s.startsWith("{") && s.endsWith("}")) ||
+          (s.startsWith("[") && s.endsWith("]"))
+        ) {
+          try {
+            return JSON.parse(s);
+          } catch {
+            return v;
+          }
         }
         return v;
       };
       const findAddressObject = (node, seen = new Set()) => {
-        if (!node || typeof node === "number" || typeof node === "boolean") return null;
+        if (!node || typeof node === "number" || typeof node === "boolean")
+          return null;
         if (typeof node === "string") {
           const parsed = tryParseIfJson(node);
           if (parsed && parsed !== node) return findAddressObject(parsed, seen);
@@ -143,7 +156,15 @@ export default function EventosM1() {
         }
         if (seen.has(node)) return null;
         seen.add(node);
-        const candidateKeys = ["endereco","enderecoEvento","address","local","enderecoFormatado","localizacao","endereco_obj"];
+        const candidateKeys = [
+          "endereco",
+          "enderecoEvento",
+          "address",
+          "local",
+          "enderecoFormatado",
+          "localizacao",
+          "endereco_obj",
+        ];
         for (const k of candidateKeys) {
           if (node[k]) {
             const v = node[k];
@@ -156,7 +177,12 @@ export default function EventosM1() {
         for (const key of Object.keys(node)) {
           try {
             const val = node[key];
-            if (val && typeof val === "object" && (val.logradouro || val.rua || val.bairro || val.numero)) return val;
+            if (
+              val &&
+              typeof val === "object" &&
+              (val.logradouro || val.rua || val.bairro || val.numero)
+            )
+              return val;
           } catch (err) {
             console.debug("findAddressObject error:", err);
           }
@@ -168,8 +194,14 @@ export default function EventosM1() {
         return null;
       };
       const buildEndereco = (evento) => {
-        let candidate = evento.endereco ?? evento.enderecoEvento ?? evento.local ?? evento.enderecoFormatado ?? null;
-        candidate = typeof candidate === "string" ? tryParseIfJson(candidate) : candidate;
+        let candidate =
+          evento.endereco ??
+          evento.enderecoEvento ??
+          evento.local ??
+          evento.enderecoFormatado ??
+          null;
+        candidate =
+          typeof candidate === "string" ? tryParseIfJson(candidate) : candidate;
         if (!candidate || typeof candidate !== "object") {
           const found = findAddressObject(evento);
           if (found) candidate = found;
@@ -178,15 +210,32 @@ export default function EventosM1() {
         let enderecoObj = null;
         if (candidate && typeof candidate === "object") {
           const e = candidate;
-          const logradouro = e.logradouro || e.rua || e.endereco || e.logradoro || "";
-          const numero = e.numero !== undefined && e.numero !== null ? String(e.numero) : e.enderecoNumero ? String(e.enderecoNumero) : "";
+          const logradouro =
+            e.logradouro || e.rua || e.endereco || e.logradoro || "";
+          const numero =
+            e.numero !== undefined && e.numero !== null
+              ? String(e.numero)
+              : e.enderecoNumero
+              ? String(e.enderecoNumero)
+              : "";
           const bairro = e.bairro ? String(e.bairro) : "";
           const partes = [];
-          if (logradouro) partes.push(logradouro + (numero ? `, ${numero}` : ""));
+          if (logradouro)
+            partes.push(logradouro + (numero ? `, ${numero}` : ""));
           if (bairro) partes.push(bairro);
           if (partes.length) enderecoFormatado = partes.join(" - ");
-          enderecoObj = { idEndereco: e.idEndereco || e.id || null, cep: e.cep || "", logradouro, numero, complemento: e.complemento || "", uf: e.uf || "", estado: e.estado || e.localidade || "", bairro };
-        } else if (typeof candidate === "string" && candidate.trim()) enderecoFormatado = candidate.trim();
+          enderecoObj = {
+            idEndereco: e.idEndereco || e.id || null,
+            cep: e.cep || "",
+            logradouro,
+            numero,
+            complemento: e.complemento || "",
+            uf: e.uf || "",
+            estado: e.estado || e.localidade || "",
+            bairro,
+          };
+        } else if (typeof candidate === "string" && candidate.trim())
+          enderecoFormatado = candidate.trim();
         return { obj: enderecoObj, formatted: enderecoFormatado || "" };
       };
 
@@ -198,32 +247,93 @@ export default function EventosM1() {
           try {
             const id = evento.idEvento || evento.id || evento.id_evento;
             if (!id) return evento;
-            const detalhe = await safeFetchJson(`/eventos/${encodeURIComponent(id)}`);
+            const detalhe = await safeFetchJson(
+              `/eventos/${encodeURIComponent(id)}`
+            );
             if (!detalhe) return evento;
-            const { obj: enderecoObj2, formatted: enderecoFormatado2 } = buildEndereco(detalhe);
-            const fallbackLocal2 = detalhe.enderecoFormatado || detalhe.local || "";
+            const { obj: enderecoObj2, formatted: enderecoFormatado2 } =
+              buildEndereco(detalhe);
+            const fallbackLocal2 =
+              detalhe.enderecoFormatado || detalhe.local || "";
             return {
               ...evento,
               // preservar campos já existentes, sobrescrever local/endereco quando disponíveis no detalhe
-              local: enderecoFormatado2 || fallbackLocal2 || evento.local || "Local não informado",
-              enderecoFormatado: enderecoFormatado2 || detalhe.enderecoFormatado || evento.enderecoFormatado || fallbackLocal2 || "",
-              endereco: enderecoObj2 || detalhe.endereco || evento.endereco || null,
+              local:
+                enderecoFormatado2 ||
+                fallbackLocal2 ||
+                evento.local ||
+                "Local não informado",
+              enderecoFormatado:
+                enderecoFormatado2 ||
+                detalhe.enderecoFormatado ||
+                evento.enderecoFormatado ||
+                fallbackLocal2 ||
+                "",
+              endereco:
+                enderecoObj2 || detalhe.endereco || evento.endereco || null,
             };
           } catch (err) {
-            console.debug("Erro ao buscar detalhe do evento (enriquecimento):", err);
+            console.debug(
+              "Erro ao buscar detalhe do evento (enriquecimento):",
+              err
+            );
             return evento;
           }
         })
       );
 
-      const dataComDadosCompletos = (dataComDadosPossivelmenteEnriquecidos || []).map(evento => {
-        const categoriaNome = evento.categoria?.nome || categorias.find(c => String(c.idCategoria) === String(evento.categoria?.idCategoria ?? evento.categoriaId ?? evento.categoria?.id))?.nome || "";
-        const statusSituacao = evento.statusEvento?.situacao || statusList.find(s => String(s.idStatusEvento) === String(evento.statusEvento?.idStatusEvento ?? evento.statusEventoId ?? evento.statusEvento?.id))?.situacao || "";
-        const { obj: enderecoObj, formatted: enderecoFormatado } = buildEndereco(evento);
+      const dataComDadosCompletos = (
+        dataComDadosPossivelmenteEnriquecidos || []
+      ).map((evento) => {
+        const categoriaNome =
+          evento.categoria?.nome ||
+          categorias.find(
+            (c) =>
+              String(c.idCategoria) ===
+              String(
+                evento.categoria?.idCategoria ??
+                  evento.categoriaId ??
+                  evento.categoria?.id
+              )
+          )?.nome ||
+          "";
+        const statusSituacao =
+          evento.statusEvento?.situacao ||
+          statusList.find(
+            (s) =>
+              String(s.idStatusEvento) ===
+              String(
+                evento.statusEvento?.idStatusEvento ??
+                  evento.statusEventoId ??
+                  evento.statusEvento?.id
+              )
+          )?.situacao ||
+          "";
+        const { obj: enderecoObj, formatted: enderecoFormatado } =
+          buildEndereco(evento);
         const fallbackLocal = evento.enderecoFormatado || evento.local || "";
-        const localFinal = enderecoFormatado || (typeof fallbackLocal === "string" ? fallbackLocal : "");
-        const qtdInteressado = Number(evento.qtdInteressado ?? evento.qtd_interessado ?? evento.qtdInteressos ?? evento.qtd_interessos ?? evento.qtdInteresse ?? 0) || (Array.isArray(evento.interessados) ? evento.interessados.length : 0);
-        return { ...evento, categoriaNome, statusSituacao, local: localFinal || "Local não informado", enderecoFormatado: enderecoFormatado || localFinal || "", endereco: enderecoObj || evento.endereco || null, qtdInteressado };
+        const localFinal =
+          enderecoFormatado ||
+          (typeof fallbackLocal === "string" ? fallbackLocal : "");
+        const qtdInteressado =
+          Number(
+            evento.qtdInteressado ??
+              evento.qtd_interessado ??
+              evento.qtdInteressos ??
+              evento.qtd_interessos ??
+              evento.qtdInteresse ??
+              0
+          ) ||
+          (Array.isArray(evento.interessados) ? evento.interessados.length : 0);
+        return {
+          ...evento,
+          categoriaNome,
+          statusSituacao,
+          local: localFinal || "Local não informado",
+          enderecoFormatado: enderecoFormatado || localFinal || "",
+          endereco: enderecoObj || evento.endereco || null,
+          qtdInteressado,
+        };
       });
 
       const eventosComImg = await Promise.all(
@@ -232,65 +342,121 @@ export default function EventosM1() {
           try {
             const id = evento.idEvento || evento.id || evento.id_evento;
             if (id) {
-              const imgResponse = await api.get(`/eventos/foto/${encodeURIComponent(id)}`, { headers: getAuthHeaders(), responseType: "blob" });
-              if (imgResponse && imgResponse.data) eventoCompletado.imagemUrl = URL.createObjectURL(imgResponse.data);
+              const imgResponse = await api.get(
+                `/eventos/foto/${encodeURIComponent(id)}`,
+                { headers: getAuthHeaders(), responseType: "blob" }
+              );
+              if (imgResponse && imgResponse.data)
+                eventoCompletado.imagemUrl = URL.createObjectURL(
+                  imgResponse.data
+                );
             }
-          } catch (e) { console.debug("Erro ao buscar imagem do evento:", e); }
+          } catch (e) {
+            console.debug("Erro ao buscar imagem do evento:", e);
+          }
           try {
             const idForCount = evento.idEvento || evento.id || evento.id_evento;
             if (idForCount) {
               const count = await fetchInscritosCargo2Count(idForCount);
               eventoCompletado.qtdInscritosCargo2 = count;
-              if (!eventoCompletado.qtdInteressado) eventoCompletado.qtdInteressado = count;
+              if (!eventoCompletado.qtdInteressado)
+                eventoCompletado.qtdInteressado = count;
             }
-          } catch (errCount) { console.debug("Erro ao buscar contagem de inscritos:", errCount); }
+          } catch (errCount) {
+            console.debug("Erro ao buscar contagem de inscritos:", errCount);
+          }
           return eventoCompletado;
         })
       );
 
-      const processed = (eventosComImg || []).map(ev => {
-        const ts = (function(evLocal){
-          const dateStr = evLocal.dia || evLocal.data_evento || evLocal.day || "";
-          const startTime = evLocal.horaInicio || evLocal.hora_inicio || evLocal.hora || "";
+      const processed = (eventosComImg || []).map((ev) => {
+        const ts = (function (evLocal) {
+          const dateStr =
+            evLocal.dia || evLocal.data_evento || evLocal.day || "";
+          const startTime =
+            evLocal.horaInicio || evLocal.hora_inicio || evLocal.hora || "";
           if (!dateStr) return 0;
           try {
-            const iso = `${dateStr}T${(startTime || "00:00")}`;
+            const iso = `${dateStr}T${startTime || "00:00"}`;
             const d = new Date(iso);
             if (isNaN(d.getTime())) {
               const parts = dateStr.split("-");
-              if (parts.length === 3) return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])).getTime();
+              if (parts.length === 3)
+                return new Date(
+                  Number(parts[0]),
+                  Number(parts[1]) - 1,
+                  Number(parts[2])
+                ).getTime();
               return 0;
             }
             return d.getTime();
-          } catch { return 0; }
+          } catch {
+            return 0;
+          }
         })(ev);
-        const computed = (function(evLocal){
-          const dateStr = evLocal.dia || evLocal.data_evento || evLocal.day || "";
+        const computed = (function (evLocal) {
+          const dateStr =
+            evLocal.dia || evLocal.data_evento || evLocal.day || "";
           if (!dateStr) return null;
-          const start = (function(){ const t = evLocal.horaInicio || evLocal.hora_inicio || evLocal.hora || ""; const d = new Date(`${dateStr}T${t||"00:00"}`); return isNaN(d.getTime()) ? null : d; })();
-          const end = (function(){ const t = evLocal.horaFim || evLocal.hora_fim || evLocal.horaFim || ""; const d = new Date(`${dateStr}T${t||"23:59"}`); return isNaN(d.getTime()) ? null : d; })();
+          const start = (function () {
+            const t =
+              evLocal.horaInicio || evLocal.hora_inicio || evLocal.hora || "";
+            const d = new Date(`${dateStr}T${t || "00:00"}`);
+            return isNaN(d.getTime()) ? null : d;
+          })();
+          const end = (function () {
+            const t =
+              evLocal.horaFim || evLocal.hora_fim || evLocal.horaFim || "";
+            const d = new Date(`${dateStr}T${t || "23:59"}`);
+            return isNaN(d.getTime()) ? null : d;
+          })();
           const now = new Date();
-          if (start && end) { if (now < start) return "Aberto"; if (now >= start && now <= end) return "Em andamento"; if (now > end) return "Encerrado"; }
-          else if (start) { if (now < start) return "Aberto"; if (now >= start) return "Em andamento"; }
+          if (start && end) {
+            if (now < start) return "Aberto";
+            if (now >= start && now <= end) return "Em andamento";
+            if (now > end) return "Encerrado";
+          } else if (start) {
+            if (now < start) return "Aberto";
+            if (now >= start) return "Em andamento";
+          }
           return null;
         })(ev);
-        const effectiveStatus = (computed || ev.statusSituacao || ev.statusEvento?.situacao || "").toString();
+        const effectiveStatus = (
+          computed ||
+          ev.statusSituacao ||
+          ev.statusEvento?.situacao ||
+          ""
+        ).toString();
         return { ...ev, _startTs: ts, statusEfetivo: effectiveStatus };
       });
 
       // aplicar filtros combinados (nome, intervalo de datas, categoria, status)
       // usa `filtrosAtuais` já declarado no início da função
-      const fromTs = filtrosAtuais.dataInicio ? new Date(filtrosAtuais.dataInicio).setHours(0,0,0,0) : null;
-      const toTs = filtrosAtuais.dataFim ? new Date(filtrosAtuais.dataFim).setHours(23,59,59,999) : null;
-      const nameFilter = filtrosAtuais.nome ? String(filtrosAtuais.nome).toLowerCase() : "";
-      const categoryFilter = filtrosAtuais.categoriaId ? String(filtrosAtuais.categoriaId) : "";
-      const statusFilter = filtrosAtuais.statusEventoId ? String(filtrosAtuais.statusEventoId) : "";
+      const fromTs = filtrosAtuais.dataInicio
+        ? new Date(filtrosAtuais.dataInicio).setHours(0, 0, 0, 0)
+        : null;
+      const toTs = filtrosAtuais.dataFim
+        ? new Date(filtrosAtuais.dataFim).setHours(23, 59, 59, 999)
+        : null;
+      const nameFilter = filtrosAtuais.nome
+        ? String(filtrosAtuais.nome).toLowerCase()
+        : "";
+      const categoryFilter = filtrosAtuais.categoriaId
+        ? String(filtrosAtuais.categoriaId)
+        : "";
+      const statusFilter = filtrosAtuais.statusEventoId
+        ? String(filtrosAtuais.statusEventoId)
+        : "";
 
       // identificar ids de status que representam "Encerrado" a partir do statusList
       const closedStatusIds = new Set(
         (statusList || [])
-          .filter(s => String(s.situacao || s.nome || "").toLowerCase().includes("encerr"))
-          .map(s => String(s.idStatusEvento ?? s.id ?? s.value))
+          .filter((s) =>
+            String(s.situacao || s.nome || "")
+              .toLowerCase()
+              .includes("encerr")
+          )
+          .map((s) => String(s.idStatusEvento ?? s.id ?? s.value))
       );
 
       const isClosed = (ev) => {
@@ -301,20 +467,29 @@ export default function EventosM1() {
           ev.statusId,
           ev.statusEvento?.idStatusEvento,
           ev.statusEvento?.id,
-        ].map(v => (v === undefined || v === null ? "" : String(v)));
+        ].map((v) => (v === undefined || v === null ? "" : String(v)));
 
         // considerar id '2' como encerrado por padrão + ids vindos do statusList
-        if (candIds.some(id => id && (id === "2" || closedStatusIds.has(id)))) return true;
+        if (candIds.some((id) => id && (id === "2" || closedStatusIds.has(id))))
+          return true;
 
         // fallback por texto (situacao)
-        const txt = String(ev.statusEfetivo || ev.statusSituacao || ev.statusEvento?.situacao || ev.situacao || "").toLowerCase();
+        const txt = String(
+          ev.statusEfetivo ||
+            ev.statusSituacao ||
+            ev.statusEvento?.situacao ||
+            ev.situacao ||
+            ""
+        ).toLowerCase();
         return txt.includes("encerr");
       };
 
-      const filteredProcessed = processed.filter(ev => {
+      const filteredProcessed = processed.filter((ev) => {
         // nome
         if (nameFilter) {
-          const title = String(ev.nomeEvento || ev.nome || ev.nome_evento || "").toLowerCase();
+          const title = String(
+            ev.nomeEvento || ev.nome || ev.nome_evento || ""
+          ).toLowerCase();
           if (!title.includes(nameFilter)) return false;
         }
         // data intervalo
@@ -325,23 +500,46 @@ export default function EventosM1() {
         }
         // categoria
         if (categoryFilter) {
-          const evCat = String(ev.categoria?.idCategoria ?? ev.categoriaId ?? ev.categoria?.id ?? "");
+          const evCat = String(
+            ev.categoria?.idCategoria ??
+              ev.categoriaId ??
+              ev.categoria?.id ??
+              ""
+          );
           if (evCat !== categoryFilter) return false;
         }
         // status (se escolhido)
         if (statusFilter) {
-          const sel = (statusList || []).find(s => String(s.idStatusEvento ?? s.id ?? s.value) === statusFilter) || null;
-          const selText = sel ? String(sel.situacao || sel.nome || "").toLowerCase() : "";
+          const sel =
+            (statusList || []).find(
+              (s) =>
+                String(s.idStatusEvento ?? s.id ?? s.value) === statusFilter
+            ) || null;
+          const selText = sel
+            ? String(sel.situacao || sel.nome || "").toLowerCase()
+            : "";
           if (selText && selText.includes("encerr")) {
             // quer encerrar: aceitar eventos com texto de situação "encerrado"
             if (!isClosed(ev)) return false;
           } else {
             // filtrar por id preferencialmente, fallback por texto
-            const evStatusId = String(ev.statusEvento?.idStatusEvento ?? ev.statusId ?? ev.statusEventoId ?? ev.status_evento ?? "");
+            const evStatusId = String(
+              ev.statusEvento?.idStatusEvento ??
+                ev.statusId ??
+                ev.statusEventoId ??
+                ev.status_evento ??
+                ""
+            );
             if (evStatusId && statusFilter) {
               if (evStatusId !== statusFilter) return false;
             } else if (selText) {
-              const evText = String(ev.statusEfetivo || ev.statusSituacao || ev.statusEvento?.situacao || ev.situacao || "").toLowerCase();
+              const evText = String(
+                ev.statusEfetivo ||
+                  ev.statusSituacao ||
+                  ev.statusEvento?.situacao ||
+                  ev.situacao ||
+                  ""
+              ).toLowerCase();
               if (!evText.includes(selText)) return false;
             }
           }
@@ -355,15 +553,25 @@ export default function EventosM1() {
       // visibilidade padrão: ocultar encerrados se o filtro de status NÃO selecionar explicitamente "Encerrado"
       let allowClosed = false;
       if (statusFilter) {
-        const sel = (statusList || []).find(s => String(s.idStatusEvento ?? s.id ?? s.value) === statusFilter);
-        const situ = sel ? String(sel.situacao || sel.nome || "").toLowerCase() : "";
+        const sel = (statusList || []).find(
+          (s) => String(s.idStatusEvento ?? s.id ?? s.value) === statusFilter
+        );
+        const situ = sel
+          ? String(sel.situacao || sel.nome || "").toLowerCase()
+          : "";
         if (situ.includes("encerr")) allowClosed = true;
       }
 
       let visible = filteredProcessed;
-      if (!allowClosed) visible = visible.filter(ev => !isClosed(ev));
+      if (!allowClosed) visible = visible.filter((ev) => !isClosed(ev));
 
-      setEventos(visible.map(p => { const c = { ...p }; delete c._startTs; return c; }));
+      setEventos(
+        visible.map((p) => {
+          const c = { ...p };
+          delete c._startTs;
+          return c;
+        })
+      );
     } catch (error) {
       console.error("Erro ao buscar eventos:", error);
       setEventos([]);
@@ -390,7 +598,13 @@ export default function EventosM1() {
         try {
           const id = ev.idEvento || ev.id || ev.id_evento;
           if (!id) {
-            Swal.fire("Erro", "ID do evento inválido.", "error");
+            Swal.fire({
+              title: "Erro",
+              text: "ID do evento inválido.",
+              icon: "error",
+              confirmButtonText: "OK",
+              confirmButtonColor: "#FF4848",
+            });
             return;
           }
 
@@ -401,33 +615,65 @@ export default function EventosM1() {
               { idStatusEvento: 2 },
               { headers: getAuthHeaders() }
             );
-            Swal.fire("Cancelado", "Evento marcado como encerrado (status = 2).", "success");
+            Swal.fire({
+              title: "Cancelado",
+              text: "Evento marcado como encerrado (status = 2).",
+              icon: "success",
+              confirmButtonText: "OK",
+              confirmButtonColor: "#FF4848",
+            });
+
             buscarEventos();
             return;
           } catch (errStatusEndpoint) {
-            console.debug("PATCH /status falhou:", errStatusEndpoint?.response?.data ?? errStatusEndpoint.message);
+            console.debug(
+              "PATCH /status falhou:",
+              errStatusEndpoint?.response?.data ?? errStatusEndpoint.message
+            );
           }
 
           // 2) tentativa: PATCH direto no recurso com payload minimal
           try {
             await api.patch(
               `/eventos/${encodeURIComponent(id)}`,
-              { statusEventoId: 2, status_evento: 2, statusEvento: { idStatusEvento: 2 } },
+              {
+                statusEventoId: 2,
+                status_evento: 2,
+                statusEvento: { idStatusEvento: 2 },
+              },
               { headers: getAuthHeaders() }
             );
-            Swal.fire("Cancelado", "Evento marcado como encerrado (status = 2).", "success");
+            Swal.fire({
+              title: "Cancelado",
+              text: "Evento marcado como encerrado (status = 2).",
+              icon: "success",
+              confirmButtonText: "OK",
+              confirmButtonColor: "#45AA48", // verde
+            });
+
             buscarEventos();
             return;
           } catch (errPatchMinimal) {
-            console.debug("PATCH minimal falhou:", errPatchMinimal?.response?.data ?? errPatchMinimal.message);
+            console.debug(
+              "PATCH minimal falhou:",
+              errPatchMinimal?.response?.data ?? errPatchMinimal.message
+            );
           }
 
           // 3) tentativa final: buscar objeto atual, limpar campos problemáticos e enviar PUT
           try {
-            const getRes = await api.get(`/eventos/${encodeURIComponent(id)}`, { headers: getAuthHeaders() });
+            const getRes = await api.get(`/eventos/${encodeURIComponent(id)}`, {
+              headers: getAuthHeaders(),
+            });
             const eventoAtual = getRes?.data;
             if (!eventoAtual) {
-              Swal.fire("Erro", "Evento não encontrado no servidor.", "error");
+              Swal.fire({
+                title: "Erro",
+                text: "Evento não encontrado no servidor.",
+                icon: "error",
+                confirmButtonText: "OK",
+                confirmButtonColor: "#FF4848", // vermelho
+              });
               return;
             }
 
@@ -452,24 +698,52 @@ export default function EventosM1() {
             //   payload.idEndereco = eventoAtual.endereco.idEndereco ?? eventoAtual.endereco.id;
             // }
 
-            await api.put(
-              `/eventos/${encodeURIComponent(id)}`,
-              payload,
-              { headers: { "Content-Type": "application/json", ...getAuthHeaders() } }
-            );
+            await api.put(`/eventos/${encodeURIComponent(id)}`, payload, {
+              headers: {
+                "Content-Type": "application/json",
+                ...getAuthHeaders(),
+              },
+            });
 
-            Swal.fire("Cancelado", "Evento marcado como encerrado (status = 2).", "success");
+            Swal.fire({
+              title: "Cancelado",
+              text: "Evento marcado como encerrado (status = 2).",
+              icon: "success",
+              confirmButtonText: "OK",
+              confirmButtonColor: "#45AA48",
+            });
+
             buscarEventos();
             return;
           } catch (errPut) {
             console.error("PUT final falhou:", errPut);
-            const serverMsg = errPut?.response?.data ?? errPut?.response?.data?.message ?? errPut?.message ?? "Erro desconhecido";
-            Swal.fire("Erro", typeof serverMsg === "string" ? serverMsg : JSON.stringify(serverMsg), "error");
+            const serverMsg =
+              errPut?.response?.data ??
+              errPut?.response?.data?.message ??
+              errPut?.message ??
+              "Erro desconhecido";
+            Swal.fire({
+              title: "Erro",
+              text:
+                typeof serverMsg === "string"
+                  ? serverMsg
+                  : JSON.stringify(serverMsg),
+              icon: "error",
+              confirmButtonText: "OK",
+              confirmButtonColor: "#FF4848",
+            });
+
             return;
           }
         } catch (err) {
           console.error("Erro ao processar cancelamento:", err);
-          Swal.fire("Erro", err.message || "Falha desconhecida", "error");
+          Swal.fire({
+            title: "Erro",
+            text: err.message || "Falha desconhecida",
+            icon: "error",
+            confirmButtonText: "OK",
+            confirmButtonColor: "#FF4848",
+          });
         }
       },
       onLista: (ev) => abrirListaPresenca(ev),
@@ -478,7 +752,8 @@ export default function EventosM1() {
     });
   };
 
-  const abrirListaPresenca = async (evento) => openListaPresencaModal(evento, { getAuthHeaders });
+  const abrirListaPresenca = async (evento) =>
+    openListaPresencaModal(evento, { getAuthHeaders });
 
   const abrirFormularioEvento = async (evento = null) =>
     openEventoFormModal(evento, {
@@ -534,7 +809,7 @@ export default function EventosM1() {
               <button
                 className="BotaoCadastrarEvento"
                 onClick={() => abrirFormularioEvento()}
-                style={{color:"white", background: "#4CAF50" }}
+                style={{ color: "white", background: "#4CAF50" }}
               >
                 Criar novo evento
               </button>
