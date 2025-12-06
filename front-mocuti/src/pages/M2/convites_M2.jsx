@@ -66,7 +66,12 @@ const Convites = () => {
       });
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
-      Swal.fire("Erro!", "Não foi possível atualizar.", "error");
+      Swal.fire({
+        title: "Erro!",
+        text: "Não foi possível atualizar.",
+        icon: "error",
+        confirmButtonColor: "#FF4848",
+      });
     }
   };
 

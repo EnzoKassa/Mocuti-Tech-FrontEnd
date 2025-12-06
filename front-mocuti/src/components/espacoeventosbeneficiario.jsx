@@ -19,7 +19,7 @@ export default function EspacoEventosBeneficiario({
   onOpenModal,
   showFeedbackButton = false, // NOVO: controla se o botão aparece
   onFeedbackClick, // opcional: callback ao clicar
-  feedbackLabel = "Enviar Feedback"
+  feedbackLabel = "Enviar Feedback",
 }) {
   const exibirParticipar =
     hideParticipar === true
@@ -117,27 +117,38 @@ export default function EspacoEventosBeneficiario({
   useEffect(() => {
     let mounted = true;
     const idsToFetch = (eventos || [])
-      .map(ev => ev?.idEvento ?? ev?.id ?? ev?.id_evento)
+      .map((ev) => ev?.idEvento ?? ev?.id ?? ev?.id_evento)
       .filter(Boolean)
-      .filter(id => countsMap[id] === undefined && !(eventos.find(e => (e.idEvento||e.id||e.id_evento) == id)?.inscritosCount !== undefined));
+      .filter(
+        (id) =>
+          countsMap[id] === undefined &&
+          !(
+            eventos.find((e) => (e.idEvento || e.id || e.id_evento) == id)
+              ?.inscritosCount !== undefined
+          )
+      );
 
     if (idsToFetch.length === 0) return;
 
     (async () => {
       const newCounts = {};
-      await Promise.all(idsToFetch.map(async id => {
-        try {
-          const c = await fetchInscritosCargo2Count(id);
-          newCounts[id] = Number.isFinite(Number(c)) ? Number(c) : 0;
-        } catch (e) {
-          newCounts[id] = 0;
-        }
-      }));
+      await Promise.all(
+        idsToFetch.map(async (id) => {
+          try {
+            const c = await fetchInscritosCargo2Count(id);
+            newCounts[id] = Number.isFinite(Number(c)) ? Number(c) : 0;
+          } catch (e) {
+            newCounts[id] = 0;
+          }
+        })
+      );
       if (!mounted) return;
-      setCountsMap(prev => ({ ...prev, ...newCounts }));
+      setCountsMap((prev) => ({ ...prev, ...newCounts }));
     })();
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [eventos]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const Badge = ({ text = "", bg = "#999", style = {} }) => (
@@ -256,10 +267,18 @@ export default function EspacoEventosBeneficiario({
                           borderRadius: 6,
                         }}
                       >
-                        <span style={{ color: "#333", fontWeight: 600 }}>Categoria:</span>
+                        <span style={{ color: "#333", fontWeight: 600 }}>
+                          Categoria:
+                        </span>
                         <Badge
-                          text={evento.categoriaNome || evento.categoria?.nome || "Não informada"}
-                          bg={getCategoryColor(evento.categoriaNome || evento.categoria?.nome || "")}
+                          text={
+                            evento.categoriaNome ||
+                            evento.categoria?.nome ||
+                            "Não informada"
+                          }
+                          bg={getCategoryColor(
+                            evento.categoriaNome || evento.categoria?.nome || ""
+                          )}
                         />
                       </div>
                       <div
@@ -272,10 +291,20 @@ export default function EspacoEventosBeneficiario({
                           borderRadius: 6,
                         }}
                       >
-                        <span style={{ color: "#333", fontWeight: 600 }}>Status:</span>
+                        <span style={{ color: "#333", fontWeight: 600 }}>
+                          Status:
+                        </span>
                         <Badge
-                          text={evento.status_evento || evento.statusEvento?.situacao || "Aberto"}
-                          bg={getStatusColor(evento.status_evento || evento.statusEvento?.situacao || "Aberto")}
+                          text={
+                            evento.status_evento ||
+                            evento.statusEvento?.situacao ||
+                            "Aberto"
+                          }
+                          bg={getStatusColor(
+                            evento.status_evento ||
+                              evento.statusEvento?.situacao ||
+                              "Aberto"
+                          )}
                         />
                       </div>
                     </div>
@@ -304,18 +333,29 @@ export default function EspacoEventosBeneficiario({
                       alt="Ícone de Pessoas"
                     />
                     <a href="#">
-                      <div className="eventos-vagas" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div
+                        className="eventos-vagas"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
                         <i className="icon-user" />
                         <span>
-                          {(
-                            (evento.inscritosCount ??
-                              evento.inscritos ??
-                              countsMap[(evento.idEvento ?? evento.id ?? evento.id_evento)] ??
-                              qtdInteressado ??
-                              0)
-                          ) + "/" + (
-                            (evento.vagas ?? evento.vagasMax ?? evento.numeroVagas ?? qtdVaga ?? 0)
-                          )}
+                          {(evento.inscritosCount ??
+                            evento.inscritos ??
+                            countsMap[
+                              evento.idEvento ?? evento.id ?? evento.id_evento
+                            ] ??
+                            qtdInteressado ??
+                            0) +
+                            "/" +
+                            (evento.vagas ??
+                              evento.vagasMax ??
+                              evento.numeroVagas ??
+                              qtdVaga ??
+                              0)}
                         </span>
                       </div>
                     </a>
@@ -353,11 +393,13 @@ export default function EspacoEventosBeneficiario({
                             qtdVaga &&
                             Number(qtdInteressado ?? 0) >= Number(qtdVaga);
                           if (full) {
-                            Swal.fire(
-                              "Lotado",
-                              "Este evento atingiu o número máximo de vagas.",
-                              "info"
-                            );
+                            Swal.fire({
+                              title: "Lotado",
+                              text: "Este evento atingiu o número máximo de vagas.",
+                              icon: "info",
+                              confirmButtonColor: "#45AA48",
+                            });
+
                             return;
                           }
                           if (onParticipar) {
@@ -370,7 +412,12 @@ export default function EspacoEventosBeneficiario({
                             );
                             return;
                           }
-                          Swal.fire("Atenção", "Ação não disponível.", "info");
+                          Swal.fire({
+                            title: "Atenção",
+                            text: "Ação não disponível.",
+                            icon: "info",
+                            confirmButtonColor: "#FF4848",
+                          });
                         }}
                       >
                         Quero Participar

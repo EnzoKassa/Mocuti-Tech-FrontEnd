@@ -87,6 +87,7 @@ const Login = () => {
         icon: "error",
         title: "Erro",
         text: "Verifique os campos e tente novamente.",
+        confirmButtonColor: "#45AA48",
       });
       return;
     }
@@ -119,18 +120,21 @@ const Login = () => {
           icon: "warning",
           title: "E-mail não encontrado",
           text: "Esse e-mail não está cadastrado.",
+          confirmButtonColor: "#45AA48",
         });
       } else if (status === 401) {
         Swal.fire({
           icon: "error",
           title: "Senha incorreta",
           text: "A senha informada está incorreta.",
+          confirmButtonColor: "#45AA48",
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Erro no login",
           text: "Não foi possível fazer login agora. Tente novamente mais tarde.",
+          confirmButtonColor: "#45AA48",
         });
       }
     } finally {

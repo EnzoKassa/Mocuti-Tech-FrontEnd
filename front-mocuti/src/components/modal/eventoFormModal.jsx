@@ -14,7 +14,6 @@ import {
   triggerApiRefresh,
 } from "../../api/api";
 
-
 export async function openEventoFormModal(
   evento = null,
   {
@@ -58,11 +57,16 @@ export async function openEventoFormModal(
         const parts = p.split(".");
         let cur = obj;
         for (const k of parts) {
-          if (cur == null) { cur = null; break; }
+          if (cur == null) {
+            cur = null;
+            break;
+          }
           cur = cur[k];
         }
         if (typeof cur === "string" && cur.trim()) return cur.trim();
-      } catch (e) { /* ignore */ }
+      } catch (e) {
+        /* ignore */
+      }
     }
     return "";
   }
@@ -70,7 +74,9 @@ export async function openEventoFormModal(
   function normalizeConvidadosList(list) {
     if (!Array.isArray(list)) return [];
     const normalized = list.map((c) => {
-      const uid = String(c.idUsuario ?? c.usuarioId ?? c.id ?? (c.usuario && c.usuario.id) ?? "");
+      const uid = String(
+        c.idUsuario ?? c.usuarioId ?? c.id ?? (c.usuario && c.usuario.id) ?? ""
+      );
 
       // caminhos possíveis onde o nome pode estar (inclui nomeCompleto)
       const namePaths = [
@@ -87,12 +93,24 @@ export async function openEventoFormModal(
         "convidado.nome",
         "convidado.pessoa.nome",
         "pessoa.nome",
-        "pessoa.nomeCompleto"
+        "pessoa.nomeCompleto",
       ];
 
       // caminhos possíveis para email/status
-      const emailPaths = ["email", "usuario.email", "usuario.login", "convidado.email", "pessoa.email"];
-      const statusPaths = ["statusConvite", "statusDescricao", "situacao", "status", "tipoInscricao"];
+      const emailPaths = [
+        "email",
+        "usuario.email",
+        "usuario.login",
+        "convidado.email",
+        "pessoa.email",
+      ];
+      const statusPaths = [
+        "statusConvite",
+        "statusDescricao",
+        "situacao",
+        "status",
+        "tipoInscricao",
+      ];
 
       const nomeFound = tryPaths(c, namePaths) || "";
       const emailFound = tryPaths(c, emailPaths) || "";
@@ -102,7 +120,13 @@ export async function openEventoFormModal(
       const status = statusFound || String(c.idStatusInscricao ?? "Pendente");
 
       // preservar outros campos, garantir idUsuario/nomeConvidado/email/statusConvite
-      return { ...c, idUsuario: uid, nomeConvidado: nome, email: emailFound || c.email || "", statusConvite: status };
+      return {
+        ...c,
+        idUsuario: uid,
+        nomeConvidado: nome,
+        email: emailFound || c.email || "",
+        statusConvite: status,
+      };
     });
     console.debug("eventoFormModal: convidados normalizados:", normalized);
     return normalized;
@@ -113,30 +137,66 @@ export async function openEventoFormModal(
     if (!id) return "";
     const sid = String(id);
     try {
-      const found = (usuariosCargo3 || []).find(u => String(u.idUsuario ?? u.id ?? u.usuarioId ?? "") === sid);
-      if (found) return tryPaths(found, ["nomeCompleto","nome","nomeUsuario","nome_completo","email"]) || `Usuário ${sid}`;
-    } catch (e) { /* ignore */ }
+      const found = (usuariosCargo3 || []).find(
+        (u) => String(u.idUsuario ?? u.id ?? u.usuarioId ?? "") === sid
+      );
+      if (found)
+        return (
+          tryPaths(found, [
+            "nomeCompleto",
+            "nome",
+            "nomeUsuario",
+            "nome_completo",
+            "email",
+          ]) || `Usuário ${sid}`
+        );
+    } catch (e) {
+      /* ignore */
+    }
     try {
       const res = await api.get(`/usuarios/${encodeURIComponent(sid)}`);
       const data = res?.data ?? null;
-      if (data) return tryPaths(data, ["nomeCompleto","nome","nomeUsuario","pessoa.nome","pessoa.nomeCompleto","email"]) || `Usuário ${sid}`;
-    } catch (e) { /* ignore */ }
+      if (data)
+        return (
+          tryPaths(data, [
+            "nomeCompleto",
+            "nome",
+            "nomeUsuario",
+            "pessoa.nome",
+            "pessoa.nomeCompleto",
+            "email",
+          ]) || `Usuário ${sid}`
+        );
+    } catch (e) {
+      /* ignore */
+    }
     return `Usuário ${sid}`;
   }
 
   // enriquece lista de convidados preenchendo nomeConvidado quando estiver como "Usuário {id}"
   async function enrichConvidadosWithNames(list) {
     if (!Array.isArray(list) || list.length === 0) return list || [];
-    const enriched = await Promise.all(list.map(async (c) => {
-      const uid = String(c.idUsuario ?? c.usuarioId ?? c.id ?? "");
-      const existingName = tryPaths(c, ["nomeConvidado", "nomeCompleto", "nomeUsuario", "nome", "email"]);
-      if (existingName && !existingName.startsWith("Usuário ")) {
-        return { ...c, idUsuario: uid, nomeConvidado: existingName };
-      }
-      const resolved = await getNomeUsuarioById(uid);
-      return { ...c, idUsuario: uid, nomeConvidado: resolved };
-    }));
-    console.debug("eventoFormModal: convidados enriquecidos com nomes:", enriched);
+    const enriched = await Promise.all(
+      list.map(async (c) => {
+        const uid = String(c.idUsuario ?? c.usuarioId ?? c.id ?? "");
+        const existingName = tryPaths(c, [
+          "nomeConvidado",
+          "nomeCompleto",
+          "nomeUsuario",
+          "nome",
+          "email",
+        ]);
+        if (existingName && !existingName.startsWith("Usuário ")) {
+          return { ...c, idUsuario: uid, nomeConvidado: existingName };
+        }
+        const resolved = await getNomeUsuarioById(uid);
+        return { ...c, idUsuario: uid, nomeConvidado: resolved };
+      })
+    );
+    console.debug(
+      "eventoFormModal: convidados enriquecidos com nomes:",
+      enriched
+    );
     return enriched;
   }
 
@@ -144,23 +204,40 @@ export async function openEventoFormModal(
   async function refreshConvidados(eventoId) {
     try {
       if (!eventoId) return;
-      const fetched = await listarConvidadosPorEvento(eventoId).catch(() => null);
+      const fetched = await listarConvidadosPorEvento(eventoId).catch(
+        () => null
+      );
       const normalized = normalizeConvidadosList(fetched || []);
       convidadosEvento = await enrichConvidadosWithNames(normalized);
       // rebuild simple UI block
       const convidadosContainer = document.getElementById("ev-convidados-list");
       if (!convidadosContainer) return;
-      convidadosContainer.innerHTML = (convidadosEvento && convidadosEvento.length)
-        ? convidadosEvento.map(c => {
-            const uid = c.idUsuario ?? c.usuarioId ?? c.id ?? "";
-            const nome = escapeHtml(c.nomeConvidado || tryPaths(c, ["nome","email"]) || (uid ? `Usuário ${uid}` : ""));
-            const status = escapeHtml(c.statusConvite ?? c.statusDescricao ?? c.situacao ?? c.status ?? String(c.idStatusInscricao ?? "Pendente"));
-            return `<div data-uid="${uid}" style="display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid #f6f6f6;">
-                      <div><strong>${nome}</strong><div style="font-size:11px;color:#666;">${escapeHtml(c.email||"")}</div></div>
+      convidadosContainer.innerHTML =
+        convidadosEvento && convidadosEvento.length
+          ? convidadosEvento
+              .map((c) => {
+                const uid = c.idUsuario ?? c.usuarioId ?? c.id ?? "";
+                const nome = escapeHtml(
+                  c.nomeConvidado ||
+                    tryPaths(c, ["nome", "email"]) ||
+                    (uid ? `Usuário ${uid}` : "")
+                );
+                const status = escapeHtml(
+                  c.statusConvite ??
+                    c.statusDescricao ??
+                    c.situacao ??
+                    c.status ??
+                    String(c.idStatusInscricao ?? "Pendente")
+                );
+                return `<div data-uid="${uid}" style="display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid #f6f6f6;">
+                      <div><strong>${nome}</strong><div style="font-size:11px;color:#666;">${escapeHtml(
+                  c.email || ""
+                )}</div></div>
                       <div style="min-width:110px; text-align:right;"><span style="padding:4px 8px; border-radius:6px; background:#f2f2f2;">${status}</span></div>
                     </div>`;
-          }).join("")
-        : `<div style="padding:8px;color:#666;">Nenhum convidado</div>`;
+              })
+              .join("")
+          : `<div style="padding:8px;color:#666;">Nenhum convidado</div>`;
     } catch (err) {
       console.debug("refreshConvidados falhou:", err);
     }
@@ -476,7 +553,10 @@ export async function openEventoFormModal(
           const actions = document.querySelector(".swal2-actions");
           if (actions) actions.style.justifyContent = "flex-end";
         } catch (errStyle) {
-          console.debug("eventoFormModal: não foi possível ajustar alinhamento dos botões:", errStyle);
+          console.debug(
+            "eventoFormModal: não foi possível ajustar alinhamento dos botões:",
+            errStyle
+          );
         }
 
         attachModalBehavior({ values, enderecos, getAuthHeaders });
@@ -488,7 +568,15 @@ export async function openEventoFormModal(
       const enderecoSelect = document.getElementById("ev-endereco-select");
       const novoContainer = document.getElementById("ev-endereco-novo");
       const clearNovoFields = () => {
-        ["ev-cep","ev-logradouro","ev-numero","ev-complemento","ev-bairro","ev-uf","ev-cidade"].forEach(id => {
+        [
+          "ev-cep",
+          "ev-logradouro",
+          "ev-numero",
+          "ev-complemento",
+          "ev-bairro",
+          "ev-uf",
+          "ev-cidade",
+        ].forEach((id) => {
           const el = document.getElementById(id);
           if (el) el.value = "";
         });
@@ -496,7 +584,11 @@ export async function openEventoFormModal(
       if (enderecoSelect) {
         // setar valor inicial ao abrir (edição)
         if (values.enderecoId) {
-          try { enderecoSelect.value = String(values.enderecoId); } catch (e) { /* ignore */ }
+          try {
+            enderecoSelect.value = String(values.enderecoId);
+          } catch (e) {
+            /* ignore */
+          }
         }
         // inicializar visibilidade
         if (enderecoSelect.value === "__novo") {
@@ -562,9 +654,9 @@ export async function openEventoFormModal(
                 // preferir nomeCompleto retornado pela API
                 const rawName =
                   u.nomeCompleto ||
-                  u.nome || 
-                  u.nomeUsuario || 
-                  u.nome_completo || 
+                  u.nome ||
+                  u.nomeUsuario ||
+                  u.nome_completo ||
                   "";
                 const rawEmail = u.email || "";
                 const nameToShow = escapeHtml(rawName ? rawName : rawEmail);
@@ -638,27 +730,31 @@ export async function openEventoFormModal(
             const idEventoExistente =
               evento?.idEvento ?? evento?.id ?? evento?.id_evento;
             if (!idEventoExistente) {
-              return Swal.fire(
-                "Atenção",
-                "O evento precisa ser salvo primeiro para enviar convites. Ao salvar você poderá enviar automaticamente os selecionados.",
-                "info"
-              );
+              return Swal.fire({
+                title: "Atenção",
+                text: "O evento precisa ser salvo primeiro para enviar convites. Ao salvar você poderá enviar automaticamente os selecionados.",
+                icon: "info",
+                confirmButtonColor: "#45AA48",
+              });
             }
             const ids = Array.from(selecionados)
               .map((x) => Number(x))
               .filter(Boolean);
             if (ids.length === 0)
-              return Swal.fire(
-                "Atenção",
-                "Nenhum usuário selecionado.",
-                "warning"
-              );
+              return Swal.fire({
+                title: "Atenção",
+                text: "Nenhum usuário selecionado.",
+                icon: "warning",
+                confirmButtonColor: "#45AA48",
+              });
+
             const confirm = await Swal.fire({
               title: "Enviar convites",
               text: `Enviar convite para ${ids.length} usuários?`,
               icon: "question",
               showCancelButton: true,
               confirmButtonText: "Enviar",
+              confirmButtonColor: "#45AA48",
             });
             if (!confirm.isConfirmed) return;
 
@@ -668,7 +764,12 @@ export async function openEventoFormModal(
                 inscreverUsuarioEvento(idEventoExistente, Number(id), 1)
               )
             );
-            Swal.fire("Sucesso", "Convites enviados.", "success");
+            Swal.fire({
+              title: "Atenção",
+              text: "Nenhum usuário selecionado.",
+              icon: "warning",
+              confirmButtonColor: "#FF4848",
+            });
             triggerApiRefresh();
 
             // remover convidados enviados da lista de usuários e adicioná-los localmente aos convidados exibidos
@@ -735,7 +836,9 @@ export async function openEventoFormModal(
               convidadosAtualizados.length > 0
             ) {
               convidadosEvento = normalizeConvidadosList(convidadosAtualizados);
-              convidadosEvento = await enrichConvidadosWithNames(convidadosEvento);
+              convidadosEvento = await enrichConvidadosWithNames(
+                convidadosEvento
+              );
             } else {
               // backend não retornou a lista atualizada: acrescentar localmente
               const novos = ids.map((id) => {
@@ -758,7 +861,9 @@ export async function openEventoFormModal(
               });
               convidadosEvento = (convidadosEvento || []).concat(novos);
               // enriquecer nomes locais (caso existam em usuariosCargo3)
-              convidadosEvento = await enrichConvidadosWithNames(convidadosEvento);
+              convidadosEvento = await enrichConvidadosWithNames(
+                convidadosEvento
+              );
               // re-render após fallback local
               await refreshConvidados(evento?.idEvento ?? idEventoExistente);
             }
@@ -801,7 +906,12 @@ export async function openEventoFormModal(
               "eventoFormModal: erro ao enviar convites manual:",
               err
             );
-            Swal.fire("Erro", "Falha ao enviar convites.", "error");
+Swal.fire({
+  title: "Erro",
+  text: "Falha ao enviar convites.",
+  icon: "error",
+  confirmButtonColor: "#FF4848"
+});
           }
         });
       }
@@ -964,76 +1074,82 @@ export async function openEventoFormModal(
           });
           // axios response: considerar qualquer 2xx como sucesso
           if (!rEnd || rEnd.status < 200 || rEnd.status >= 300) {
-             const parsed = rEnd.data ?? null;
-             let friendly = "";
-             if (!parsed) friendly = `HTTP ${rEnd.status}`;
-             else if (typeof parsed === "string") friendly = parsed;
-             else if (parsed.fieldErrors && Array.isArray(parsed.fieldErrors)) {
-               friendly = parsed.fieldErrors
-                 .map((fe) => `${fe.field}: ${fe.defaultMessage || fe.message || JSON.stringify(fe)}`)
-                 .join("; ");
-             } else if (parsed.message || parsed.error) friendly = parsed.message || parsed.error;
-             else friendly = JSON.stringify(parsed);
-             Swal.showValidationMessage(`Falha ao salvar endereço: ${friendly}`);
-             return false;
-           }
- 
-           const savedEndereco = rEnd.data ?? null;
-           enderecoId = savedEndereco?.idEndereco ?? savedEndereco?.id ?? null;
-           if (!enderecoId) {
-             Swal.showValidationMessage(
-               "Endereço salvo, mas id não retornado pelo servidor."
-             );
-             return false;
-           }
-           try {
-             const sel = document.getElementById("ev-endereco-select");
-             if (sel) {
-               const opt = document.createElement("option");
-               opt.value = enderecoId;
-               opt.text = `${savedEndereco.logradouro || ""}${
-                 savedEndereco.numero ? ", " + savedEndereco.numero : ""
-               }${savedEndereco.bairro ? " - " + savedEndereco.bairro : ""} (${
-                 savedEndereco.cep || ""
-               })`;
-               const last = sel.querySelector('option[value="__novo"]');
-               if (last) sel.insertBefore(opt, last);
-               sel.value = enderecoId;
-             }
-           } catch (err) {
-             console.debug(
-               "eventoFormModal: atualizar select ev-endereco-select falhou:",
-               err
-             );
-           }
-         } catch (err) {
-           Swal.showValidationMessage(
-             `Erro ao salvar novo endereço: ${err?.message || err}`
-           );
-           return false;
-         }
-       } else if (enderecoSelectVal) {
-         const idNum = Number(enderecoSelectVal);
-         if (Number.isFinite(idNum) && idNum > 0) {
-           const existe = Array.isArray(enderecos)
-             ? enderecos.some((e) => (e.idEndereco ?? e.id) === idNum)
-             : true;
-           if (!existe) {
-             Swal.showValidationMessage("Endereço selecionado inválido.");
-             return false;
-           }
-           enderecoId = idNum;
-         } else {
-           Swal.showValidationMessage("Endereço selecionado inválido.");
-           return false;
-         }
-       } else {
-         if (isEdit && values.enderecoId) {
-           enderecoId = Number(values.enderecoId) || null;
-         } else {
-           enderecoId = null;
-         }
-       }
+            const parsed = rEnd.data ?? null;
+            let friendly = "";
+            if (!parsed) friendly = `HTTP ${rEnd.status}`;
+            else if (typeof parsed === "string") friendly = parsed;
+            else if (parsed.fieldErrors && Array.isArray(parsed.fieldErrors)) {
+              friendly = parsed.fieldErrors
+                .map(
+                  (fe) =>
+                    `${fe.field}: ${
+                      fe.defaultMessage || fe.message || JSON.stringify(fe)
+                    }`
+                )
+                .join("; ");
+            } else if (parsed.message || parsed.error)
+              friendly = parsed.message || parsed.error;
+            else friendly = JSON.stringify(parsed);
+            Swal.showValidationMessage(`Falha ao salvar endereço: ${friendly}`);
+            return false;
+          }
+
+          const savedEndereco = rEnd.data ?? null;
+          enderecoId = savedEndereco?.idEndereco ?? savedEndereco?.id ?? null;
+          if (!enderecoId) {
+            Swal.showValidationMessage(
+              "Endereço salvo, mas id não retornado pelo servidor."
+            );
+            return false;
+          }
+          try {
+            const sel = document.getElementById("ev-endereco-select");
+            if (sel) {
+              const opt = document.createElement("option");
+              opt.value = enderecoId;
+              opt.text = `${savedEndereco.logradouro || ""}${
+                savedEndereco.numero ? ", " + savedEndereco.numero : ""
+              }${savedEndereco.bairro ? " - " + savedEndereco.bairro : ""} (${
+                savedEndereco.cep || ""
+              })`;
+              const last = sel.querySelector('option[value="__novo"]');
+              if (last) sel.insertBefore(opt, last);
+              sel.value = enderecoId;
+            }
+          } catch (err) {
+            console.debug(
+              "eventoFormModal: atualizar select ev-endereco-select falhou:",
+              err
+            );
+          }
+        } catch (err) {
+          Swal.showValidationMessage(
+            `Erro ao salvar novo endereço: ${err?.message || err}`
+          );
+          return false;
+        }
+      } else if (enderecoSelectVal) {
+        const idNum = Number(enderecoSelectVal);
+        if (Number.isFinite(idNum) && idNum > 0) {
+          const existe = Array.isArray(enderecos)
+            ? enderecos.some((e) => (e.idEndereco ?? e.id) === idNum)
+            : true;
+          if (!existe) {
+            Swal.showValidationMessage("Endereço selecionado inválido.");
+            return false;
+          }
+          enderecoId = idNum;
+        } else {
+          Swal.showValidationMessage("Endereço selecionado inválido.");
+          return false;
+        }
+      } else {
+        if (isEdit && values.enderecoId) {
+          enderecoId = Number(values.enderecoId) || null;
+        } else {
+          enderecoId = null;
+        }
+      }
 
       const payloadEvento = {
         nomeEvento: nome,
@@ -1083,7 +1199,7 @@ export async function openEventoFormModal(
         let resultSaved = null;
         if (!isEdit) {
           const fd = new FormData();
-        
+
           // JSON deve ser enviado com application/json
           fd.append(
             "dados",
@@ -1091,15 +1207,15 @@ export async function openEventoFormModal(
               type: "application/json",
             })
           );
-        
+
           if (file) fd.append("foto", file);
-        
+
           let res;
           try {
             res = await api.post("/eventos/cadastrar", fd, {
-              headers: { 
+              headers: {
                 ...authHeaders,
-                "Content-Type": "multipart/form-data" 
+                "Content-Type": "multipart/form-data",
               },
             });
           } catch (err) {
@@ -1108,13 +1224,13 @@ export async function openEventoFormModal(
               err?.response?.data?.error ||
               err.message ||
               "Erro ao cadastrar evento";
-        
+
             Swal.showValidationMessage(`Falha ao cadastrar evento: ${msg}`);
             throw new Error(msg);
           }
-        
+
           const resultJson = res?.data ?? null;
-        
+
           if (typeof onSaved === "function") {
             try {
               await onSaved(resultJson);
@@ -1122,7 +1238,7 @@ export async function openEventoFormModal(
               console.debug("eventoFormModal: onSaved falhou:", err);
             }
           }
-        
+
           // enviar convites pós-criação
           try {
             const createdId =
@@ -1130,18 +1246,23 @@ export async function openEventoFormModal(
               resultJson?.id ??
               resultJson?.id_evento ??
               null;
-        
+
             if (createdId && selecionados.size > 0) {
               const ids = Array.from(selecionados).map(Number);
-              await Promise.all(ids.map(id => inscreverUsuarioEvento(createdId, id, 1)));
+              await Promise.all(
+                ids.map((id) => inscreverUsuarioEvento(createdId, id, 1))
+              );
               triggerApiRefresh();
             }
           } catch (errInvite) {
-            console.warn("eventoFormModal: convites pós-criação falharam:", errInvite);
+            console.warn(
+              "eventoFormModal: convites pós-criação falharam:",
+              errInvite
+            );
           }
-        
+
           return resultJson ?? true;
-        }        
+        }
 
         // EDIÇÃO
         const idEvento = evento?.idEvento ?? evento?.id ?? evento?.id_evento;
@@ -1183,18 +1304,21 @@ export async function openEventoFormModal(
             body: parsed,
             headers: resDados.headers,
           });
-          const friendly = typeof parsed === "string" ? parsed : JSON.stringify(parsed) || String(resDados.status);
+          const friendly =
+            typeof parsed === "string"
+              ? parsed
+              : JSON.stringify(parsed) || String(resDados.status);
           Swal.showValidationMessage(`Falha ao salvar dados: ${friendly}`);
           throw new Error(friendly);
         }
 
         // axios -> data
         resultSaved = resDados.data ?? null;
- 
+
         if (file) {
           const fd = new FormData();
           fd.append("foto", file);
-        
+
           try {
             const resFoto = await api.patch(
               `/eventos/foto/${encodeURIComponent(idEvento)}`,
@@ -1206,33 +1330,35 @@ export async function openEventoFormModal(
                 },
               }
             );
-        
+
             // axios nunca usa .ok — resposta 200/201/204 já é sucesso
             if (!resFoto || resFoto.status < 200 || resFoto.status > 299) {
               const errorMsg =
                 resFoto?.data?.message ||
                 resFoto?.data?.error ||
                 `Erro ao enviar foto: ${resFoto?.status}`;
-        
+
               Swal.showValidationMessage(errorMsg);
               throw new Error(errorMsg);
             }
-        
+
             // Se retornar JSON, salva no result
-            resultSaved = { ...(resultSaved || {}), foto: resFoto.data || null };
-        
+            resultSaved = {
+              ...(resultSaved || {}),
+              foto: resFoto.data || null,
+            };
           } catch (error) {
             const message =
               error?.response?.data?.message ||
               error?.response?.data?.error ||
               error?.message ||
               "Erro desconhecido ao enviar a foto";
-        
+
             Swal.showValidationMessage(`Falha ao enviar foto: ${message}`);
             throw new Error(message);
           }
         }
-        
+
         // após editar, enviar convites selecionados (somente novos)
         try {
           const ids = Array.from(selecionados)

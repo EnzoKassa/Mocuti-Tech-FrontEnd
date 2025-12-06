@@ -119,7 +119,12 @@ export default function ListaUsuariosM1() {
 
       setSelecionados([]);
     } catch (err) {
-      Swal.fire("Erro", "Não foi possível carregar os usuários.", "error");
+      Swal.fire({
+        title: "Erro",
+        text: "Não foi possível carregar os usuários.",
+        icon: "error",
+        confirmButtonColor: "#FF4848",
+      });
     } finally {
       setLoading(false);
     }
@@ -187,7 +192,7 @@ export default function ListaUsuariosM1() {
         title: "Atenção",
         text: "Selecione ao menos um usuário.",
         icon: "info",
-        confirmButtonColor: "#45AA48",
+        confirmButtonColor: "#FF4848",
       });
       return;
     }
@@ -210,10 +215,20 @@ export default function ListaUsuariosM1() {
         selecionados.map((id) => api.patch(`/usuarios/desativar/${id}`))
       );
 
-      Swal.fire("Sucesso", "Usuários desativados!", "success");
+      Swal.fire({
+        title: "Sucesso",
+        text: "Usuários desativados!",
+        icon: "success",
+        confirmButtonColor: "#45AA48", // verde padrão que estamos usando
+      });
       carregarUsuarios(cargoSelecionado);
     } catch (err) {
-      Swal.fire("Erro", "Não foi possível desativar.", "error");
+      Swal.fire({
+        title: "Erro",
+        text: "Não foi possível desativar.",
+        icon: "error",
+        confirmButtonColor: "#FF4848", // vermelho padrão de erro
+      });
     }
   }
 
@@ -322,8 +337,10 @@ export default function ListaUsuariosM1() {
       text: "Ele não poderá acessar o sistema.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Sim",
+      confirmButtonText: "Sim, desativar",
       cancelButtonText: "Cancelar",
+      reverseButtons: true,
+      confirmButtonColor: "#FF4848",
     });
 
     if (!confirm.isConfirmed) return;
@@ -331,10 +348,20 @@ export default function ListaUsuariosM1() {
     try {
       await api.patch(`/usuarios/desativar/${id}`);
 
-      Swal.fire("Sucesso", "Usuário desativado!", "success");
+      Swal.fire({
+        title: "Sucesso",
+        text: "Usuário desativado!",
+        icon: "success",
+        confirmButtonColor: "#45AA48", // verde padrão de sucesso
+      });
       carregarUsuarios(cargoSelecionado);
     } catch (err) {
-      Swal.fire("Erro", "Não foi possível desativar.", "error");
+      Swal.fire({
+        title: "Erro",
+        text: "Não foi possível desativar.",
+        icon: "error",
+        confirmButtonColor: "#FF4848", // vermelho padrão de erro
+      });
     }
   }
 
@@ -362,12 +389,22 @@ export default function ListaUsuariosM1() {
         `/usuarios/${idUsuario}/cargo/${idCargo}`
       );
 
-      Swal.fire("Sucesso!", "Cargo atualizado!", "success");
+      Swal.fire({
+        title: "Sucesso!",
+        text: "Cargo atualizado!",
+        icon: "success",
+        confirmButtonColor: "#45AA48",
+      });
 
       setModalTrocarCargo({ aberto: false, idUsuario: null });
       carregarUsuarios(cargoSelecionado);
     } catch (err) {
-      Swal.fire("Erro", "Não foi possível atualizar o cargo.", "error");
+      Swal.fire({
+        title: "Erro",
+        text: "Não foi possível atualizar o cargo.",
+        icon: "error",
+        confirmButtonColor: "#FF4848",
+      });
     }
   }
 
@@ -394,8 +431,8 @@ export default function ListaUsuariosM1() {
               <option value="" disabled>
                 Selecione
               </option>
-              <option value="1">Administradores</option>
-              <option value="3">Mantenedores</option>
+              <option value="1">AdministradoR</option>
+              <option value="3">Mantenedor</option>
               <option value="2">Beneficiário</option>
             </select>
 
