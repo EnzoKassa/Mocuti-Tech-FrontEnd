@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
-import HeaderBeneficiario from "../../components/HeaderBeneficiario";
 import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
 import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
 import Swal from "sweetalert2";
@@ -288,7 +287,7 @@ export default function MeusEventosBeneficiario() {
 
   return (
     <div className="scroll-page-usuario">
-      <HeaderBeneficiario />
+  
       <HeaderBeneficiarioBotoes botoes={botoesNav} />
 
       <div className="meus-eventos-beneficiario">
@@ -313,7 +312,7 @@ export default function MeusEventosBeneficiario() {
               >
                 Meus Eventos
               </h1>
-              <div style={{ marginTop: 8 }}>
+             
                 <EspacoEventosBeneficiario
                   eventos={participacoes}
                   mostrarParticipar={false}
@@ -321,7 +320,7 @@ export default function MeusEventosBeneficiario() {
                   onOpenModal={mostrarDetalhes}
                   onCancelarInscricao={cancelarInscricao}
                 />
-              </div>
+           
             </div>
           </div>
         )}

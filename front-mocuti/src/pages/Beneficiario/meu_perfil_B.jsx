@@ -18,7 +18,6 @@ const botoesNav = [
 
   return (
     <div className="meu-perfil-page">
-      <HeaderBeneficiario />
       <HeaderBeneficiarioBotoes botoes={botoesNav} />
       <PerfilUsuario />
     </div>

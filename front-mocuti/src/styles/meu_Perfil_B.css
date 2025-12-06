@@ -177,9 +177,17 @@
     justify-content: center;
     /* height: 100vh; */
     width: 100%;
-    margin: 0;
+    margin-top: 150px;
     padding: 0;
   }
+
+  @media (min-width: 0px) and (max-width: 599px) {
+    .meu-perfil-page {
+        margin-top: 0 !important;
+    }
+  }
+
+
   
   .user-details-container {
     background: white;
@@ -393,4 +401,10 @@
 
 .btn-deny-red:hover {
   background-color: #cc0000; /* Vermelho mais escuro */
+}
+
+@media (min-width: 0px) and (max-width: 599px) {
+  .user-details-container{
+    margin-top: 20% !important;
+  }
 }

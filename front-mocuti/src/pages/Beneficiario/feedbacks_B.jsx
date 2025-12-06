@@ -219,7 +219,6 @@ export default function FeedbackBeneficiario() {
 
   return (
     <div className="scroll-page-usuario">
-      <HeaderBeneficiario />
       <HeaderBeneficiarioBotoes botoes={botoesNav} />
 
       <div className="meus-eventos-beneficiario">

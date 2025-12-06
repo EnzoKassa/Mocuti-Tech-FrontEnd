@@ -1,4 +1,5 @@
 import "../styles/FiltroBeneficiario.css";
+import filtro from '../assets/images/filtro.png';
 
 export default function FiltroBeneficiario({
     filtros,
@@ -22,6 +23,12 @@ export default function FiltroBeneficiario({
          <button onClick={onPesquisar}>Pesquisar</button>
         </div>
         <div className="inputespacobeneficiarioseparacao2">
+        {/* mobile */}
+        <div className="filtros-mobile">
+          <img src={filtro} alt="filtro" className="imgfiltro" />
+        </div>
+
+
         <div className="inputespacobeneficiarioseparacao2-caixa1">
         Início:{" "}
         <input

@@ -242,11 +242,41 @@ export default function ListaUsuariosM1() {
     setCargoSelecionado(cargo);
   };
 
+    const [fontSize, setFontSize] = useState(100);
+
+  const aumentarFonte = () => {
+    const novo = Math.min(fontSize + 10, 200);
+    setFontSize(novo);
+    document.documentElement.style.fontSize = novo + "%";
+  };
+
+  const diminuirFonte = () => {
+    const novo = Math.max(fontSize - 10, 50);
+    setFontSize(novo);
+    document.documentElement.style.fontSize = novo + "%";
+  };
+
+
   return (
     <div className="TelaComNavLateral containerGeral">
       {/* <NavLateral rotasPersonalizadas={rotasAdmin} /> */}
       <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
+         {/* BOTÕES ACESSIBILIDADE */}
+      <div className="fixed right-5 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4">
+        <button
+          onClick={aumentarFonte}
+          className="w-12 h-12 rounded-md bg-[#001F4D] text-white text-[18px] font-bold shadow-lg hover:bg-[#012d73] transition"
+        >
+          A+
+        </button>
 
+        <button
+          onClick={diminuirFonte}
+          className="w-12 h-12 rounded-md bg-[#001F4D] text-white text-[18px] font-bold shadow-lg hover:bg-[#012d73] transition"
+        >
+          A-
+        </button>
+      </div>
       <main className="conteudoPrincipal" style={{ fontSize: `${fonte}px` }}>
         <h1 className="tituloPagina">{getTituloPagina()}</h1>
 
@@ -396,14 +426,6 @@ export default function ListaUsuariosM1() {
           </button>
         </div>
 
-        <div className="controlesFonte">
-          <button onClick={() => setFonte((f) => (f > 10 ? f - 1 : f))}>
-            A−
-          </button>
-          <button onClick={() => setFonte((f) => (f < 24 ? f + 1 : f))}>
-            A+
-          </button>
-        </div>
 
         {/* MODAL NOVO USUÁRIO */}
         {mostrarModal && (

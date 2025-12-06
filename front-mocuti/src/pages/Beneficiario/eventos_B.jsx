@@ -1,8 +1,9 @@
+
 import { useEffect, useState, useContext } from "react";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import { AuthContext } from "../../auth/AuthContext";
-import HeaderBeneficiario from "../../components/HeaderBeneficiario";
+
 import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
 import FiltroBeneficiario from "../../components/FiltroBeneficiario";
 import EspacoEventosBeneficiario from "../../components/EspacoEventosBeneficiario";
@@ -378,6 +379,7 @@ export default function EventosBeneficiario() {
         </div>
       </div>
     `;
+    
 
     Swal.fire({
       title: titulo,
@@ -435,10 +437,15 @@ export default function EventosBeneficiario() {
     });
   };
 
+  
+
+  
+
   return (
     <>
-      <HeaderBeneficiario />
+
       <HeaderBeneficiarioBotoes botoes={botoesNav} />
+      <div className="EventosBeneficiarioMargin">
       <FiltroBeneficiario
         filtros={filtrosUI}
         onFiltroChange={handleFiltroChange}
@@ -452,6 +459,7 @@ export default function EventosBeneficiario() {
         onInscrever={inscreverEvento}
         onMostrarDetalhes={mostrarDetalhes}
       />
+      </div>
     </>
   );
 }

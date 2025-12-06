@@ -342,10 +342,40 @@ return faixaEtariaDistribuicao.length > 0 ? <ChartBar data={data} options={optio
         setTotalBeneficiarios(visaoUser.total_beneficiarios_ativos + visaoUser.total_beneficiarios_inativos);
     }
 
+      const [fontSize, setFontSize] = useState(100);
+
+  const aumentarFonte = () => {
+    const novo = Math.min(fontSize + 10, 200);
+    setFontSize(novo);
+    document.documentElement.style.fontSize = novo + "%";
+  };
+
+  const diminuirFonte = () => {
+    const novo = Math.max(fontSize - 10, 50);
+    setFontSize(novo);
+    document.documentElement.style.fontSize = novo + "%";
+  };
+
+
     return (
  <div className="flex flex-row w-full h-screen font-[Montserrat]">
   <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
+         {/* BOTÕES ACESSIBILIDADE */}
+      <div className="fixed right-5 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4">
+        <button
+          onClick={aumentarFonte}
+          className="w-12 h-12 rounded-md bg-[#001F4D] text-white text-[18px] font-bold shadow-lg hover:bg-[#012d73] transition"
+        >
+          A+
+        </button>
 
+        <button
+          onClick={diminuirFonte}
+          className="w-12 h-12 rounded-md bg-[#001F4D] text-white text-[18px] font-bold shadow-lg hover:bg-[#012d73] transition"
+        >
+          A-
+        </button>
+      </div>
   {/* Div destacada com rolagem */}
   <div className="w-[85%] h-full flex flex-col justify-start items-center overflow-y-auto gap-6 p-6">
 

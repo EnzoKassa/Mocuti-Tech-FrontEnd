@@ -6,3 +6,44 @@ html, body, #root {
    overflow-x : hidden;
   
 }
+
+.EventosBeneficiarioMargin {
+    margin-top: 150px;
+}
+
+
+/* MOBILE: 0–599px */
+@media (max-width: 599px) {
+
+  .swal2-popup .swal2-html-container .sw-modal-compact {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    width: 100% !important;
+  }
+
+  .swal2-popup .swal2-html-container .sw-left,
+  .swal2-popup .swal2-html-container .sw-right {
+    flex: unset !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .swal2-popup .swal2-html-container .sw-img {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    display: block !important;
+  }
+
+  .swal2-popup .swal2-html-container .sw-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+
+  .swal2-popup .swal2-html-container .sw-desc {
+    margin-top: 12px !important;
+  }
+}

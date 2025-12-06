@@ -113,13 +113,12 @@ const Home = () => {
               <h1 className="text-3xl font-extrabold">Sobre Nós</h1>
 
               <p className="text-base font-normal">
-                Movimento Cultural de Cidade Tiradentes, ou Mocuti, é uma organização não governamental sem fins lucrativos localizada no bairro Cidade Tiradentes, distrito da zona leste da cidade de São Paulo fundada em 1989 e oficialmente registrada no ano de 1997.
+O Movimento Cultural de Cidade Tiradentes MOCUTI é uma ONG fundada em 1989 e registrada oficialmente em 1997, localizada na zona leste de São Paulo. Desde sua criação, atua em atividades culturais, comunitárias e sociais, com o objetivo de valorizar a cultura local, promover educação e combater desigualdades.
 
               </p>
 
               <p className="text-base font-normal mt-3">
-                O movimento exerce diversas atividades de aspecto cultural, comunitário e social na região, tendo como proposito valorizar a cultura territorial, empoderar o público com projetos educativos e combater desigualdades. Desde sua fundação a associação tem concentrado seu foco em buscar a “identidade do território” afim de dar protagonismo aos moradores do bairro de maneira inclusiva e sustentável.
-
+Seu propósito central é fortalecer a identidade do território e dar protagonismo aos moradores de Cidade Tiradentes. Para isso, desenvolve projetos inclusivos e sustentáveis que buscam empoderar a comunidade e estimular a participação ativa na construção de um ambiente mais justo e culturalmente rico.
               </p>
             </div>
 
@@ -147,14 +146,14 @@ const Home = () => {
 
         <div className="w-[80%] flex flex-col justify-center items-center">
           <div className="flex justify-start items-center gap-[5%] w-[80%] mb-4">
-            <div className="w-[40%] text-left">
+            <div className="w-[40%] text-left flex alin-items-center justify-center">
               <p className="text-base">
                 <strong className="text-[#3DA5E1]">1997 - Fundação MOCUTI</strong><br />
                 Nasce o MOCUTI...
               </p>
             </div>
 
-            <div className="w-[40%] text-left">
+            <div className="w-[40%] text-left flex alin-items-center justify-center">
               <p className="text-base">
                 <strong className="text-[#FFBB00]">1998 - Primeira Campanha</strong><br />
                 Realizamos nossa primeira campanha...
@@ -163,14 +162,14 @@ const Home = () => {
           </div>
 
           <div className="flex justify-end items-center gap-[5%] w-[80%]">
-            <div className="w-[40%] text-left">
+            <div className="w-[40%] text-left flex alin-items-center justify-center">
               <p className="text-base">
                 <strong className="text-[#FF4848]">1999 - Sede Comunitária</strong><br />
                 Inauguramos nossa sede...
               </p>
             </div>
 
-            <div className="w-[40%] text-left">
+            <div className="w-[40%] text-left flex alin-items-center justify-center">
               <p className="text-base">
                 <strong className="text-[#4FBD34]">2000 - Pré-vestibular</strong><br />
                 Primeiro curso pré-vestibular...
@@ -255,12 +254,12 @@ const Home = () => {
             ></textarea>
 
 
-            <button
-              onClick={handleEnviarEmail}
-              className="h-[4vh] w-[35%] bg-[#4FBD34] text-white flex justify-center items-center font-semibold text-base"
-            >
-              Enviar Email
-            </button>
+    <button
+  onClick={handleEnviarEmail}
+  className="h-[4vh] w-[35%] bg-[#4FBD34] text-white flex justify-center items-center font-semibold text-center"
+>
+  Enviar Email
+</button>
           </div>
 
           <div className="w-[25vw] h-full flex flex-row justify-end items-center text-base">

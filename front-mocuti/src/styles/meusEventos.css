@@ -36,3 +36,25 @@ padding-left: 2.5rem;
   
 }
 
+@media (max-width: 599px) {
+  .sw-modal-compact {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .sw-left, .sw-right {
+    flex: unset !important;
+    width: 100% !important;
+    min-width: unset !important;
+  }
+
+  .sw-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .sw-desc {
+    margin-top: 10px;
+  }
+}

@@ -1,3 +1,139 @@
+.caixa-da-home{
+    position: fixed;
+    top: 0;
+}
+
+.nav-links {
+    width: 100vw;
+    margin: 0;
+    left: 0;
+    right: 0;
+    box-sizing: border-box;
+    background-color: #F5F5F5;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    align-items: center;
+    height: 100px;
+}
+
+.nav-box-botoes-eventos {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.nav-box-logo-eventos {
+    width: 15%;
+    height: 100%;
+    justify-content: start;
+    flex-direction: row;
+    align-items: center;
+}
+
+.nav-links-botoes {
+    width: 70%;
+    height: 100%;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-direction: row;
+    display: flex;
+    padding-right: 100px;
+}
+
+.botoes-nav {
+    width: 11vw;
+    height: 50px;
+    margin-right: 3%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    background-color: white;
+    text-align: center;
+    text-decoration: none;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    color: black;
+    font-weight: 600;
+    transition: all 0.3s ease;
+
+}
+
+/* Início */
+.btn-inicio {
+    border-bottom: 2px solid #4FBD34;
+}
+
+.btn-inicio:hover {
+    border: 2px solid #4FBD34;
+}
+
+/* Sobre Nós */
+.btn-sobre {
+    border-bottom: 2px solid #3DA5E1;
+}
+
+.btn-sobre:hover {
+    border: 2px solid #3DA5E1;
+}
+
+/* Eventos */
+.btn-eventos {
+    border-bottom: 2px solid #FF4848;
+}
+
+.btn-eventos:hover {
+    border: 2px solid #FF4848;
+}
+
+.btn-linha {
+    border-bottom: 2px solid #FFBB00;
+}
+
+.btn-linha:hover {
+    border: 2px solid #FFBB00;
+}
+
+.btn-comentarios {
+    border-bottom: 2px solid #4FBD34;
+}
+
+.btn-comentarios:hover {
+    border: 2px solid #4FBD34;
+}
+
+.btn-sair {
+    border-bottom: 2px solid #FF4848;
+}
+
+.btn-sair:hover {
+    border: 2px solid #FF4848;
+}
+
+
+.header-botoes-beneficiario {
+    width: 100vw;
+    /* Ocupa toda a largura da viewport */
+    min-width: 100vw;
+    /* Garante que não fique menor */
+    margin: 0;
+    /* Remove margens */
+    left: 0;
+    right: 0;
+    box-sizing: border-box;
+    position: relative;
+    /* Ou static, se preferir */
+    display: flex;
+    /* Se quiser os botões lado a lado */
+    justify-content: center;
+    /* Centraliza os botões, remova se quiser alinhamento à esquerda */
+}
+
+
 .nav-home {
     display: flex;
     justify-content: center;
@@ -6,6 +142,7 @@
     width: 100vw;
     height: auto;
     top: 0;
+    position: absolute;
     z-index: 1;
     font-family: 'Montserrat', sans-serif;
 }
@@ -43,4 +180,145 @@
     font-family: 'Montserrat', sans-serif;
     font-size: 16px;
     font-weight: 600;
+}
+
+
+.nav-home-mobile {
+    display: none;
+}
+
+
+.img-menu-mobile {
+    width: 30px;
+    height: 30px;
+}
+
+@media (min-width: 600px) and (max-width: 1024px) {
+
+    .nav-links,
+    .nav-home {
+        display: none !important;
+    }
+
+    .nav-home-mobile {
+        transition: all 0.5s ease-in-out;
+
+        height: 100px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgb(255, 255, 255);
+         position: absolute;
+         top: 0;
+         z-index: 1000;
+    }
+
+    .nav-mobile-botoes {
+        display: none;
+    }
+
+    .nav-mobile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: row;
+        width: 90%;
+        height: 100px;
+
+    }
+
+    .nav-home-mobile:hover {
+        height: 100vh;
+        width: 60%;
+        transform: 0.5s;
+        transition: all 0.5s ease-in-out;
+        position: fixed;
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+        align-items: center;
+
+        .nav-mobile-botoes {
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+            align-items: center;
+            gap: 5%;
+            width: 70%;
+            height: 80%;
+            margin-top: 20%;
+        }
+
+        .botoes-nav {
+            width: 80%;
+        }
+
+    }
+
+}
+@media (min-width: 0px) and (max-width: 599px) {
+     
+      .nav-links,
+    .nav-home {
+        display: none !important;
+    }
+
+    .nav-home-mobile {
+        transition: all 0.5s ease-in-out;
+
+        height: 100px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgb(255, 255, 255);
+         position: fixed;
+         top: 0;
+         left: 0;
+    }
+
+    .nav-mobile-botoes {
+        display: none;
+    }
+
+    .nav-mobile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: row;
+        width: 90%;
+        height: 100px;
+
+    }
+
+    .nav-home-mobile:hover {
+        height: 100vh;
+        width: 80%;
+        transform: 0.5s;
+        transition: all 0.5s ease-in-out;
+        position: fixed;
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+        align-items: center;
+
+        .nav-mobile-botoes {
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+            align-items: center;
+            gap: 5%;
+            width: 70%;
+            height: 80%;
+            margin-top: 20%;
+        }
+
+        .botoes-nav {
+            width: 80%;
+        }
+
+    }
+
+
 }
