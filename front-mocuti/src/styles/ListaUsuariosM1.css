@@ -10,6 +10,12 @@
     sans-serif;
 }
 
+/* Forçar SweetAlert sempre por cima */
+.swal2-container {
+  z-index: 999999 !important;
+}
+
+
 /* Área principal, fundo cinza, conteúdo central */
 .conteudoPrincipal {
   padding: 32px 64px;
@@ -28,6 +34,102 @@
   margin-bottom: 16px;
   color: #222;
 }
+
+/* aaaaaaaaaaaaaaaaaaa */
+/* .menu-flutuante {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+} */
+
+/* célula que contém o menu */
+.tresPontosCell {
+  position: relative; /* referência para o menu */
+  width: 48px;
+  text-align: center;
+  vertical-align: middle;
+  padding: 8px;
+}
+
+/* wrapper clicável */
+.tresPontosWrapper {
+  display: inline-block;
+  position: relative;
+}
+
+/* ícone */
+.tresPontosIcon {
+  cursor: pointer;
+  font-size: 18px;
+  user-select: none;
+}
+
+/* menu ancorado na célula */
+.menu-flutuante {
+  position: absolute;
+  top: calc(100% + 6px); /* aparece logo abaixo do ⋮ */
+  right: 0;
+  background: #fff;
+  border: 1px solid #dadada;
+  border-radius: 6px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 1200;
+  min-width: 140px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+/* botões do menu */
+.menu-flutuante button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.menu-flutuante button:hover {
+  background: #f3f3f3;
+}
+
+.selectTrocarCargo {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  outline: none;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background: url("data:image/svg+xml;utf8,<svg fill='black' width='20' height='20' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>")
+    no-repeat calc(100% - 12px) center;
+  appearance: none;
+  background-size: 20px;
+}
+
+.selectTrocarCargo:hover {
+  border-color: #666;
+}
+
+.selectTrocarCargo:focus {
+  border-color: #3b82f6;
+}
+
+.modal-acoes-novo .btnSalvar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
 
 /* ================================
    ABAS (Mantenedores / Beneficiários)
@@ -172,20 +274,13 @@
 }
 
 /* Coluna usuário com avatar */
-.colUsuario {
+/* .colUsuario {
   display: flex;
   align-items: center;
   gap: 10px;
   font-weight: 500;
   color: #111827;
-}
-
-.avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #d9d9d9;
-}
+} */
 
 /* Coluna ordenável */
 .colOrdenavel {
@@ -204,6 +299,7 @@
   cursor: pointer;
   color: #9ca3af;
   transition: 0.2s ease;
+    position: relative;
 }
 
 .tresPontos:hover {

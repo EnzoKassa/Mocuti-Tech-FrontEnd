@@ -10,6 +10,7 @@ import {
 
 const PerfilUsuario = () => {
   const { updateUser } = useAuth();
+  const [originalData, setOriginalData] = useState(null);
 
   const [formData, setFormData] = useState({
     id: Number,
@@ -67,6 +68,17 @@ const PerfilUsuario = () => {
           canalComunicacao: data.canalComunicacao?.tipoCanalComunicacao || "",
         });
 
+        setOriginalData({
+          nomeCompleto: data.nomeCompleto,
+          cpf: data.cpf,
+          telefone: data.telefone,
+          email: data.email,
+          dt_nasc: data.dt_nasc,
+          etnia: data.etnia,
+          nacionalidade: data.nacionalidade,
+          genero: data.genero,
+        });
+
         setLoading(false);
       } catch (error) {
         console.error("Erro ao buscar os dados do usuário:", error);
@@ -102,11 +114,35 @@ const PerfilUsuario = () => {
     if (formData.telefone.length < 10)
       return Swal.fire("Erro", "Telefone inválido.", "error");
 
+    if (formData.email !== originalData.email) {
+      try {
+        const check = await api.get(
+          `/usuarios/existeEmail?email=${formData.email}`
+        );
+
+        if (check.data.exists) {
+          return Swal.fire(
+            "Erro",
+            "Este e-mail já está sendo usado por outro usuário.",
+            "error"
+          );
+        }
+      } catch (err) {
+        return Swal.fire(
+          "Erro",
+          err.response?.data?.message || "Erro ao verificar e-mail.",
+          "error"
+        );
+      }
+    }
+
     const confirm = await Swal.fire({
       title: "Salvar alterações?",
       showCancelButton: true,
-      confirmButtonText: "Salvar",
       cancelButtonText: "Cancelar",
+      confirmButtonText: "Salvar",
+      confirmButtonColor: "#45AA48",
+      reverseButtons: true // 🔥 INVERTE OS BOTÕES
     });
 
     if (!confirm.isConfirmed) return;
@@ -117,8 +153,7 @@ const PerfilUsuario = () => {
         JSON.parse(sessionStorage.getItem("user"));
 
       if (!storedUser?.id) {
-        Swal.fire("Erro", "Usuário não autenticado.", "error");
-        return;
+        return Swal.fire("Erro", "Usuário não autenticado.", "error");
       }
 
       const dataToSend = {
@@ -132,6 +167,23 @@ const PerfilUsuario = () => {
         genero: formData.genero,
       };
 
+      if (!originalData) return;
+
+      const unchanged =
+        dataToSend.nomeCompleto === originalData.nomeCompleto &&
+        dataToSend.cpf === originalData.cpf &&
+        dataToSend.telefone === originalData.telefone &&
+        dataToSend.email === originalData.email &&
+        dataToSend.dt_nasc === originalData.dt_nasc &&
+        dataToSend.etnia === originalData.etnia &&
+        dataToSend.nacionalidade === originalData.nacionalidade &&
+        dataToSend.genero === originalData.genero;
+
+      if (unchanged) {
+        return Swal.fire("Aviso", "Nenhuma alteração foi realizada.", "info");
+      }
+
+      // 🔥 Só chama API se houve mudança
       const response = await api.put(
         `/usuarios/editar/${storedUser.id}`,
         dataToSend
@@ -158,7 +210,11 @@ const PerfilUsuario = () => {
         sessionStorage.setItem("nomeCompleto", updatedUser.nomeCompleto);
       }
 
-      setFormData((prev) => ({ ...prev, ...response.data }));
+      setFormData((prev) => ({
+        ...prev,
+        ...response.data,
+        cargo: response.data.cargo?.tipoCargo || prev.cargo,
+      }));
 
       Swal.fire("Sucesso!", "Dados atualizados com sucesso!", "success").then(
         () => {
@@ -227,7 +283,9 @@ const PerfilUsuario = () => {
         </div>
       `,
       showDenyButton: true,
+      reverseButtons: true, // 🔥 INVERTE OS BOTÕES
       confirmButtonText: "Salvar",
+      confirmButtonColor: "#45AA48",
       denyButtonText: "Cancelar",
       focusConfirm: false,
       didRender: () => {
@@ -314,7 +372,9 @@ const PerfilUsuario = () => {
           <div className="form-group">
             <label>Cargo</label>
             <div className="input-readonly">
-              {formData.cargo || "Não informado"}
+              {typeof formData.cargo === "object"
+                ? formData.cargo?.tipoCargo
+                : formData.cargo || "Não informado"}
             </div>
           </div>
           <div className="form-group">
@@ -375,9 +435,14 @@ const PerfilUsuario = () => {
               onChange={handleInputChange}
               className="select-field"
             >
-              <option value="Prefiro não informar">Prefiro não informar</option>
+              <option value="" disabled>
+                {" "}
+                Selecione{" "}
+              </option>
               <option value="Masculino">Masculino</option>
               <option value="Feminino">Feminino</option>
+              <option value="nao-informar">Prefiro não informar</option>
+              <option value="outros">Outros</option>
             </select>
           </div>
         </div>
@@ -413,7 +478,7 @@ const PerfilUsuario = () => {
           </button>
 
           <button style={{ flex: 1 }} type="submit" className="submit-button">
-            Editar
+            Salvar alterações
           </button>
         </div>
       </form>

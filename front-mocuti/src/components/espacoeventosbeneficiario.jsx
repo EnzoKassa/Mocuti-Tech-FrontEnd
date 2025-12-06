@@ -5,7 +5,8 @@ import "sweetalert2/dist/sweetalert2.min.css";
 import "../styles/EspacoEventosBeneficiario.css";
 import calendar from "../assets/images/calendar.png";
 import people from "../assets/images/Person.png";
-import { fetchInscritosCargo2Count } from "../api/api";
+import api, { fetchInscritosCargo2Count } from "../api/api";
+import { getCategoryColor, getStatusColor } from "../utils/badgeColors";
 
 export default function EspacoEventosBeneficiario({
   eventos = [],
@@ -109,6 +110,89 @@ export default function EspacoEventosBeneficiario({
     });
   };
 
+  // Badge simples e segura (não altera comportamento externo)
+  const [countsMap, setCountsMap] = useState({});
+
+  // busca counts para eventos que não providenciam inscritosCount
+  useEffect(() => {
+    let mounted = true;
+    const idsToFetch = (eventos || [])
+      .map(ev => ev?.idEvento ?? ev?.id ?? ev?.id_evento)
+      .filter(Boolean)
+      .filter(id => countsMap[id] === undefined && !(eventos.find(e => (e.idEvento||e.id||e.id_evento) == id)?.inscritosCount !== undefined));
+
+    if (idsToFetch.length === 0) return;
+
+    (async () => {
+      const newCounts = {};
+      await Promise.all(idsToFetch.map(async id => {
+        try {
+          const c = await fetchInscritosCargo2Count(id);
+          newCounts[id] = Number.isFinite(Number(c)) ? Number(c) : 0;
+        } catch (e) {
+          newCounts[id] = 0;
+        }
+      }));
+      if (!mounted) return;
+      setCountsMap(prev => ({ ...prev, ...newCounts }));
+    })();
+
+    return () => { mounted = false; };
+  }, [eventos]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const Badge = ({ text = "", bg = "#999", style = {} }) => (
+    <span
+      style={{
+        display: "inline-block",
+        background: bg,
+        color: "#fff",
+        padding: "4px 10px",
+        borderRadius: 999,
+        fontSize: 12,
+        lineHeight: "18px",
+        marginRight: 8,
+        whiteSpace: "nowrap",
+        ...style,
+      }}
+    >
+      {text}
+    </span>
+  );
+
+  // normaliza e retorna timestamp do evento (prioriza campos comuns)
+  const getEventTimestamp = (ev) => {
+    if (!ev) return Infinity;
+    const candidates = [
+      ev.data_evento,
+      ev.dia,
+      ev.dataInicio,
+      ev.data_inicio,
+      ev.data,
+      ev.dataEvento,
+    ].filter(Boolean);
+    // também aceita campos com tempo em ISO
+    const s = candidates.length ? candidates[0] : null;
+    if (!s) return Infinity;
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) return d.getTime();
+    // último recurso: tentar extrair yyyy-mm-dd com regex
+    const m = String(s).match(/(\d{4}-\d{2}-\d{2})/);
+    if (m) {
+      const d2 = new Date(m[1]);
+      if (!isNaN(d2.getTime())) return d2.getTime();
+    }
+    return Infinity;
+  };
+
+  // calcula lista visível: NÃO filtrar por status aqui (mostrar todos), mas ordenar
+  const visibleEventos = Array.isArray(eventos)
+    ? [...eventos].sort((a, b) => {
+        const ta = getEventTimestamp(a);
+        const tb = getEventTimestamp(b);
+        return ta - tb;
+      })
+    : [];
+
   return (
     <div className="espaco-eventos-beneficiario-geral">
       <div className="espaco-eventos-beneficiario-engloba-eventos">
@@ -117,7 +201,7 @@ export default function EspacoEventosBeneficiario({
             {(!eventos || eventos.length === 0) && (
               <p>Nenhum evento encontrado.</p>
             )}
-            {eventos.map((evento, idx) => {
+            {visibleEventos.map((evento, idx) => {
               const qtdVaga = Number(
                 evento.qtdVaga ??
                   evento.qtd_vaga ??
@@ -162,21 +246,37 @@ export default function EspacoEventosBeneficiario({
                       </h3>
                     </div>
                     <div className="eventos-tipocategoria-beneficiario">
-                      <div className="eventos-categoria-beneficiario">
-                        Categoria:{" "}
-                        <a href="#">
-                          {evento.categoriaNome ||
-                            evento.categoria?.nome ||
-                            "Não informada"}
-                        </a>
+                      <div
+                        className="eventos-categoria-beneficiario"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          padding: "6px 8px",
+                          borderRadius: 6,
+                        }}
+                      >
+                        <span style={{ color: "#333", fontWeight: 600 }}>Categoria:</span>
+                        <Badge
+                          text={evento.categoriaNome || evento.categoria?.nome || "Não informada"}
+                          bg={getCategoryColor(evento.categoriaNome || evento.categoria?.nome || "")}
+                        />
                       </div>
-                      <div className="eventos-status-beneficiario">
-                        Status:{" "}
-                        <a href="#">
-                          {evento.status_evento ||
-                            evento.statusEvento?.situacao ||
-                            "Aberto"}
-                        </a>
+                      <div
+                        className="eventos-status-beneficiario"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          padding: "6px 8px",
+                          borderRadius: 6,
+                        }}
+                      >
+                        <span style={{ color: "#333", fontWeight: 600 }}>Status:</span>
+                        <Badge
+                          text={evento.status_evento || evento.statusEvento?.situacao || "Aberto"}
+                          bg={getStatusColor(evento.status_evento || evento.statusEvento?.situacao || "Aberto")}
+                        />
                       </div>
                     </div>
                   </div>
@@ -204,7 +304,20 @@ export default function EspacoEventosBeneficiario({
                       alt="Ícone de Pessoas"
                     />
                     <a href="#">
-                      {qtdInteressado}/{qtdVaga || 0}
+                      <div className="eventos-vagas" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <i className="icon-user" />
+                        <span>
+                          {(
+                            (evento.inscritosCount ??
+                              evento.inscritos ??
+                              countsMap[(evento.idEvento ?? evento.id ?? evento.id_evento)] ??
+                              qtdInteressado ??
+                              0)
+                          ) + "/" + (
+                            (evento.vagas ?? evento.vagasMax ?? evento.numeroVagas ?? qtdVaga ?? 0)
+                          )}
+                        </span>
+                      </div>
                     </a>
                   </div>
 

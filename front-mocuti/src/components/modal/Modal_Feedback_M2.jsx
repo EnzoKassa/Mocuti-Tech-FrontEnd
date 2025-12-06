@@ -30,22 +30,7 @@ const ModalFeedback = ({ modalData, onClose, onSave }) => {
           />
           <button
             onClick={() => {
-              if (comentario.length <= 255) {
-                Swal.fire({
-                  title: "Comentário salvo com sucesso!",
-                  icon: "success",
-                  draggable: false, // Permite arrastar a janela
-                  showConfirmButton: false,
-                  timer: 1500,
-                  // confirmButtonColor: "#4FBD34",
-                  customClass: {
-                    title: "swal-title",
-                    htmlContainer: "swal-text",
-                  },
-                });
-              } else {
-                onSave({ ...modalData, comentario });
-
+              if (comentario.length >= 255) {
                 Swal.fire({
                   title: "Seu comentário excede o limite de 255 caracteres.",
                   icon: "error",
@@ -58,7 +43,25 @@ const ModalFeedback = ({ modalData, onClose, onSave }) => {
                     htmlContainer: "swal-text",
                   },
                 });
+                return;
               }
+
+              onSave({ ...modalData, comentario });
+
+              Swal.fire({
+                title: "Comentário salvo com sucesso!",
+                icon: "success",
+                draggable: false, // Permite arrastar a janela
+                showConfirmButton: false,
+                timer: 1500,
+                // confirmButtonColor: "#4FBD34",
+                customClass: {
+                  title: "swal-title",
+                  htmlContainer: "swal-text",
+                },
+              }).then(() => {
+                onClose(); // fecha o modal
+              });
             }}
           >
             Salvar Comentário

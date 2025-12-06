@@ -13,7 +13,7 @@
   width: 85%;
   display: flex;
   justify-content: center;
-  background-color: #ededed;
+  background-color: #F5F5F5;
 }
 .titulo-eventos{
     font-size: 3rem;
@@ -29,9 +29,8 @@
     display: flex;
     width: 100%;
     flex-direction: row;
-    justify-content: space-between;
     align-items: center;
-
+    gap: 33%;
     margin: 0;
     padding: 0;
 

@@ -348,7 +348,8 @@ export async function openEventoFormModal(
     <div class="pagina-evento-modal">
       <div class="pagina-evento-conteudo" style="font-family:inherit; text-align:left; font-size:13px; color:#333;">
         <div style="max-height:520px; overflow:auto; padding:8px;">
-          <div style="display:grid; grid-template-columns: 1fr 320px; gap:12px;">
+          <!-- agora com 3 colunas: principal | dados rápidos | lista de usuários/convidados -->
+          <div style="display:grid; grid-template-columns: 1fr 320px 400px; gap:12px;">
             <div>
               <div style="margin-bottom:8px;">
                 <label style="font-weight:700; display:block; margin-bottom:6px;">Nome</label>
@@ -401,6 +402,7 @@ export async function openEventoFormModal(
               </div>
             </div>
 
+            <!-- coluna intermediária: categoria / status / endereço -->
             <div>
               <div style="margin-bottom:8px;">
                 <label style="font-weight:700; display:block; margin-bottom:6px;">Categoria</label>
@@ -436,23 +438,26 @@ export async function openEventoFormModal(
                 <input id="ev-uf" placeholder="UF" class="campo-entrada" style="margin-bottom:6px;" />
                 <input id="ev-cidade" placeholder="Cidade" class="campo-entrada" style="margin-bottom:6px;" />
               </div>
+            </div>
 
+            <!-- terceira coluna: mover aqui os blocos de usuários/convidados para mais espaço -->
+            <div>
               <div style="margin-top:12px;">
                 <label style="font-weight:700; display:block; margin-bottom:6px;">Convidar Mantenedores</label>
-                <div id="ev-usuarios-cargo3" style="max-height:140px; overflow:auto; border:1px solid #eee; padding:8px; background:#fff;"></div>
+                <div id="ev-usuarios-cargo3" style="max-height:320px; overflow:auto; border:1px solid #eee; padding:8px; background:#fff; border-radius:6px;"></div>
                 <button id="ev-enviar-convites-btn" type="button" style="margin-top:8px; display:block;">Enviar convites selecionados</button>
               </div>
 
               <div style="margin-top:12px;">
                 <label style="font-weight:700; display:block; margin-bottom:6px;">Convidados do evento</label>
-                <div id="ev-convidados-list" style="max-height:140px; overflow:auto; border:1px solid #eee; padding:8px; background:#fff;"></div>
+                <div id="ev-convidados-list" style="max-height:420px; overflow:auto; border:1px solid #eee; padding:8px; background:#fff; border-radius:6px;"></div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+           </div>
+         </div>
+       </div>
+     </div>
+   `;
 
   const popup = await Swal.fire({
     title: isEdit ? "Editar Evento" : "Cadastrar novo evento",
@@ -460,13 +465,54 @@ export async function openEventoFormModal(
     showCancelButton: true,
     confirmButtonText: isEdit ? "Salvar" : "Cadastrar",
     cancelButtonText: "Fechar",
-    width: 760,
+    // manter sempre verde para o botão de confirmação (Cadastrar / Salvar)
+    confirmButtonColor: "#4CAF50",
+    width: "60%",
     focusConfirm: false,
     didOpen: () => {
       try {
+        // garantir que os botões fiquem alinhados à direita
+        try {
+          const actions = document.querySelector(".swal2-actions");
+          if (actions) actions.style.justifyContent = "flex-end";
+        } catch (errStyle) {
+          console.debug("eventoFormModal: não foi possível ajustar alinhamento dos botões:", errStyle);
+        }
+
         attachModalBehavior({ values, enderecos, getAuthHeaders });
       } catch (err) {
         console.debug("eventoFormModal: attachModalBehavior falhou:", err);
+      }
+
+      // garantir comportamento correto do select de endereços: pré-selecionar e limpar campos ao escolher "__novo"
+      const enderecoSelect = document.getElementById("ev-endereco-select");
+      const novoContainer = document.getElementById("ev-endereco-novo");
+      const clearNovoFields = () => {
+        ["ev-cep","ev-logradouro","ev-numero","ev-complemento","ev-bairro","ev-uf","ev-cidade"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = "";
+        });
+      };
+      if (enderecoSelect) {
+        // setar valor inicial ao abrir (edição)
+        if (values.enderecoId) {
+          try { enderecoSelect.value = String(values.enderecoId); } catch (e) { /* ignore */ }
+        }
+        // inicializar visibilidade
+        if (enderecoSelect.value === "__novo") {
+          if (novoContainer) novoContainer.style.display = "block";
+        } else {
+          if (novoContainer) novoContainer.style.display = "none";
+        }
+        enderecoSelect.addEventListener("change", (ev) => {
+          const v = ev.target.value;
+          if (v === "__novo") {
+            if (novoContainer) novoContainer.style.display = "block";
+            clearNovoFields();
+          } else {
+            if (novoContainer) novoContainer.style.display = "none";
+          }
+        });
       }
 
       // carregar usuários cargo=3 e convidados (após abrir modal)
@@ -501,7 +547,6 @@ export async function openEventoFormModal(
             if (uid) convidadosExistentesSet.add(uid);
           });
 
-          // filtrar usuariosCargo3 removendo os já convidados
           usuariosCargo3 = (usuariosCargo3 || []).filter((u) => {
             const uid = String(u.idUsuario ?? u.id ?? u.usuarioId ?? "");
             return uid && !convidadosExistentesSet.has(uid);
@@ -514,16 +559,26 @@ export async function openEventoFormModal(
             usuariosContainer.innerHTML = usuariosCargo3
               .map((u) => {
                 const uid = u.idUsuario ?? u.id ?? u.usuarioId ?? "";
+                // preferir nomeCompleto retornado pela API
                 const rawName =
-                  u.nome || u.nomeUsuario || u.nome_completo || u.email || "";
+                  u.nomeCompleto ||
+                  u.nome || 
+                  u.nomeUsuario || 
+                  u.nome_completo || 
+                  "";
                 const rawEmail = u.email || "";
-                // sempre mostrar nome (fallback para email) e email abaixo
-                const nameToShow = escapeHtml(rawName || rawEmail);
+                const nameToShow = escapeHtml(rawName ? rawName : rawEmail);
                 const emailToShow = escapeHtml(rawEmail);
+                // mostrar email abaixo apenas quando existir nome diferente do email;
+                // se não houver nome, mostrar só o email (uma linha)
+                const emailLine =
+                  rawName && rawEmail && rawEmail !== rawName
+                    ? `<div style="font-size:11px;color:#666;">${emailToShow}</div>`
+                    : "";
                 return `<div style="display:flex; gap:8px; align-items:center; padding:6px 0;">
-                        <input data-uid="${uid}" class="ev-usr-chk" type="checkbox" style="width:16px; height:16px;" />
-                        <div style="font-size:13px;"><strong>${nameToShow}</strong><div style="font-size:11px;color:#666;">${emailToShow}</div></div>
-                      </div>`;
+                          <input data-uid="${uid}" class="ev-usr-chk" type="checkbox" style="width:16px; height:16px;" />
+                          <div style="font-size:13px;"><strong>${nameToShow}</strong>${emailLine}</div>
+                        </div>`;
               })
               .join("");
             usuariosContainer.querySelectorAll(".ev-usr-chk").forEach((chk) => {
@@ -639,15 +694,23 @@ export async function openEventoFormModal(
               usuariosContainer.innerHTML = usuariosCargo3
                 .map((u) => {
                   const uid = u.idUsuario ?? u.id ?? u.usuarioId ?? "";
+                  // preferir nomeCompleto retornado pela API
                   const rawName =
-                    u.nome || u.nomeUsuario || u.nome_completo || u.email || "";
+                    u.nomeCompleto ||
+                    u.nome ||
+                    u.nomeUsuario ||
+                    u.nome_completo ||
+                    "";
                   const rawEmail = u.email || "";
-                  // sempre mostrar nome (fallback para email) e email abaixo
-                  const nameToShow = escapeHtml(rawName || rawEmail);
+                  const nameToShow = escapeHtml(rawName ? rawName : rawEmail);
                   const emailToShow = escapeHtml(rawEmail);
+                  const emailLine =
+                    rawName && rawEmail && rawEmail !== rawName
+                      ? `<div style="font-size:11px;color:#666;">${emailToShow}</div>`
+                      : "";
                   return `<div style="display:flex; gap:8px; align-items:center; padding:6px 0;">
                           <input data-uid="${uid}" class="ev-usr-chk" type="checkbox" style="width:16px; height:16px;" />
-                          <div style="font-size:13px;"><strong>${nameToShow}</strong><div style="font-size:11px;color:#666;">${emailToShow}</div></div>
+                          <div style="font-size:13px;"><strong>${nameToShow}</strong>${emailLine}</div>
                         </div>`;
                 })
                 .join("");

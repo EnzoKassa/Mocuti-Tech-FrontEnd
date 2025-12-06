@@ -10,7 +10,7 @@ import feedback from "../../assets/images/feedbackLogo.svg";
 import Visao from "../../assets/images/visaoGeral.svg";
 import Lista from "../../assets/images/listausuariom1.svg";
 
-import api from '../../api/api';
+import api from "../../api/api";
 
 import {
   Chart as ChartJS,
@@ -21,16 +21,18 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-  import { Bar } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 
-import {
-  BiLike,
-  BiSolidLike,
-  BiDislike,
-  BiSolidDislike,
-} from "react-icons/bi";
+import { BiLike, BiSolidLike, BiDislike, BiSolidDislike } from "react-icons/bi";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ChartTitle, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ChartTitle,
+  Tooltip,
+  Legend
+);
 
 // ===================
 // CONFIG / ENDPOINTS
@@ -62,7 +64,6 @@ async function buscarTodosEventos(signal) {
         raw: e,
       }))
       .filter((ev) => ev.id != null);
-
   } catch {
     return [];
   }
@@ -76,7 +77,12 @@ async function buscarEventoPorId(id, signal) {
 async function buscarListaPresencaEvento(idEvento, signal) {
   const res = await api.get(`/usuarios/${idEvento}/lista-presenca`, { signal });
 
-  if (res.data && typeof res.data === "object" && !Array.isArray(res.data) && "mensagem" in res.data) {
+  if (
+    res.data &&
+    typeof res.data === "object" &&
+    !Array.isArray(res.data) &&
+    "mensagem" in res.data
+  ) {
     return null;
   }
 
@@ -92,7 +98,9 @@ async function buscarFeedbacksDoEvento(idEvento, signal) {
     if (Array.isArray(res.data)) return res.data;
   } catch {}
 
-  const fallback = await api.get(`/feedback`, { signal }).catch(() => ({ data: [] }));
+  const fallback = await api
+    .get(`/feedback`, { signal })
+    .catch(() => ({ data: [] }));
   const alvo = Number(idEvento);
 
   return fallback.data.filter((f) => {
@@ -113,7 +121,7 @@ async function buscarFeedbacksDoEvento(idEvento, signal) {
 export default function Feedbacks_M1() {
   // Seleção de evento
   const [currentEventoId, setCurrentEventoId] = useState(null);
-  const [mostrarSeletorEventos, setMostrarSeletorEventos] = useState(true);
+  const [mostrarSeletorEventos, setMostrarSeletorEventos] = useState(false);
   const [eventos, setEventos] = useState([]);
   const [eventosLoading, setEventosLoading] = useState(false);
   const [eventosErro, setEventosErro] = useState(null);
@@ -133,7 +141,7 @@ export default function Feedbacks_M1() {
     { texto: "Eventos", rota: "/admin/eventos", img: Calendario },
     { texto: "Usuários", rota: "/admin/lista-usuarios", img: Lista },
     { texto: "Feedbacks", rota: "/admin/feedbacks", img: feedback },
-    { texto: "Meu Perfil", rota: "/admin/perfil", img: MeuPerfil }
+    { texto: "Meu Perfil", rota: "/admin/perfil", img: MeuPerfil },
   ];
   // Carregar eventos (para modal de seleção)
   useEffect(() => {
@@ -180,8 +188,16 @@ export default function Feedbacks_M1() {
         const [evRes, listaRes, fbRes] = results;
 
         setEvento(evRes.status === "fulfilled" ? evRes.value ?? null : null);
-        setListaPresenca(listaRes.status === "fulfilled" ? (listaRes.value ?? null) : null);
-        setFeedbacks(fbRes.status === "fulfilled" ? (Array.isArray(fbRes.value) ? fbRes.value : []) : []);
+        setListaPresenca(
+          listaRes.status === "fulfilled" ? listaRes.value ?? null : null
+        );
+        setFeedbacks(
+          fbRes.status === "fulfilled"
+            ? Array.isArray(fbRes.value)
+              ? fbRes.value
+              : []
+            : []
+        );
       } catch (e) {
         if (!vivo) return;
         console.error("[ERRO GERAL FETCH M1]", e);
@@ -217,7 +233,12 @@ export default function Feedbacks_M1() {
     let dislike = 0;
     let total = 0;
     for (const f of feedbacksDoEvento) {
-      const nota = (f?.nota?.tipoNota || f?.nota?.tipo_nota || f?.nota || "").toLowerCase();
+      const nota = (
+        f?.nota?.tipoNota ||
+        f?.nota?.tipo_nota ||
+        f?.nota ||
+        ""
+      ).toLowerCase();
       if (nota === "like") like += 1;
       else if (nota === "dislike") dislike += 1;
       total += 1;
@@ -235,12 +256,27 @@ export default function Feedbacks_M1() {
   }
 
   const kpisPresenca = useMemo(() => {
-    if (listaPresenca && !Array.isArray(listaPresenca) && typeof listaPresenca === "object") {
-      const totalInscritos = Number(listaPresenca.totalInscritos ?? listaPresenca.total_inscritos ?? 0);
-      const totalPresentes = Number(listaPresenca.totalPresentes ?? listaPresenca.total_presentes ?? 0);
-      const totalAusentes =
-        Number(listaPresenca.totalAusentes ?? listaPresenca.total_ausentes ?? Math.max(totalInscritos - totalPresentes, 0));
-      return { inscritos: totalInscritos, presentes: totalPresentes, ausentes: totalAusentes };
+    if (
+      listaPresenca &&
+      !Array.isArray(listaPresenca) &&
+      typeof listaPresenca === "object"
+    ) {
+      const totalInscritos = Number(
+        listaPresenca.totalInscritos ?? listaPresenca.total_inscritos ?? 0
+      );
+      const totalPresentes = Number(
+        listaPresenca.totalPresentes ?? listaPresenca.total_presentes ?? 0
+      );
+      const totalAusentes = Number(
+        listaPresenca.totalAusentes ??
+          listaPresenca.total_ausentes ??
+          Math.max(totalInscritos - totalPresentes, 0)
+      );
+      return {
+        inscritos: totalInscritos,
+        presentes: totalPresentes,
+        ausentes: totalAusentes,
+      };
     }
     const participantes = Array.isArray(listaPresenca) ? listaPresenca : [];
     const totalInscritos = participantes.filter((p) => {
@@ -249,7 +285,11 @@ export default function Feedbacks_M1() {
     }).length;
     const totalPresentes = contarPresentes(participantes);
     const totalAusentes = Math.max(totalInscritos - totalPresentes, 0);
-    return { inscritos: totalInscritos, presentes: totalPresentes, ausentes: totalAusentes };
+    return {
+      inscritos: totalInscritos,
+      presentes: totalPresentes,
+      ausentes: totalAusentes,
+    };
   }, [listaPresenca]);
 
   // Chart.js
@@ -321,6 +361,12 @@ export default function Feedbacks_M1() {
   function selecionarEvento(id) {
     const parsedId = Number(id);
     if (!Number.isFinite(parsedId)) return;
+
+    // Se selecionou o mesmo, força reload
+    if (parsedId === currentEventoId) {
+      setEventosReloadKey((k) => k + 1);
+    }
+
     // limpar antes de trocar
     setEvento(null);
     setFeedbacks([]);
@@ -372,24 +418,25 @@ export default function Feedbacks_M1() {
         {/* Header */}
         <div className="headerEvento">
           <div className="headerLeft">
-            <div className="headerLegenda">Evento</div>
-            <div className="headerTitulo" title={nomeEventoHeader}>
-              {nomeEventoHeader}
-            </div>
+            <div className="headerLegenda">Evento Selecionado</div>
+
+            <select
+              className="selectTituloEvento"
+              value={currentEventoId ?? ""}
+              onChange={(e) => selecionarEvento(e.target.value)}
+            >
+              <option value="">Selecione um evento</option>
+              {eventos.map((ev) => (
+                <option key={ev.id} value={ev.id}>
+                  {ev.nome}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="headerMeta">
-            <div className="metaLabel">Feedbacks:</div>
+            <div className="metaLabel">Quantidade de Feedbacks</div>
             <div className="metaValor">{loading ? "…" : agregados.total}</div>
-
-            <button
-              className="btnTrocarEvento"
-              onClick={() => setMostrarSeletorEventos(true)}
-              aria-label="Trocar evento"
-              title="Abrir seletor de eventos"
-            >
-              Trocar evento
-            </button>
           </div>
         </div>
 
@@ -434,7 +481,9 @@ export default function Feedbacks_M1() {
 
         {/* Lista de feedbacks */}
         <div className="boxLowFeedback">
-          <div className="tituloFeedback tituloFeedbackLow">Lista de feedbacks do evento</div>
+          <div className="tituloFeedback tituloFeedbackLow">
+            Lista de feedbacks do evento
+          </div>
 
           <div className="boxListaFeedback">
             <div className="colunas">
@@ -444,44 +493,60 @@ export default function Feedbacks_M1() {
               <div className="colunaAcoes colunaHeader"></div>
             </div>
 
-            {(feedbacksDoEvento.length ? feedbacksDoEvento : []).map((fb, i) => {
-              const nomeEventoLinha =
-                fb?.evento?.nomeEvento ??
-                fb?.evento?.nome_evento ??
-                `Evento ${fb?.evento?.idEvento ?? fb?.evento?.id_evento ?? "—"}`;
+            {(feedbacksDoEvento.length ? feedbacksDoEvento : []).map(
+              (fb, i) => {
+                const nomeEventoLinha =
+                  fb?.evento?.nomeEvento ??
+                  fb?.evento?.nome_evento ??
+                  `Evento ${
+                    fb?.evento?.idEvento ?? fb?.evento?.id_evento ?? "—"
+                  }`;
 
-              const nomeUsuarioLinha =
-                fb?.usuario?.nomeCompleto || fb?.nomeUsuario || fb?.participante || fb?.nome || "—";
+                const nomeUsuarioLinha =
+                  fb?.usuario?.nomeCompleto ||
+                  fb?.nomeUsuario ||
+                  fb?.participante ||
+                  fb?.nome ||
+                  "—";
 
-              const emailUsuarioLinha = fb?.usuario?.email || fb?.emailUsuario || fb?.email || "—";
+                const emailUsuarioLinha =
+                  fb?.usuario?.email || fb?.emailUsuario || fb?.email || "—";
 
-              const notaAtual = (fb?.nota?.tipoNota || fb?.nota?.tipo_nota || fb?.nota || "").toLowerCase();
+                const notaAtual = (
+                  fb?.nota?.tipoNota ||
+                  fb?.nota?.tipo_nota ||
+                  fb?.nota ||
+                  ""
+                ).toLowerCase();
 
-              return (
-                <div className="linhas" key={fb.idFeedback ?? i}>
-                  <div className="colunaFeedback">{nomeEventoLinha}</div>
-                  <div className="colunaNome">{nomeUsuarioLinha}</div>
-                  <div className="colunaEmail">{emailUsuarioLinha}</div>
-                  <div className="boxBotaoFeedback">
-                    <button
-                      className="botaoMaisInfoFeedback"
-                      onClick={() =>
-                        setModalData({
-                          ...fb,
-                          nota: notaAtual,
-                          comentario: fb.comentario || "",
-                        })
-                      }
-                    >
-                      + Mais Informações
-                    </button>
+                return (
+                  <div className="linhas" key={fb.idFeedback ?? i}>
+                    <div className="colunaFeedback">{nomeEventoLinha}</div>
+                    <div className="colunaNome">{nomeUsuarioLinha}</div>
+                    <div className="colunaEmail">{emailUsuarioLinha}</div>
+                    <div className="boxBotaoFeedback">
+                      <button
+                        className="botaoMaisInfoFeedback"
+                        onClick={() =>
+                          setModalData({
+                            ...fb,
+                            nota: notaAtual,
+                            comentario: fb.comentario || "",
+                          })
+                        }
+                      >
+                        + Mais Informações
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              }
+            )}
 
             {!feedbacksDoEvento.length && !loading && currentEventoId && (
-              <div className="linhas linhasVazia">Nenhum feedback para este evento.</div>
+              <div className="linhas linhasVazia">
+                Nenhum feedback para este evento.
+              </div>
             )}
           </div>
         </div>
@@ -498,7 +563,10 @@ export default function Feedbacks_M1() {
           }}
         >
           <div className="feedback-modal">
-            <button className="feedback-modal-close" onClick={() => setModalData(null)}>
+            <button
+              className="feedback-modal-close"
+              onClick={() => setModalData(null)}
+            >
               ×
             </button>
             <h2>Descrição do Feedback</h2>
@@ -511,7 +579,11 @@ export default function Feedbacks_M1() {
             <div className="feedback-modal-botoes">
               <p>Nota do Evento</p>
 
-              <div className="feedback-modal-actions" role="radiogroup" aria-label="Nota do evento">
+              <div
+                className="feedback-modal-actions"
+                role="radiogroup"
+                aria-label="Nota do evento"
+              >
                 {/* LIKE — minimal: pill, outline verde no neutro; preenchido verde no ativo */}
                 <button
                   className={[
@@ -541,7 +613,11 @@ export default function Feedbacks_M1() {
                   disabled
                 >
                   <span className="nota-icon">
-                    {modalData.nota === "dislike" ? <BiSolidDislike /> : <BiDislike />}
+                    {modalData.nota === "dislike" ? (
+                      <BiSolidDislike />
+                    ) : (
+                      <BiDislike />
+                    )}
                   </span>
                   <span className="nota-text">Não Gostei</span>
                 </button>
@@ -551,13 +627,22 @@ export default function Feedbacks_M1() {
         </div>
       )}
 
+      {mostrarSeletorEventos && (
+        <ModalSelectEventos
+          eventos={eventos}
+          onSelect={(id) => selecionarEvento(id)}
+        />
+      )}
+
       {/* Modal inicial: seleção de evento */}
       {mostrarSeletorEventos && (
         <div className="seletor-evento-overlay" aria-modal="true" role="dialog">
           <div className="seletor-evento-modal" role="document">
             <h2 className="seletor-title">Selecione um evento</h2>
 
-            {eventosLoading && <div className="seletor-loading">Carregando eventos…</div>}
+            {eventosLoading && (
+              <div className="seletor-loading">Carregando eventos…</div>
+            )}
 
             {eventosErro && (
               <div className="seletor-erro">
@@ -570,7 +655,7 @@ export default function Feedbacks_M1() {
 
             {!eventosLoading && !eventosErro && (
               <>
-                {(!eventos || eventos.length === 0) ? (
+                {!eventos || eventos.length === 0 ? (
                   <div className="seletor-vazio">Nenhum evento encontrado.</div>
                 ) : (
                   <div className="seletor-tabela">
