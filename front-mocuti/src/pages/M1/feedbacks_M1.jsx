@@ -4,6 +4,8 @@ import "../../styles/TelaComNavLateral.css";
 import "../../styles/Feedbacks_M1.css";
 import "../../styles/FeedbacksM2.css";
 
+import { useLocation } from "react-router-dom";
+
 import Calendario from "../../assets/images/calendario.svg";
 import MeuPerfil from "../../assets/images/meuPerfil.svg";
 import feedback from "../../assets/images/feedbackLogo.svg";
@@ -49,6 +51,7 @@ ChartJS.register(
 
 // ------------- APIs -------------
 async function buscarTodosEventos(signal) {
+  
   try {
     const res = await api.get("/eventos", { signal });
     const data = Array.isArray(res.data) ? res.data : [];
@@ -119,8 +122,18 @@ async function buscarFeedbacksDoEvento(idEvento, signal) {
 // COMPONENTE
 // ===================
 export default function Feedbacks_M1() {
-  // Seleção de evento
+
+  const location = useLocation();
   const [currentEventoId, setCurrentEventoId] = useState(null);
+
+  useEffect(() => {
+    if (location.state?.eventoId) {
+      setCurrentEventoId(location.state.eventoId);
+    }
+  }, [location.state]);
+
+  // Seleção de evento
+  // const [currentEventoId, setCurrentEventoId] = useState(null);
   const [mostrarSeletorEventos, setMostrarSeletorEventos] = useState(false);
   const [eventos, setEventos] = useState([]);
   const [eventosLoading, setEventosLoading] = useState(false);

@@ -455,7 +455,11 @@ export async function openGerenciarModal(
         .getElementById("gerenciar-dashboard")
         ?.addEventListener("click", () => {
           Swal.close();
-          if (navigate) navigate(`/app/eventos/${evento.id}/dashboard`);
+          if (navigate) {
+            navigate("/admin/feedbacks", {
+              state: { eventoId: evento.idEvento ?? evento.id },
+            });
+          }
         });
     },
   });
