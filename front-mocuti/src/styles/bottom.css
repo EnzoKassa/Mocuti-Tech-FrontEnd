@@ -1,4 +1,5 @@
-html, body{
+html,
+body {
     scroll-behavior: smooth;
     margin: 0;
     padding: 0;
@@ -9,16 +10,17 @@ html, body{
 }
 
 .landing-body {
-width: 100%;
-padding: 0;
-margin: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
 
 
 }
 
 
 .nossos-eventos {
-    min-height: 100vh; /* Troque height por min-height */
+    min-height: 100vh;
+    /* Troque height por min-height */
     width: 100vw;
     display: flex;
     justify-content: center;
@@ -26,6 +28,7 @@ margin: 0;
     flex-direction: column;
     overflow: hidden;
 }
+
 .nav-box {
     width: 100%;
     height: 75px;
@@ -73,7 +76,7 @@ margin: 0;
     position: fixed;
     top: 0;
     z-index: 1;
-        font-family: 'Montserrat', sans-serif;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .botoes-cadastro-nav {
@@ -99,9 +102,9 @@ margin: 0;
     border: 2px solid green;
     transition: 0.2s ease-in-out;
     border-radius: 5px;
-     scale: 1.03;
-        font-family: 'Montserrat', sans-serif;
-        cursor: pointer;
+    scale: 1.03;
+    font-family: 'Montserrat', sans-serif;
+    cursor: pointer;
 
 }
 
@@ -130,8 +133,8 @@ margin: 0;
     border: 2px solid #2497d9;
     transition: 0.2s ease-in-out;
     border-radius: 5px;
-        font-family: 'Montserrat', sans-serif;
-        cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    cursor: pointer;
 
 }
 
@@ -616,6 +619,11 @@ margin: 0;
     font-family: 'Montserrat', sans-serif;
     justify-content: center;
     font-weight: 600;
+
+    textarea, input{
+        background-color: white;
+        padding-left: 5px;
+    }
 }
 
 .box-links-rodape {
@@ -673,4 +681,259 @@ margin: 0;
     width: 100%;
     height: 8vh;
     display: flex;
+}
+
+
+
+@media (min-width: 0px) and (max-width: 599px) {
+    .meu-perfil-page {
+        margin-top: 0 !important;
+    }
+
+    .box-texto-inicio {
+        display: flex;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 90% !important;
+
+
+    }
+
+    .box-texto-inicio-title {
+    
+        h1 {
+            font-size: 2rem !important;
+      
+        }
+
+        h3{
+            font-size: 1.2rem !important;
+       
+        }
+
+    }
+
+    .alinhar-esquerda-inicio {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex;
+        justify-content: center !important;
+        align-items: center;
+    }
+
+    .tela-inicio {
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex;
+        justify-content: center !important;
+        align-items: center;
+    }
+
+    .box-texto-inicio-texto{
+        p {
+            font-size: 1rem !important;
+            
+
+    }
+}
+
+
+
+.box-sobre-nos{
+    flex-direction: column !important;
+    height: 90% !important;
+    width: 90% !important;
+
+    padding: 0% !important;
+    margin: 0% !important;
+}
+
+.box-sobre-nos-left{
+    width: 90% !important;
+    height: 90% !important;
+}
+
+.box-sobre-nos-textos{
+    width: 100% !important;
+    height: 80% !important;
+    align-items: center !important;
+    gap: 5% !important;
+   
+  
+    justify-content: space-around !important;
+    p{
+        font-size: 1rem !important;
+    }
+}
+
+.box-sobre-nos-botoes{
+
+    
+  height: 20% !important;
+  justify-content: center !important;
+  align-items: end !important;
+}
+
+.box-sobre-nos-imagem{
+display: none !important;
+}
+
+
+.linha-do-tempo{
+    height: 80vh !important;
+    gap: 2%;
+}
+
+.titulo-linha-do-tempo{
+   height: 10% !important;
+   justify-content: center !important;
+   align-items: end !important;
+}
+.conteudo-linha-do-tempo{
+    width: 100% !important;
+    height: 80% !important;
+    gap: 5% !important;
+    align-items: start !important;
+
+}
+
+.top-linha-do-tempo, .low-linha-do-tempo{
+    width: 100% !important;
+    height: 50% !important;
+    flex-direction: column !important;
+    height: auto !important;
+    gap: 5% !important;
+
+}
+
+.item-linha-do-tempo{
+    width: 80% !important;
+}
+
+
+.botao-linha-do-tempo{
+    justify-content: center !important;
+    align-items: start !important;
+}
+
+
+/* Eventos */
+.titulos-nossos-eventos{
+    width: 90% !important;
+    height: 20%;
+}
+
+.box-botao-nossos-eventos{
+    width: 100% !important;
+    height: 20% !important;
+}
+
+.nossos-eventos{
+    min-height: 70vh !important;
+    height: 70vh !important;
+    justify-content: space-around !important;
+}
+
+.rodape{
+    flex-direction: column !important;
+    align-items: center !important;
+}
+.form-rodape{
+    width: 80% !important;
+    height:  60% !important;
+    padding: 5px;
+
+    input{
+        background-color: white !important;
+    }
+}
+
+.box-links-rodape{
+display: none !important;
+}
+
+.box-logo-rodape{
+    width: 80% !important;
+    height:  20% !important;
+    display: flex;
+    justify-content: center !important;
+    align-items: center !important;
+    img{
+        height: 80% !important;
+    }
+
+}
+
+}
+.carrossel-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carrossel-container {
+  width: 80%;
+  overflow: hidden; /* esconde o excesso */
+}
+
+.carrossel {
+  display: flex;
+  gap: 20px;
+  transition: transform 0.5s ease;
+}
+
+.card-nossos-eventos {
+  flex: 0 0 auto;
+  width: 300px;
+  height: 240px;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.box-img-card-eventos {
+  height: 75%;
+  width: 100%;
+}
+
+.box-img-card-eventos img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.titulo-card-eventos {
+  height: 25%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* Botões */
+.carrossel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background-color: rgba(0,0,0,0.3);
+  border: none;
+  color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 0.1rem 1rem;
+}
+
+.carrossel-btn.prev {
+  left: 10px;
+}
+
+.carrossel-btn.next {
+  right: 10px;
 }
