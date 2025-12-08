@@ -80,7 +80,7 @@ export default function HeaderBeneficiarioBotoes({ botoes }) {
                 <img src={face} alt="Facebook" />
               </a>
 
-              <a href="mailto:mocuti@gmail.com">
+              <a href="mailto:sitemocuti@gmail.com">
                 <img src={email} alt="Email" />
               </a>
             </div>

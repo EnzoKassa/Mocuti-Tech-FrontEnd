@@ -258,9 +258,14 @@
 
 }
 @media (min-width: 0px) and (max-width: 599px) {
+
+    .botoes-cadastro-nav-blue, .botoes-cadastro-nav{
+        width: 80% !important;
+
+    }
      
       .nav-links,
-    .nav-home {
+    .nav-home { 
         display: none !important;
     }
 
@@ -276,6 +281,7 @@
          position: fixed;
          top: 0;
          left: 0;
+         z-index: 1000;
     }
 
     .nav-mobile-botoes {

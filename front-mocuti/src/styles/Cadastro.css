@@ -364,6 +364,12 @@
     display: none;
   }
 
+  .cadastro-form {
+ 
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
   .cadastro-form-section {
     padding: 1rem;
     width: 100%;

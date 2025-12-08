@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import "../styles/bottom.css";
 import mocutiRodape from "../assets/images/mocuti-rodape.svg";
 import natal from "../assets/images/natal.png";
+import carnaval from "../assets/images/carnaval.jpeg";
+import apadrinhamento from "../assets/images/apadrinhamento.jpeg";
+import infancia from "../assets/images/infancia.jpeg";
 import parceiro from "../assets/images/parceiros.svg";
 import telefone from "../assets/images/telefone.svg";
 import varal from "../assets/images/varal.png";
@@ -12,6 +15,7 @@ import insta from "../assets/images/Instagram.svg";
 import inicio from "../assets/images/fundo-inicio.svg";
 import logo from "../assets/images/image (1).svg";
 import location from "../assets/images/location.svg";
+import menu from "../assets/images/menu.png";
 import { useRef } from "react";
 
 
@@ -36,23 +40,73 @@ const Home = () => {
     });
   };
 
+
+
+
+  const [fontSize, setFontSize] = useState(100);
+
+  const aumentarFonte = () => {
+    const novo = Math.min(fontSize + 10, 200);
+    setFontSize(novo);
+    document.documentElement.style.fontSize = novo + "%";
+  };
+
+  const diminuirFonte = () => {
+    const novo = Math.max(fontSize - 10, 50);
+    setFontSize(novo);
+    document.documentElement.style.fontSize = novo + "%";
+  };
+
+
   return (
     <div className="landing-body">
+      {/* BOTÕES ACESSIBILIDADE */}
+      <div className="fixed right-5 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4">
+        <button
+          onClick={aumentarFonte}
+          className="w-12 h-12 rounded-md bg-[#001F4D] text-white text-[18px] font-bold shadow-lg hover:bg-[#012d73] transition"
+        >
+          A+
+        </button>
+
+        <button
+          onClick={diminuirFonte}
+          className="w-12 h-12 rounded-md bg-[#001F4D] text-white text-[18px] font-bold shadow-lg hover:bg-[#012d73] transition"
+        >
+          A-
+        </button>
+      </div>
+
       {/* <div> */}
       {/* Navbar */}
       <div className="nav-home">
         <div className="nav-box">
-          <div className="nav-endereco">
-            <img src={location} alt="" />
-            Av dos Metalurgicos, 1081
+          <div
+            className="nav-endereco"
+            onClick={() => window.open("https://www.google.com/maps/place/Av+dos+Metalurgicos,+1081", "_blank")}
+            style={{ cursor: "pointer" }}
+          >
+            <img src={location} alt="Localização" />
+            Av dos Metalúrgicos, 1081
           </div>
           <div className="nav-contato">
-            <img src={telefone} alt="" />
-            11 980711297
-            <img src={insta} alt="" />
-            <img src={zap} alt="" />
-            <img src={face} alt="" />
-            <img src={email} alt="" />
+            <img src={telefone} alt="Telefone" /> 11 98971-1297
+
+            <a href="https://www.instagram.com/anarita.producoes" target="_blank" rel="noopener noreferrer">
+              <img src={insta} alt="Instagram" />
+            </a>
+
+            <a href="https://wa.me/5511989711297" target="_blank" rel="noopener noreferrer">
+              <img src={zap} alt="WhatsApp" />
+            </a>
+
+            <a href="https://www.facebook.com/share/1CUjDLGFhT/" target="_blank" rel="noopener noreferrer">
+              <img src={face} alt="Facebook" />
+            </a>
+
+            <a href="mailto:sitemocuti@gmail.com">
+              <img src={email} alt="Email" />
+            </a>
           </div>
         </div>
         <div className="nav-links-home">
@@ -74,6 +128,22 @@ const Home = () => {
               <a onClick={() => navigate('/login')} className="botoes-cadastro-nav-blue">Entrar</a>
             </div>
           </div>
+        </div>
+      </div>
+
+
+      <div className="nav-home-mobile">
+        <div className="nav-mobile-header">
+          <img src={logo} alt="Logo" />
+          <button className="menu-toggle"> <img className="img-menu-mobile" src={menu} alt="" /></button>
+        </div>
+        <div className="nav-mobile-botoes">
+          <a href="#inicio" className="botoes-nav btn-inicio">Início</a>
+          <a href="#sobre" className="botoes-nav btn-sobre">Sobre Nós</a>
+          <a href="#linha-do-tempo" className="botoes-nav btn-linha">Linha do Tempo</a>
+          <a href="#eventos" className="botoes-nav btn-eventos">Eventos</a>
+          <a onClick={() => navigate('/cadastro')} className="botoes-cadastro-nav">Criar Conta</a>
+          <a onClick={() => navigate('/login')} className="botoes-cadastro-nav-blue">Entrar</a>
         </div>
       </div>
 
@@ -205,7 +275,7 @@ const Home = () => {
 
           <div className="carrossel-container" ref={carouselRef}>
             <div className="carrossel">
-              {[inicio, natal, inicio, varal, inicio].map((img, index) => (
+              {[carnaval, natal, infancia, varal, apadrinhamento].map((img, index) => (
                 <div
                   key={index}
                   className="card-nossos-eventos"
@@ -218,7 +288,7 @@ const Home = () => {
                   </div>
                   <div className="titulo-card-eventos">
                     <p>
-                      {["Natal Consciente", "Natal Consciente", "Infância sem Racismo", "Varal Solidário", "Apadrinhamento"][index]}
+                      {["Carnaval", "Natal Consciente", "Infância sem Racismo", "Varal Solidário", "Apadrinhamento"][index]}
                     </p>
                   </div>
                 </div>
@@ -232,7 +302,7 @@ const Home = () => {
         </div>
 
         <div className="box-botao-nossos-eventos">
-          <a className="btn-diferenciado" style={{ backgroundColor: "#4FBD34" }}>
+          <a className="btn-diferenciado" onClick={() => navigate('/login')} style={{ backgroundColor: "#4FBD34" }}>
             Eventos Agendados
           </a>
         </div>
