@@ -188,7 +188,7 @@ return faixaEtariaDistribuicao.length > 0 ? <ChartBar data={data} options={optio
             datasets: [
                 {
                     data: valoresGenero,
-                    backgroundColor: ['#ff6384', '#36a2eb', '#9966cc'],
+                    backgroundColor: ['purple', 'pink', 'black', 'blue'],
                     borderWidth: 1,
                 },
             ],

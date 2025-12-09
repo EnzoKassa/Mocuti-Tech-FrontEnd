@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import HeaderBeneficiarioBotoes from "../../components/HeaderBeneficiarioBotoes";
