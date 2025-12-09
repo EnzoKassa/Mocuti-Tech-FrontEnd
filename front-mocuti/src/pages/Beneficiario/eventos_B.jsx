@@ -100,7 +100,7 @@ export default function EventosBeneficiario() {
         data = data.filter(
           (ev) =>
             (ev.categoria?.idCategoria ?? ev.categoriaId ?? ev.categoria?.id) ==
-              filtrosAtuais.categoriaId &&
+            filtrosAtuais.categoriaId &&
             (ev.statusEvento?.idStatusEvento ??
               ev.statusEventoId ??
               ev.statusEvento?.id ??
@@ -203,8 +203,8 @@ export default function EventosBeneficiario() {
               String(c.idCategoria) ===
               String(
                 evento.categoria?.idCategoria ??
-                  evento.categoriaId ??
-                  evento.categoria?.id
+                evento.categoriaId ??
+                evento.categoria?.id
               )
           )?.nome ||
           "";
@@ -215,8 +215,8 @@ export default function EventosBeneficiario() {
               String(s.idStatusEvento) ===
               String(
                 evento.statusEvento?.idStatusEvento ??
-                  evento.statusEventoId ??
-                  evento.status_evento
+                evento.statusEventoId ??
+                evento.status_evento
               )
           )?.situacao ||
           "";
@@ -305,9 +305,9 @@ export default function EventosBeneficiario() {
           (ev) =>
             String(
               ev.categoria?.idCategoria ??
-                ev.categoriaId ??
-                ev.categoria?.id ??
-                ""
+              ev.categoriaId ??
+              ev.categoria?.id ??
+              ""
             ) === cid
         );
       }
@@ -317,10 +317,10 @@ export default function EventosBeneficiario() {
           (ev) =>
             String(
               ev.statusEvento?.idStatusEvento ??
-                ev.statusId ??
-                ev.statusEventoId ??
-                ev.status_evento ??
-                ""
+              ev.statusId ??
+              ev.statusEventoId ??
+              ev.status_evento ??
+              ""
             ) === sid
         );
       }
@@ -374,10 +374,10 @@ export default function EventosBeneficiario() {
       const getStatusText = (ev) =>
         String(
           ev.statusEfetivo ||
-            ev.statusSituacao ||
-            ev.statusEvento?.situacao ||
-            ev.situacao ||
-            ""
+          ev.statusSituacao ||
+          ev.statusEvento?.situacao ||
+          ev.situacao ||
+          ""
         ).toLowerCase();
 
       const isClosed = (ev) => {
@@ -403,10 +403,10 @@ export default function EventosBeneficiario() {
 
       const selForFilter = filtrosAtuais.statusEventoId
         ? (statusList || []).find(
-            (s) =>
-              String(s.idStatusEvento ?? s.id ?? s.value) ===
-              String(filtrosAtuais.statusEventoId)
-          )
+          (s) =>
+            String(s.idStatusEvento ?? s.id ?? s.value) ===
+            String(filtrosAtuais.statusEventoId)
+        )
         : null;
       const selText = selForFilter
         ? String(selForFilter.situacao || selForFilter.nome || "").toLowerCase()
@@ -508,8 +508,8 @@ export default function EventosBeneficiario() {
       const body = contentType.includes("application/json")
         ? res.data
         : typeof res.data === "string"
-        ? res.data
-        : JSON.stringify(res.data);
+          ? res.data
+          : JSON.stringify(res.data);
 
       if (res.status >= 200 && res.status < 300) {
         triggerApiRefresh();
@@ -639,7 +639,7 @@ export default function EventosBeneficiario() {
         </div>
       </div>
     `;
-    
+
 
     Swal.fire({
       title: titulo,
@@ -706,28 +706,58 @@ export default function EventosBeneficiario() {
     });
   };
 
+   const [fontSize, setFontSize] = useState(100);
   
+    const aumentarFonte = () => {
+      const novo = Math.min(fontSize + 10, 200);
+      setFontSize(novo);
+      document.documentElement.style.fontSize = novo + "%";
+    };
+  
+    const diminuirFonte = () => {
+      const novo = Math.max(fontSize - 10, 50);
+      setFontSize(novo);
+      document.documentElement.style.fontSize = novo + "%";
+    };
 
-  
+
+
+
 
   return (
     <>
+      {/* BOTÕES ACESSIBILIDADE */}
+      <div className="fixed right-5 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4">
+        <button
+          onClick={aumentarFonte}
+          className="w-12 h-12 rounded-md bg-[#001F4D] text-white text-[18px] font-bold shadow-lg hover:bg-[#012d73] transition"
+        >
+          A+
+        </button>
+
+        <button
+          onClick={diminuirFonte}
+          className="w-12 h-12 rounded-md bg-[#001F4D] text-white text-[18px] font-bold shadow-lg hover:bg-[#012d73] transition"
+        >
+          A-
+        </button>
+      </div>
 
       <HeaderBeneficiarioBotoes botoes={botoesNav} />
       <div className="EventosBeneficiarioMargin">
-      <FiltroBeneficiario
-        filtros={filtrosUI}
-        onFiltroChange={handleFiltroChange}
-        categorias={categorias}
-        statusList={statusList}
-        onPesquisar={handlePesquisar}
-      />
-      <EspacoEventosBeneficiario
-        eventos={eventos}
-        onParticipar={handleParticiparClick}
-        onInscrever={inscreverEvento}
-        onMostrarDetalhes={mostrarDetalhes}
-      />
+        <FiltroBeneficiario
+          filtros={filtrosUI}
+          onFiltroChange={handleFiltroChange}
+          categorias={categorias}
+          statusList={statusList}
+          onPesquisar={handlePesquisar}
+        />
+        <EspacoEventosBeneficiario
+          eventos={eventos}
+          onParticipar={handleParticiparClick}
+          onInscrever={inscreverEvento}
+          onMostrarDetalhes={mostrarDetalhes}
+        />
       </div>
     </>
   );

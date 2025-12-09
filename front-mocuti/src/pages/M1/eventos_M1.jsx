@@ -783,8 +783,7 @@ export default function EventosM1() {
 
   return (
     <div className="TelaComNavLateral">
-      <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
-
+      
          {/* BOTÕES ACESSIBILIDADE */}
       <div className="fixed right-5 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4">
         <button
@@ -801,11 +800,15 @@ export default function EventosM1() {
           A-
         </button>
       </div>
-      <div className="MainContenEventostM2" style={{ flex: 1 }}>
-        <div className="scroll-page">
-          <main className="conteudo-com-nav" style={{ paddingTop: "20px" }}>
-            <div className="titulo-eventos-m1">
-              <h1 style={{ margin: 0 }}>Tela de eventos do sistema</h1>
+
+
+      <NavLateral rotasPersonalizadas={rotasPersonalizadas} />
+
+
+        
+          <div className="conteudo-com-nav">
+            <div className="eventos-do-m1">
+              <h1>Tela de eventos do sistema</h1>
               <button
                 className="BotaoCadastrarEvento"
                 onClick={() => abrirFormularioEvento()}
@@ -834,9 +837,8 @@ export default function EventosM1() {
                 />
               )}
             </div>
-          </main>
+          </div>
         </div>
-      </div>
-    </div>
+
   );
 }

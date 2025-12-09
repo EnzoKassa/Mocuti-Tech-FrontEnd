@@ -22,19 +22,7 @@
 
 }
 
-.titulo-eventos-m1{
-    font-size: 3rem;
-    font-weight: 700;
-    color: #1e293b;
-    display: flex;
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    gap: 33%;
-    margin: 0;
-    padding: 0;
 
-}
 
 .BotaoCadastrarEvento{
   margin: 0;

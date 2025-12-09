@@ -7,7 +7,7 @@ import EspacoEventosBeneficiario from "../../components/espacoeventosbeneficiari
 import ModalFeedback from "../../components/modal/Modal_Feedback_M2";
 import ModalVisualizacao from "../../components/modal/Modal_FeedbackVisul_M2";
 // import { BASE_URL, fetchInscritosCargo2Count } from "../../api/api";
-import api from "../../api/api"; 
+import api from "../../api/api";
 import "../../styles/meusEventos.css";
 import Swal from "sweetalert2";
 
@@ -190,11 +190,11 @@ export default function FeedbackBeneficiario() {
         prev.map((ev) =>
           ev.id.eventoId === p.id.eventoId
             ? {
-                ...ev,
-                feedbackId: updated.idFeedback,
-                nota: notaString,
-                comentario: updated.comentario,
-              }
+              ...ev,
+              feedbackId: updated.idFeedback,
+              nota: notaString,
+              comentario: updated.comentario,
+            }
             : ev
         )
       );
@@ -215,10 +215,43 @@ export default function FeedbackBeneficiario() {
   const abrirFeedbackEdit = (evento) => setModalData({ ...evento, isPassado: false });
   const abrirFeedbackView = (evento) => setModalData({ ...evento, isPassado: true });
 
+   const [fontSize, setFontSize] = useState(100);
+  
+    const aumentarFonte = () => {
+      const novo = Math.min(fontSize + 10, 200);
+      setFontSize(novo);
+      document.documentElement.style.fontSize = novo + "%";
+    };
+  
+    const diminuirFonte = () => {
+      const novo = Math.max(fontSize - 10, 50);
+      setFontSize(novo);
+      document.documentElement.style.fontSize = novo + "%";
+    };
+
   if (loading) return <p>Carregando eventos...</p>;
 
   return (
+
+
     <div className="scroll-page-usuario">
+      {/* BOTÕES ACESSIBILIDADE */}
+      <div className="fixed right-5 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4">
+        <button
+          onClick={aumentarFonte}
+          className="w-12 h-12 rounded-md bg-[#001F4D] text-white text-[18px] font-bold shadow-lg hover:bg-[#012d73] transition"
+        >
+          A+
+        </button>
+
+        <button
+          onClick={diminuirFonte}
+          className="w-12 h-12 rounded-md bg-[#001F4D] text-white text-[18px] font-bold shadow-lg hover:bg-[#012d73] transition"
+        >
+          A-
+        </button>
+      </div>
+
       <HeaderBeneficiarioBotoes botoes={botoesNav} />
 
       <div className="meus-eventos-beneficiario">
@@ -276,7 +309,7 @@ export default function FeedbackBeneficiario() {
       )}
 
       {modalData && modalData.isPassado && (
-      <ModalVisualizacao modalData={modalData} onClose={() => setModalData(null)} />
+        <ModalVisualizacao modalData={modalData} onClose={() => setModalData(null)} />
       )}
     </div>
   );
