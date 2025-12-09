@@ -502,9 +502,9 @@ function Cadastro() {
                     <option value="">Selecione</option>
                     <option value="Masculino">Masculino</option>
                     <option value="Feminino">Feminino</option>
-                    <option value="Não Binárie">Outro</option>
-                    <option value="Outro">Prefiro não informar</option>
-                    
+                    <option value="Não Binárie">Não Binárie</option>
+                    <option value="Outro">Outro</option>
+
                   </select>
                   {errors.genero && (
                     <span className="error-text">{errors.genero}</span>
